@@ -11,7 +11,7 @@
 - 必做：BM25、向量检索、固定混合、自适应混合；查询高亮、HTTP、数据集评测。
 - 布尔/短语：显式约束绝不放松；parser 已支持 `AND`、`OR`、`NOT`、括号和双引号连续短语。约束先在词法层过滤，hybrid 在 RRF 前保留过滤结果，dense 对显式约束返回 400。
 - 使用预训练 embedding 与现成向量库（拟用单机 Qdrant / HNSW）；不训练神经网络、不生成答案。这是 RAG 的检索层，不是完整 RAG。
-- 不做：爬虫、分布式、增量更新、PageRank、神经重排。RM3 已作为可选的确定性附加实验接入；SLM 仍需外部模型，不计入必做主线。
+- 不做生产级持续爬虫、分布式、增量更新、PageRank、神经重排。为满足课程自建测试集要求，`evaluation.crawl_web` 只提供有边界的一次性 corpus 构造和人工标注模板；它不自动生成 qrels，也不进入在线检索服务。RM3 已作为可选的确定性附加实验接入；SLM 仍需外部模型，不计入必做主线。
 - UI 和评测器已实现并通过人工可运行检查；评测器只能通过 HTTP 调用引擎。
 
 ## 2. 检索原理与算法分工
@@ -155,4 +155,4 @@ index/<dataset>/<build-id>/
 
 已实现：词法索引构建/读取、普通 OR 查询、BM25/TF-IDF、布尔/短语过滤、高亮与 HTTP；双索引构建编排和 manifest 发布检查；四模式编排、规则 Router、RRF、分页/降级回显；浏览器 UI、HTTP-only 评测器、可选 Sentence-Transformers 编码器与 Qdrant 建库/快照/只读适配器。
 
-默认 CLI 不传向量参数时只启动词法服务；强制 dense/hybrid 在向量依赖未配置时返回 503，adaptive 明确降级。仓库已提供外部数据校验/固定划分、HTTP 评测和 paired bootstrap 工具；待完成的是依赖真实 DuRetrieval 数据、模型和 Qdrant 实例的全量四组实验与 HNSW 性能测量。内存向量测试不能作为 HNSW 性能或语义效果结论。
+默认 CLI 不传向量参数时只启动词法服务；强制 dense/hybrid 在向量依赖未配置时返回 503，adaptive 明确降级。仓库已提供外部数据校验/固定划分、HTTP 评测、paired bootstrap 和有边界的网络测试集构造工具；prefix20k 的真实四模式结果已作为工程冒烟记录。待完成的是依赖课程实际数据、固定 test labels、真实 Qdrant/HNSW 服务的全量四组实验与性能测量。内存或 local exact 向量测试不能作为 HNSW 性能或全量语义效果结论。

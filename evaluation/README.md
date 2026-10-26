@@ -88,3 +88,34 @@ Run the evaluator tests with:
 ```bash
 python3 -m unittest discover -s evaluation -p 'test_*.py'
 ```
+
+## Bounded web test-set workflow
+
+`evaluation.crawl_web` is a bounded corpus constructor for the teacher-requested
+network test set. It only accepts HTTP(S), normalizes URLs, rejects credentials,
+uses same-domain breadth-first traversal by default, checks `robots.txt`, and
+limits depth, document count, response bytes, timeout, and request spacing.
+It writes only page IDs, titles, text, and URLs; it does not infer relevance.
+
+```bash
+python3 -m evaluation.crawl_web crawl \
+  --seed https://example.org/ \
+  --out-corpus data/crawl/corpus.jsonl \
+  --annotation-template data/crawl/annotations.template.jsonl
+```
+
+After a human annotator fills `query` and `relevance` (0/1/2) in a copy of the
+template, finalize it with:
+
+```bash
+python3 -m evaluation.crawl_web finalize \
+  --corpus data/crawl/corpus.jsonl \
+  --annotations data/crawl/annotations.jsonl \
+  --queries-out data/crawl/queries.jsonl \
+  --qrels-out data/crawl/qrels.tsv
+```
+
+Finalization rejects unknown document IDs, duplicate judgments, empty queries,
+and queries without a positive judgment. The generated files are evaluation
+inputs and remain outside version control. This workflow is separate from the
+official DuReader dev resources and must not be mixed with their IDs or qrels.

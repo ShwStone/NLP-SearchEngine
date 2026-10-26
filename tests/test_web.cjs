@@ -7,8 +7,16 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
+function makeNode() {
+  return { addEventListener() {}, innerHTML: "", textContent: "", hidden: false };
+}
+
+const nodes = Object.fromEntries([
+  "#search-form", "#query", "#mode", "#k", "#submit", "#status", "#error",
+  "#results", "#observability", "#summary", "#routing", "#timings", "#index-summary",
+].map((selector) => [selector, makeNode()]));
 const context = vm.createContext({
-  document: { querySelector: () => ({ addEventListener() {} }) },
+  document: { querySelector: (selector) => nodes[selector] },
   fetch: async () => { throw new Error("No network in UI tests"); },
 });
 vm.runInContext(
@@ -57,4 +65,18 @@ test("Unicode handling preserves HTML escaping and empty snippets", () => {
     '<mark class="original">&lt;script&gt;</mark>&amp;😀',
   );
   assert.equal(highlightedSnippet(""), '<span class="muted">无摘要</span>');
+});
+
+test("failed searches clear stale routing and timing facts", () => {
+  nodes["#summary"].textContent = "3 条结果 · 总耗时 2 ms";
+  nodes["#routing"].innerHTML = "<div>旧路由</div>";
+  nodes["#timings"].innerHTML = "<span>旧耗时</span>";
+  nodes["#observability"].hidden = false;
+
+  context.clearObservability();
+
+  assert.equal(nodes["#summary"].textContent, "");
+  assert.equal(nodes["#routing"].innerHTML, "");
+  assert.equal(nodes["#timings"].innerHTML, "");
+  assert.equal(nodes["#observability"].hidden, true);
 });

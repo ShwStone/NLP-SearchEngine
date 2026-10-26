@@ -6,6 +6,7 @@
 - [跨组 API 契约](contracts/RETRIEVAL.md)
 - [开题汇报 PDF](slides/proposal.pdf) / [Typst 源文件](slides/proposal.typ)
 - [实施计划与历史讨论](PLAN.md)
+- [当前 TODO、证据边界与下一步](TODO.md)
 
 ## 目录结构
 
@@ -127,6 +128,31 @@ python3 -m evaluation.evaluate \
 `evaluation.compare` 可对两组 TREC run 做可复现的 query-level paired bootstrap。详见
 [evaluation/README.md](evaluation/README.md)。
 
+### 教师建议：路由对比与自建测试集
+
+Router 是本项目的核心实验变量：固定 hybrid 每次访问两路，adaptive 只改变是否触发向量分支，模型、候选池、RRF 参数和数据划分必须保持一致。先在 dev 冻结规则阈值，再在独立 test 上保存四种模式的 TREC run、逐查询路由原因和向量触发/成功/fallback 统计；用 `evaluation.compare` 对 fixed-hybrid 与 adaptive 做 paired bootstrap。当前 prefix20k 的真实结果和区间只属于工程冒烟，详见 [evaluation/RESOURCES.md](evaluation/RESOURCES.md)。
+
+为响应“自行构造网络测试集”的要求，仓库提供了有边界的 crawler，但不会伪造 qrels。它默认只抓 HTTP(S)、尊重 robots、限制同域、深度、文档数、响应大小和请求间隔，先生成未标注 corpus 与人工标注模板：
+
+```bash
+python -m evaluation.crawl_web crawl \
+  --seed https://example.org/ \
+  --out-corpus data/crawl/corpus.jsonl \
+  --annotation-template data/crawl/annotations.template.jsonl
+```
+
+组员人工填写 `query` 和 `relevance`（0/1/2）后，再生成评测器可读的 queries/qrels：
+
+```bash
+python -m evaluation.crawl_web finalize \
+  --corpus data/crawl/corpus.jsonl \
+  --annotations data/crawl/annotations.jsonl \
+  --queries-out data/crawl/queries.jsonl \
+  --qrels-out data/crawl/qrels.tsv
+```
+
+模板本身不是评测集；没有人工正相关标注时命令会拒绝输出 qrels。数据和生成结果位于被 `.gitignore` 排除的目录，不应提交到仓库。
+
 外部数据版本、下载限制和课程规模校验见 [evaluation/RESOURCES.md](evaluation/RESOURCES.md)。
 
 ## 当前状态与后续工作
@@ -135,8 +161,11 @@ python3 -m evaluation.evaluate \
 
 **已完成的资源准备**：已核验 RocketQA 官方 DuReader-Retrieval baseline archive，确认其包含
 8,096,668 个 passage、2,000 个 dev 查询和 9,839 条去重 qrels，并提供专用流式适配器、SHA256
-清单和 dev-only 边界。**待完成的实验工作**：该公开 archive 没有官方 test labels；真实 embedding、
-GPU 编码、Qdrant 和四组完整实验仍需在可用的 GPU/存储配额上运行，记录 nDCG/Recall/MAP/延迟
-和 paired bootstrap 区间。数据、模型和索引产物不随仓库提交，仓库已提供校验、固定划分和区间计算入口。
+清单和 dev-only 边界。另已在集群上用固定的 20,000 文档前缀、19 条有标注查询、真实 384 维
+Sentence-Transformers 模型和 qdrant-client local embedded collection 完成 lexical、dense、hybrid、
+adaptive 四模式及 20,000 次 paired bootstrap。该公开 archive 没有官方 test labels，prefix smoke
+不能代表课程全量；该次真实模型运行使用 qdrant-client 1.16.0 local embedded 的精确／全扫描配置，
+没有宣称 HTTP Qdrant/HNSW 或 8M 规模语义实验。数据、模型和索引产物不随
+仓库提交，仓库已提供校验、固定划分和区间计算入口。
 
 RM3 已实现为确定性的本地伪相关反馈扩展；SLM 仍需要外部固定模型与离线缓存，返回 501。扩展不改变显式布尔/短语约束。内存测试通过不代表真实语义质量或 HNSW 性能已经验收。

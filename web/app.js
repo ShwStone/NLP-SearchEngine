@@ -45,6 +45,14 @@ function hideError() {
   errorBox.textContent = "";
 }
 
+function clearObservability() {
+  // A failed request must not leave the previous query's routing facts visible.
+  summary.textContent = "";
+  routingBox.innerHTML = "";
+  timingsBox.innerHTML = "";
+  observability.hidden = true;
+}
+
 function formatBoolean(value) {
   return value ? "是" : "否";
 }
@@ -135,7 +143,7 @@ async function search(event) {
   const k = Number.isInteger(parsedK) ? Math.max(1, Math.min(200, parsedK)) : 10;
   kInput.value = String(k);
   hideError();
-  observability.hidden = true;
+  clearObservability();
   submitButton.disabled = true;
   setStatus("正在检索…");
   try {
@@ -149,6 +157,7 @@ async function search(event) {
     renderResponse(data);
   } catch (error) {
     resultBox.innerHTML = "";
+    clearObservability();
     setStatus("检索失败", "failure");
     showError(error instanceof Error ? error.message : "请求失败，请稍后重试");
   } finally {
