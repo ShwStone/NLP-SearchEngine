@@ -1,0 +1,28 @@
+{
+  "format": "gzip files expand to UTF-8 evidence; runtime paths are provenance, not portable asset locations",
+  "files": {
+    "FREEZE.json": "ec16f4e48e8084fc2b962ccbce5f92a5c4bcb2bd01f15b249fe8c3a8bc186473",
+    "REPORT.json": "aba917a2b266b41b0c3cf5ba59d1933e13787c54251c413da824c74f15962725",
+    "core-tests.txt": "4bbba10ef08696528a362d7efe11692476e3c004e798f857ff5b65bc14a9b2f4",
+    "dev/provenance.json": "ea298316c1987c6ba1fae216a81a71e147dfb101238256613f2befc1f6f056dd",
+    "dev/table.jsonl.gz": "9afd91165707761e3769f2ef49a17b04bbf5a13ad63781a531a88456a982ba99",
+    "evaluation-tests.txt": "399175e9075713673841bdf83e4e3d4491ae27b3c32fe0feb30ed46d2b3391a6",
+    "http-dev/engine-info.json": "49115e07ddb007adca8c169df8c9efc40d944fbdf48e1babd39d00fc4d3aabd4",
+    "http-dev/protocol.json": "34bd8eebef1799502cfc2142dc2ff3b028610d41fafcbf0fd5ec81511b38812d",
+    "http-dev/requests.jsonl.gz": "a4d45a7a4c1231134d7f965166a4234536bb6591fd490757439a71a2bddecda2",
+    "http-dev/services-stopped.json": "834c7f87837f37d9cdf3f197cc4648e9dd1f5b78ce902e3f1b9477d623648027",
+    "http-dev/summary.json": "c5f066012b2531108c0aa1453d4cc5a198a0952516c6e391fe971984d262c160",
+    "http-transfer/engine-info.json": "4d0c3eecaade011fe924a37c12aa397f90dba03a4747f1c703016e9c3af67b2c",
+    "http-transfer/protocol.json": "6b3e2efbd061fbb2021ebd8ea841784de165a100284e655e33ef594ad2709cb3",
+    "http-transfer/requests.jsonl.gz": "61fbd84fb5b9476dd3e4392d9e918d30b264fe9794fcc4e1a37508142ae1d11e",
+    "http-transfer/services-stopped.json": "acd182b51fa1b12ff71c485f5cb1837406c5b966f3ec5b9c93f04e44bff7d81a",
+    "http-transfer/summary.json": "6b308b404785db987e9abe9092b8218b9d747beae51f720f92ff62c96006bddd",
+    "runtime.json": "4e153c41df8dcf6c9d77e1ed0c75adeef89738eca3b1ef74b6a6151952d4fea0",
+    "study/export-audit.json": "b0a80334f43594129f8cf3667239174c4ef09737472308cf5cc91a6444371a3f",
+    "study/model.json": "ebc274813ee38e9c6e802cc29ee56e36653b97b72f6a218d65d18717de060dc1",
+    "study/outer-predictions.jsonl.gz": "b08ae057447e4461c586de3f6e554141f7d5f627553407c15ec5aced12c8460b",
+    "study/study.json.gz": "eb27d91139e2cb3b9cab4600cf03e5d8f1a7cb6d8ee2ff5f28d8662daf4b4d72",
+    "transfer-data/manifest.json": "1ad57a4c45928865c9e13690a28790bf56f6e6b6b508658a83b2259c4ca7fbc0",
+    "history-overlap-audit.json": "0258d29465de008da439642483de065d1eb37e9d3271701739307bb4bf5ec4d1"
+  }
+}

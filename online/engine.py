@@ -19,23 +19,27 @@ from . import parser, scorers
 from .expanders import EXPANDERS
 from .fusion import rrf
 from .highlight import build_highlights
-from .router import QueryFeatures, RuleRouter
+from .router import QueryFeatures, RouteDecision, Router, RuleRouter
+from .router_features import extract_statistics
 
 SNIPPET_LEN = 80
 
 
 class SearchEngine:
     def __init__(self, reader: IndexReader, encoder: TextEncoder | None = None,
-                 vectors: VectorReader | None = None, config: RetrievalConfig | None = None):
+                 vectors: VectorReader | None = None, config: RetrievalConfig | None = None,
+                 router: Router | None = None):
         self.reader = reader
         self.encoder = encoder
         self.vectors = vectors
         self.config = config or RetrievalConfig()
-        self.router = RuleRouter(self.config)
+        self.router = router or RuleRouter(self.config)
         if (encoder is None) != (vectors is None):
             raise ValueError("encoder 与 vectors 必须同时提供或同时省略")
         if vectors is not None:
             check_alignment(reader, vectors, encoder)
+        if router is not None and hasattr(router, 'check_binding'):
+            router.check_binding(reader, self.config, vectors)
 
     def info(self) -> dict:
         """能力与配置回显，不把尚未实现的后端宣称为可用。"""
@@ -43,6 +47,8 @@ class SearchEngine:
             "vector_ready": self.vectors is not None,
             "config": asdict(self.config),
             "vector_manifest": self.vectors.manifest().to_dict() if self.vectors else None,
+            "router": {"policy_version": self.router.policy_version,
+                       "requires_statistics": self.router.requires_statistics},
         }
 
     def _vector_search(self, query: str, timings: dict) -> list[tuple[int, float]]:
@@ -113,13 +119,17 @@ class SearchEngine:
 
         reason = f"forced_{req.mode}"
         use_vector = req.mode in ("dense", "hybrid")
+        route_policy = self.router.policy_version
         if req.mode == "adaptive":
             start = time.perf_counter()
             unique_terms = set(terms)
             coverage = sum(self.reader.df(t) > 0 for t in unique_terms) / len(unique_terms) if unique_terms else 0.0
             gap = ((ranked[0][1] - ranked[1][1]) / max(abs(ranked[0][1]), 1e-12)
                    if len(ranked) >= 2 else None)
-            decision = self.router.decide(QueryFeatures(explicit, len(unique_terms), coverage, len(ranked), gap))
+            router = self.router  # SearchRequest already requires BM25/no expansion here.
+            stats = extract_statistics(req.query, self.reader, terms, ranked) if router.requires_statistics and not explicit else {}
+            decision = (RouteDecision(False, 'explicit_constraints') if explicit else
+                        router.decide(QueryFeatures(False, len(unique_terms), coverage, len(ranked), gap, stats)))
             use_vector, reason = decision.use_vector, decision.reason
             timings["router"] = (time.perf_counter() - start) * 1000
 
@@ -158,7 +168,6 @@ class SearchEngine:
             ))
         routing = RoutingInfo(req.mode, executed, reason, vector_used, use_vector, fallback,
                               score_kind, self.config.candidate_k,
-                              self.config.policy_version if self.config.adaptive_policy == "rules-v1"
-                              else self.config.adaptive_policy)
+                              route_policy)
         return SearchResponse(int((time.perf_counter() - t0) * 1000), parsed, expanded,
                               results, routing, {k: round(v, 3) for k, v in timings.items()})

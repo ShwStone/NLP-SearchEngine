@@ -1,0 +1,56 @@
+{
+  "history_files": {
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/duretrieval/queries.dev.jsonl": {
+      "queries": 1000,
+      "sha256": "edc3f771f0e828ae43804a353c06118319404728f7171c859c74f245854a4dcf"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/duretrieval/queries.test.jsonl": {
+      "queries": 1000,
+      "sha256": "29174be4f494444b8e12398e2b8f5ff2d616f2ae5a5eceded2461ae437ae6480"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round2/ann/queries.jsonl": {
+      "queries": 0,
+      "sha256": "0638b8811b37fa79ad85fef7279dc7b64ffe02fea52ffe17affcee9bd2932b4a"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round2/reference/queries.jsonl": {
+      "queries": 0,
+      "sha256": "f858b123930936f2af74dfc23ad48ac52a6af8698e8cf3c4a694a2f8b732f6b2"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round2/t2-data/queries.external.jsonl": {
+      "queries": 1000,
+      "sha256": "02ffde4dcff26beb0b768a7035edfb50e0299111d591b16a32aa8f1104c59441"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round2/t2-data/queries.external.natural.jsonl": {
+      "queries": 998,
+      "sha256": "48857b448add91b8df4c662e68a2f9347714d2c140efaf7f9faa8a4e4bdd9ac6"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/mmarco-data/queries.external.jsonl": {
+      "queries": 1000,
+      "sha256": "155da75f9f998e00571d7b041ea9bc854dc01642826f2b9a0226111e8cb3fffd"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/queries.dev.jsonl": {
+      "queries": 997,
+      "sha256": "d1c0a522946e89673b2b864d6c703edbf81e3e8280e504201fbf571b126bd6bd"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/queries.external.jsonl": {
+      "queries": 999,
+      "sha256": "1dabc213c761e8dd0fd616265f7a63017750da710958ea459a4a423ab56594e7"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/queries.known-test.jsonl": {
+      "queries": 1000,
+      "sha256": "29174be4f494444b8e12398e2b8f5ff2d616f2ae5a5eceded2461ae437ae6480"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round5/cmedqa-data/queries.jsonl": {
+      "queries": 512,
+      "sha256": "fc7033e474ec345d6a2e101896a8ca73862bf4d02618cba7469cb022ca3a0da9"
+    },
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round5/diagnostic-data/queries.jsonl": {
+      "queries": 128,
+      "sha256": "4a62478d442a4457f04edf91ee0e9e711f2a858907760e7cc4b8bf8ac4f5bd54"
+    }
+  },
+  "historical_rows": 8634,
+  "transfer_queries": 256,
+  "near_duplicate_matches": [],
+  "uses_retrieval_scores": false
+}

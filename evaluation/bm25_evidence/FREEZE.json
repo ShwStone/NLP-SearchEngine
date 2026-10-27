@@ -1,0 +1,9 @@
+{
+  "model_sha256": "ebc274813ee38e9c6e802cc29ee56e36653b97b72f6a218d65d18717de060dc1",
+  "model_file": "/root/autodl-tmp/NLP-SearchEngine-router/artifacts/rfc01/study/model.json",
+  "date": "2026-10-27",
+  "protocol": "no further model/feature/threshold changes after this freeze; additional CMedQA queries are fixed transfer evaluation only",
+  "additional_queries": "At most 256 lowest SHA256(rfc01-cmedqa-unused|qid) plain answerable queries in the existing 20k corpus, excluding prior 512 IDs and near-duplicates (NFKC alphanumeric bigram Jaccard>=.8) of all observed query sets; report actual count, do not refill based on scores",
+  "cost_sample": "48 lowest SHA256(rfc01-http|qid) dev IDs; 3 repeats, 5 variants in deterministic shuffled order; k=100; warm up 3 per variant; paired repeated queries",
+  "limitation": "same observed 20k corpus; answerability-conditioned restricted qrels; not a new corpus, official full benchmark, or final team-approved holdout"
+}

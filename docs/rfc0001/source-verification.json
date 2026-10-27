@@ -1,0 +1,434 @@
+{
+  "checked": "2026-10-27",
+  "sources": [
+    {
+      "name": "clarity",
+      "url": "https://api.crossref.org/works/10.1145/564376.564429",
+      "bytes": 8198,
+      "excerpt": {
+        "title": [
+          "Predicting query performance"
+        ],
+        "abstract": null,
+        "authors": [
+          "Steve Cronen-Townsend",
+          "Yun Zhou",
+          "W. Bruce Croft"
+        ]
+      }
+    },
+    {
+      "name": "nqc",
+      "url": "https://api.crossref.org/works/10.1145/2180868.2180873",
+      "bytes": 19403,
+      "excerpt": {
+        "title": [
+          "Predicting Query Performance by Query-Drift Estimation"
+        ],
+        "abstract": "<jats:p>\n            Predicting\n            <jats:italic>query performance</jats:italic>\n            , that is, the effectiveness of a search performed in response to a query, is a highly important and challenging problem. We present a novel approach to this task that is based on measuring the standard deviation of retrieval scores in the result list of the documents most highly ranked. We argue that for retrieval methods that are based on document-query surface-level similarities, the standard deviation can serve as a surrogate for estimating the presumed amount of\n            <jats:italic>query drift</jats:italic>\n            in the result list, that is, the presence (and dominance) of aspects or topics not related to the query in documents in the list. Empirical evaluation demonstrates the prediction effectiveness of our approach for several retrieval models. Specifically, the prediction quality often transcends that of current state-of-the-art prediction methods.\n          </jats:p>",
+        "authors": [
+          "Anna Shtok",
+          "Oren Kurland",
+          "David Carmel",
+          "Fiana Raiber",
+          "Gad Markovits"
+        ]
+      }
+    },
+    {
+      "name": "selective",
+      "url": "https://api.crossref.org/works/10.1145/1031171.1031220",
+      "error": "HTTP Error 429: Too Many Requests"
+    },
+    {
+      "name": "cascade",
+      "url": "https://cs.uwaterloo.ca/~jimmylin/publications/Wang_etal_SIGIR2011.pdf",
+      "bytes": 915135,
+      "excerpt": "PDF downloaded"
+    },
+    {
+      "name": "fusion",
+      "url": "https://arxiv.org/abs/2210.11934",
+      "bytes": 41664,
+      "excerpt": "T i t l e : A n A n a l y s i s o f F u s i o n F u n c t i o n s f o r H y b r i d R e t r i e v a l A b s t r a c t : W e s t u d y h y b r i d s e a r c h i n t e x t r e t r i e v a l w h e r e l e x i c a l a n d s e m a n t i c s e a r c h a r e f u s e d t o g e t h e r w i t h t h e i n t u i t i o n t h a t t h e t w o a r e c o m p l e m e n t a r y i n h o w t h e y m o d e l r e l e v a n c e . I n p a r t i c u l a r , w e e x a m i n e f u s i o n b y a c o n v e x c o m b i n a t i o n ( C C ) o f l e x i c a l a n d s e m a n t i c s c o r e s , a s w e l l a s t h e R e c i p r o c a l R a n k F u s i o n ( R R F ) m e t h o d , a n d i d e n t i f y t h e i r a d v a n t a g e s a n d p o t e n t i a l p i t f a l l s . C o n t r a r y t o e x i s t i n g s t u d i e s , w e f i n d R R F t o b e s e n s i t i v e t o i t s p a r a m e t e r s ; t h a t t h e l e a r n i n g o f a C C f u s i o n i s g e n e r a l l y a g n o s t i c t o t h e c h o i c e o f s c o r e n o r m a l i z a t i o n ; t h a t C C o u t p e r f o r m s R R F i n i n - d o m a i n a n d o u t - o f - d o m a i n s e t t i n g s ; a n d f i n a l l y , t h a t C C i s s a m p l e e f f i c i e n t , r e q u i r i n g o n l y a s m a l l s e t o f t r a i n i n g e x a m p l e s t o t u n e i t s o n l y p a r a m e t e r t o a t a r g e t d o m a i n ."
+    },
+    {
+      "name": "rrf",
+      "url": "https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf",
+      "bytes": 66196,
+      "excerpt": "PDF downloaded"
+    },
+    {
+      "name": "crc",
+      "url": "https://arxiv.org/abs/2208.02814",
+      "bytes": 41573,
+      "excerpt": "T i t l e : C o n f o r m a l R i s k C o n t r o l A b s t r a c t : W e e x t e n d c o n f o r m a l p r e d i c t i o n t o c o n t r o l t h e e x p e c t e d v a l u e o f a n y m o n o t o n e l o s s f u n c t i o n . T h e a l g o r i t h m g e n e r a l i z e s s p l i t c o n f o r m a l p r e d i c t i o n t o g e t h e r w i t h i t s c o v e r a g e g u a r a n t e e . L i k e c o n f o r m a l p r e d i c t i o n , t h e c o n f o r m a l r i s k c o n t r o l p r o c e d u r e i s t i g h t u p t o a n $ \\ m a t h c a l { O } ( 1 / n ) $ f a c t o r . W e a l s o i n t r o d u c e e x t e n s i o n s o f t h e i d e a t o d i s t r i b u t i o n s h i f t , q u a n t i l e r i s k c o n t r o l , m u l t i p l e a n d a d v e r s a r i a l r i s k c o n t r o l , a n d e x p e c t a t i o n s o f U - s t a t i s t i c s . W o r k e d e x a m p l e s f r o m c o m p u t e r v i s i o n a n d n a t u r a l l a n g u a g e p r o c e s s i n g d e m o n s t r a t e t h e u s a g e o f o u r a l g o r i t h m t o b o u n d t h e f a l s e n e g a t i v e r a t e , g r a p h d i s t a n c e , a n d t o k e n - l e v e l F 1 - s c o r e ."
+    },
+    {
+      "name": "routellm",
+      "url": "https://arxiv.org/abs/2406.18665",
+      "bytes": 43504,
+      "excerpt": "T i t l e : R o u t e L L M : L e a r n i n g t o R o u t e L L M s w i t h P r e f e r e n c e D a t a A b s t r a c t : L a r g e l a n g u a g e m o d e l s ( L L M s ) e x h i b i t i m p r e s s i v e c a p a b i l i t i e s a c r o s s a w i d e r a n g e o f t a s k s , y e t t h e c h o i c e o f w h i c h m o d e l t o u s e o f t e n i n v o l v e s a t r a d e - o f f b e t w e e n p e r f o r m a n c e a n d c o s t . M o r e p o w e r f u l m o d e l s , t h o u g h e f f e c t i v e , c o m e w i t h h i g h e r e x p e n s e s , w h i l e l e s s c a p a b l e m o d e l s a r e m o r e c o s t - e f f e c t i v e . T o a d d r e s s t h i s d i l e m m a , w e p r o p o s e s e v e r a l e f f i c i e n t r o u t e r m o d e l s t h a t d y n a m i c a l l y s e l e c t b e t w e e n a s t r o n g e r a n d a w e a k e r L L M d u r i n g i n f e r e n c e , a i m i n g t o o p t i m i z e t h e b a l a n c e b e t w e e n c o s t a n d r e s p o n s e q u a l i t y . W e d e v e l o p a t r a i n i n g f r a m e w o r k f o r t h e s e r o u t e r s l e v e r a g i n g h u m a n p r e f e r e n c e d a t a a n d d a t a a u g m e n t a t i o n t e c h n i q u e s t o e n h a n c e p e r f o r m a n c e . O u r e v a l u a t i o n o n w i d e l y - r e c o g n i z e d b e n c h m a r k s s h o w s t h a t o u r a p p r o a c h s i g n i f i c a n t l y r e d u c e s c o s t s - b y o v e r 2 t i m e s i n c e r t a i n c a s e s - w i t h o u t c o m p r o m i s i n g t h e q u a l i t y o f r e s p o n s e s . I n t e r e s t i n g l y , o u r r o u t e r m o d e l s a l s o d e m o n s t r a t e s i g n i f i c a n t t r a n s f e r l e a r n i n g c a p a b i l i t i e s , m a i n t a i n i n g t h e i r p e r f o r m a n c e e v e n w h e n t h e s t r o n g a n d w e a k m o d e l s a r e c h a n g e d a t t e s t t i m e . T h i s h i g h l i g h t s t h e p o t e n t i a l o f t h e s e r o u t e r s t o p r o v i d e a c o s t - e f f e c t i v e y e t h i g h - p e r f o r m a n c e s o l u t i o n f o r d e p l o y i n g L L M s ."
+    }
+  ],
+  "arxiv": [
+    {
+      "name": "fusion",
+      "title": "Title: An Analysis of Fusion Functions for Hybrid Retrieval",
+      "authors": "Authors: Sebastian Bruch , Siyu Gai , Amir Ingber",
+      "abstract": "Abstract: We study hybrid search in text retrieval where lexical and semantic search are fused together with the intuition that the two are complementary in how they model relevance. In particular, we examine fusion by a convex combination (CC) of lexical and semantic scores, as well as the Reciprocal Rank Fusion (RRF) method, and identify their advantages and potential pitfalls. Contrary to existing studies, we find RRF to be sensitive to its parameters; that the learning of a CC fusion is generally agnostic to the choice of score normalization; that CC outperforms RRF in in-domain and out-of-domain settings; and finally, that CC is sample efficient, requiring only a small set of training examples to tune its only parameter to a target domain.",
+      "links": []
+    },
+    {
+      "name": "crc",
+      "title": "Title: Conformal Risk Control",
+      "authors": "Authors: Anastasios N. Angelopoulos , Stephen Bates , Adam Fisch , Lihua Lei , Tal Schuster",
+      "abstract": "Abstract: We extend conformal prediction to control the expected value of any monotone loss function. The algorithm generalizes split conformal prediction together with its coverage guarantee. Like conformal prediction, the conformal risk control procedure is tight up to an $\\mathcal{O}(1/n)$ factor. We also introduce extensions of the idea to distribution shift, quantile risk control, multiple and adversarial risk control, and expectations of U-statistics. Worked examples from computer vision and natural language processing demonstrate the usage of our algorithm to bound the false negative rate, graph distance, and token-level F1-score.",
+      "links": []
+    },
+    {
+      "name": "routellm",
+      "title": "Title: RouteLLM: Learning to Route LLMs with Preference Data",
+      "authors": "Authors: Isaac Ong , Amjad Almahairi , Vincent Wu , Wei-Lin Chiang , Tianhao Wu , Joseph E. Gonzalez , M Waleed Kadous , Ion Stoica",
+      "abstract": "Abstract: Large language models (LLMs) exhibit impressive capabilities across a wide range of tasks, yet the choice of which model to use often involves a trade-off between performance and cost. More powerful models, though effective, come with higher expenses, while less capable models are more cost-effective. To address this dilemma, we propose several efficient router models that dynamically select between a stronger and a weaker LLM during inference, aiming to optimize the balance between cost and response quality. We develop a training framework for these routers leveraging human preference data and data augmentation techniques to enhance performance. Our evaluation on widely-recognized benchmarks shows that our approach significantly reduces costs-by over 2 times in certain cases-without compromising the quality of responses. Interestingly, our router models also demonstrate significant transfer learning capabilities, maintaining their performance even when the strong and weak models are changed at test time. This highlights the potential of these routers to provide a cost-effective yet high-performance solution for deploying LLMs.",
+      "links": []
+    }
+  ],
+  "hashes": {
+    "clarity.json": "f7f748b3bc8c374a39f9234baf2ae533595841afbdc1f24ed08daa7b1695b44a",
+    "nqc.json": "02a9f8ac5c84033037ad2519ecef317049715c42636503cd60f343ae003e42d7",
+    "rrf.pdf": "5c1f9f1fe0d80f67d82041bbe151ea17437bc7a7d9a920564cf122d1b09eafb5",
+    "crc.html": "f96743d7570a4949a4c9302a6f686e99c82c14f457f94c0c8384deb634ebe8f2",
+    "routellm.html": "7f6423f40e7a27b4d292a3c70d97dab6ae978390154f99090d730e59140e7396",
+    "fusion.html": "95e973cdfea54ef0f8c92eaeeb51ddb7234293913dcfa8d1bc79e0977d598b60",
+    "cascade.pdf": "9bf1fea8edc56d60db1536c486819da983a01245e9ec733ea3920d2b140979f2",
+    "sources.json": "4226858ac75f32d68466af2883273f56cb54b61337e7a1b3e907b50adf9cb897",
+    "cascade.txt": "5576cfe2021b6f0f9c5b6accb145f6f4a34eb8d75f6c05716bb932701d24c372",
+    "rrf.txt": "51f700e419a8787e7326847bbc674ddd37cfc4848862fe45f6bb94ec0ccc913e"
+  },
+  "additional_exact_metadata": [
+    {
+      "query": "A framework for selective query expansion",
+      "title": [
+        "A framework for selective query expansion"
+      ],
+      "doi": "10.1145/1031171.1031220",
+      "year": [
+        [
+          2004,
+          11,
+          13
+        ]
+      ],
+      "authors": [
+        {
+          "given": "Steve",
+          "family": "Cronen-Townsend",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "University of Massachusetts, Amherst, MA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Yun",
+          "family": "Zhou",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Massachusetts, Amherst, MA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "W. Bruce",
+          "family": "Croft",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Massachusetts, Amherst, MA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "abstract": null,
+      "links": [
+        {
+          "URL": "https://dl.acm.org/doi/10.1145/1031171.1031220",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "text-mining"
+        },
+        {
+          "URL": "https://dl.acm.org/doi/pdf/10.1145/1031171.1031220",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "similarity-checking"
+        }
+      ]
+    },
+    {
+      "query": "A cascade ranking model for efficient ranked retrieval",
+      "title": [
+        "A cascade ranking model for efficient ranked retrieval"
+      ],
+      "doi": "10.1145/2009916.2009934",
+      "year": [
+        [
+          2011,
+          7,
+          24
+        ]
+      ],
+      "authors": [
+        {
+          "given": "Lidan",
+          "family": "Wang",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "University of Maryland, College Park, MD, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Jimmy",
+          "family": "Lin",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Maryland, College Park, MD, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Donald",
+          "family": "Metzler",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Southern California, Marina del Rey, CA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "abstract": null,
+      "links": [
+        {
+          "URL": "https://dl.acm.org/doi/10.1145/2009916.2009934",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "text-mining"
+        },
+        {
+          "URL": "https://dl.acm.org/doi/pdf/10.1145/2009916.2009934",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "similarity-checking"
+        }
+      ]
+    },
+    {
+      "query": "An Analysis of Fusion Functions for Hybrid Retrieval",
+      "title": [
+        "An Analysis of Fusion Functions for Hybrid Retrieval"
+      ],
+      "doi": "10.1145/3596512",
+      "year": [
+        [
+          2023,
+          8,
+          18
+        ]
+      ],
+      "authors": [
+        {
+          "ORCID": "https://orcid.org/0000-0002-2469-8242",
+          "authenticated-orcid": false,
+          "given": "Sebastian",
+          "family": "Bruch",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "Pinecone, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "ORCID": "https://orcid.org/0000-0002-5912-5196",
+          "authenticated-orcid": false,
+          "given": "Siyu",
+          "family": "Gai",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of California, Berkeley, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "ORCID": "https://orcid.org/0000-0001-6639-8240",
+          "authenticated-orcid": false,
+          "given": "Amir",
+          "family": "Ingber",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Pinecone, Israel"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "abstract": "<jats:p>\n            We study hybrid search in text retrieval where lexical and semantic search are\n            <jats:italic>fused</jats:italic>\n            together with the intuition that the two are complementary in how they model relevance. In particular, we examine fusion by a convex combination of lexical and semantic scores, as well as the reciprocal rank fusion (RRF) method, and identify their advantages and potential pitfalls. Contrary to existing studies, we find RRF to be sensitive to its parameters; that the learning of a convex combination fusion is generally agnostic to the choice of score normalization; that convex combination outperforms RRF in in-domain and out-of-domain settings; and finally, that convex combination is sample efficient, requiring only a small set of training examples to tune its only parameter to a target domain.\n          </jats:p>",
+      "links": [
+        {
+          "URL": "https://dl.acm.org/doi/10.1145/3596512",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "text-mining"
+        },
+        {
+          "URL": "https://dl.acm.org/doi/pdf/10.1145/3596512",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "similarity-checking"
+        }
+      ]
+    },
+    {
+      "query": "Reciprocal rank fusion outperforms condorcet and individual rank learning methods",
+      "title": [
+        "Reciprocal rank fusion outperforms condorcet and individual rank learning methods"
+      ],
+      "doi": "10.1145/1571941.1572114",
+      "year": [
+        [
+          2009,
+          7,
+          19
+        ]
+      ],
+      "authors": [
+        {
+          "given": "Gordon V.",
+          "family": "Cormack",
+          "sequence": "first",
+          "affiliation": [
+            {
+              "name": "University of Waterloo, Waterloo, ON, Canada"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Charles L A",
+          "family": "Clarke",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "University of Waterloo, Waterloo, ON, Canada"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        },
+        {
+          "given": "Stefan",
+          "family": "Buettcher",
+          "sequence": "additional",
+          "affiliation": [
+            {
+              "name": "Google, Mountain View, CA, USA"
+            }
+          ],
+          "role": [
+            {
+              "vocabulary": "crossref",
+              "role": "author"
+            }
+          ]
+        }
+      ],
+      "abstract": null,
+      "links": [
+        {
+          "URL": "https://dl.acm.org/doi/10.1145/1571941.1572114",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "text-mining"
+        },
+        {
+          "URL": "https://dl.acm.org/doi/pdf/10.1145/1571941.1572114",
+          "content-type": "unspecified",
+          "content-version": "vor",
+          "intended-application": "similarity-checking"
+        }
+      ]
+    }
+  ],
+  "search_metadata_sha256": "15173795aebc6873bf0f469c1ef2d585d0d7d4c140aabfa7cdd2021e7a20c66f"
+}

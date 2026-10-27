@@ -3,7 +3,8 @@
 阈值仅为可执行骨架默认值，不代表经过验证的质量/成本最优配置。
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Protocol
 
 from contracts.retrieval import RetrievalConfig
 
@@ -15,6 +16,7 @@ class QueryFeatures:
     vocab_coverage: float
     lexical_hits: int
     relative_gap: float | None
+    statistics: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -23,9 +25,20 @@ class RouteDecision:
     reason: str
 
 
+class Router(Protocol):
+    """Local prototype seam; coordinate its final contract with RFC-0003."""
+    policy_version: str
+    requires_statistics: bool
+
+    def decide(self, features: QueryFeatures) -> RouteDecision: ...
+
+
 class RuleRouter:
+    requires_statistics = False
+
     def __init__(self, config: RetrievalConfig):
         self.config = config
+        self.policy_version = config.policy_version if config.adaptive_policy=='rules-v1' else config.adaptive_policy
 
     def decide(self, features: QueryFeatures) -> RouteDecision:
         if features.explicit_constraints:
