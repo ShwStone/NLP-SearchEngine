@@ -157,6 +157,8 @@ class SearchEngine:
                 snippet=doc.text[:SNIPPET_LEN], highlights=build_highlights(doc, set(terms)),
             ))
         routing = RoutingInfo(req.mode, executed, reason, vector_used, use_vector, fallback,
-                              score_kind, self.config.candidate_k, self.config.policy_version)
+                              score_kind, self.config.candidate_k,
+                              self.config.policy_version if self.config.adaptive_policy == "rules-v1"
+                              else self.config.adaptive_policy)
         return SearchResponse(int((time.perf_counter() - t0) * 1000), parsed, expanded,
                               results, routing, {k: round(v, 3) for k, v in timings.items()})

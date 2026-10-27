@@ -30,10 +30,14 @@ class RuleRouter:
     def decide(self, features: QueryFeatures) -> RouteDecision:
         if features.explicit_constraints:
             return RouteDecision(False, "explicit_constraints")
+        if self.config.adaptive_policy == "hybrid-v1":
+            return RouteDecision(True, "quality_first_hybrid")
         if features.n_terms == 0 or features.lexical_hits == 0:
             return RouteDecision(True, "no_lexical_hits")
         if features.vocab_coverage < self.config.min_vocab_coverage:
             return RouteDecision(True, "low_vocab_coverage")
+        if self.config.adaptive_policy == "recall-v1" and features.lexical_hits < 2:
+            return RouteDecision(True, "insufficient_lexical_evidence")
         if (features.relative_gap is not None
                 and features.relative_gap < self.config.min_relative_gap):
             return RouteDecision(True, "small_relative_gap")
