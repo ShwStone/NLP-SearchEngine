@@ -19,6 +19,13 @@ class Document:
     offsets: list = field(default_factory=list)  # 每个 token 的 (char_start, char_end)，高亮用
 
 
+class DocumentSource(Protocol):
+    """Narrow offline encoding input; does not require postings or offsets."""
+    n_docs: int
+
+    def doc(self, docid: int) -> Document: ...
+
+
 class IndexReader(Protocol):
     n_docs: int
     avgdl: float

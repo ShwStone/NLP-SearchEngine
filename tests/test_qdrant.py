@@ -41,7 +41,7 @@ class _Client:
             raise _NotFound(collection_name)
         return self.collections[collection_name]
 
-    def create_collection(self, collection_name, vectors_config, metadata):
+    def create_collection(self, collection_name, vectors_config, metadata, **kwargs):
         assert collection_name not in self.collections
         self.collections[collection_name] = SimpleNamespace(
             config=SimpleNamespace(
@@ -53,6 +53,10 @@ class _Client:
     def upsert(self, collection_name, points, wait):
         assert wait is True
         self.records[collection_name].update({point.id: point for point in points})
+
+    def delete_collection(self,collection_name):
+        del self.collections[collection_name]
+        del self.records[collection_name]
 
     def count(self, collection_name, exact):
         self.count_calls.append((collection_name, exact))
@@ -73,7 +77,7 @@ class _Client:
 @contextmanager
 def _sdk(client):
     models = SimpleNamespace(
-        VectorParams=SimpleNamespace, PointStruct=SimpleNamespace,
+        VectorParams=SimpleNamespace, PointStruct=SimpleNamespace, HnswConfigDiff=SimpleNamespace,
         Distance=SimpleNamespace(COSINE="Cosine"),
     )
     module = SimpleNamespace(QdrantClient=lambda **_: client, models=models)
@@ -214,6 +218,7 @@ def test_qdrant_writer_does_not_publish_unverified_metadata_or_point_count():
                 ))
             assert not (root / "vector_manifest.json").exists()
             assert client.snapshots == []
+            assert client.collections == {}
 
 
 def test_qdrant_writer_never_overwrites_an_existing_collection():
