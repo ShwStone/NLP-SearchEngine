@@ -1,0 +1,6 @@
+# Install hardware-appropriate torch >=2.1,<2.6 separately.
+numpy>=1.24,<2
+transformers==4.46.3
+huggingface-hub==0.26.5
+safetensors==0.5.3
+qdrant-client==1.16.0

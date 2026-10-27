@@ -33,7 +33,7 @@ def analyze(text: str) -> list[Token]:
     """把文本切成带偏移量的 token 流。两侧共用的唯一入口。
 
     约束（conformance 测试会检查）：
-    - token 按 start 升序、互不重叠；
+    - token 按 start 升序；中文 bigram 的相邻 token 可以重叠；
     - 对 CJK 部分 term == text[start:end]；
       对 ASCII 部分 term == text[start:end].lower()。
     """

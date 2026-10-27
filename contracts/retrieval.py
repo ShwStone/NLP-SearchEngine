@@ -10,7 +10,7 @@ import math
 from dataclasses import asdict, dataclass, field
 from typing import Iterable, Protocol, Sequence
 
-from .reader import IndexReader
+from .reader import DocumentSource, IndexReader
 
 VECTOR_SCHEMA_VERSION = 1
 VECTOR_MANIFEST = "vector_manifest.json"
@@ -161,7 +161,7 @@ class RetrievalConfig:
                 raise ValueError("路由阈值必须在 [0, 1]")
 
 
-def corpus_fingerprint(reader: IndexReader) -> str:
+def corpus_fingerprint(reader: DocumentSource) -> str:
     """独立于磁盘格式的语料快照标识；离线和在线用同一算法。"""
     digest = hashlib.sha256()
     for docid in range(reader.n_docs):

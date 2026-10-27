@@ -8,7 +8,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from contracts.index_format import sha256_of
-from contracts.reader import IndexReader
+from contracts.reader import DocumentSource
 from contracts.retrieval import (
     VECTOR_BUILD_METADATA_KEY, VECTOR_MANIFEST, TextEncoder, VectorManifest,
     VectorRecord, VectorWriter,
@@ -16,7 +16,7 @@ from contracts.retrieval import (
 )
 
 
-def build_vectors(reader: IndexReader, encoder: TextEncoder, writer: VectorWriter,
+def build_vectors(reader: DocumentSource, encoder: TextEncoder, writer: VectorWriter,
                   out_dir: Path, collection: str, batch_size: int = 32,
                   backend: str = "qdrant-hnsw", index_params: dict | None = None
                   ) -> VectorManifest:
@@ -89,21 +89,23 @@ class QdrantSnapshotWriter:
         self.timeout = timeout
 
     def replace(self, manifest: VectorManifest, records) -> VectorManifest:
+        self._owned_collection=None
+        self._cleanup_client=None
+        try:
+            return self._replace(manifest,records)
+        except BaseException:
+            if self._owned_collection is not None:
+                try:self._cleanup_client.delete_collection(collection_name=self._owned_collection)
+                except Exception:pass
+            raise
+
+    def _replace(self, manifest: VectorManifest, records) -> VectorManifest:
         if self.batch_size <= 0:
             raise ValueError("batch_size 必须为正数")
         try:
             from qdrant_client import QdrantClient, models
         except ImportError as error:
             raise RuntimeError("QdrantSnapshotWriter 需要安装 qdrant-client") from error
-        records = list(records)
-        for record in records:
-            validate_vector(record.vector, manifest.embedding)
-        if len(records) != manifest.n_docs:
-            raise ValueError("向量记录数与 manifest 不符")
-        if sorted(record.docid for record in records) != list(range(manifest.n_docs)):
-            raise ValueError("Qdrant point id 必须与内部 docid 一致")
-        if len({record.doc_id for record in records}) != len(records):
-            raise ValueError("外部 doc_id 必须唯一")
         client = QdrantClient(url=self.url, timeout=self.timeout)
         try:
             client.get_collection(manifest.collection)
@@ -115,23 +117,38 @@ class QdrantSnapshotWriter:
                 raise RuntimeError(f"无法检查 Qdrant collection: {error}") from error
         else:
             raise ValueError(f"Qdrant collection 已存在: {manifest.collection}")
+        extra={}
+        if manifest.index_params:
+            extra['hnsw_config']=models.HnswConfigDiff(**manifest.index_params)
         client.create_collection(
             collection_name=manifest.collection,
             vectors_config=models.VectorParams(
                 size=manifest.embedding.dimension, distance=models.Distance.COSINE,
             ),
             metadata={VECTOR_BUILD_METADATA_KEY: manifest.build_metadata()},
+            **extra,
         )
-        for start in range(0, len(records), self.batch_size):
-            batch = records[start:start + self.batch_size]
-            client.upsert(
-                collection_name=manifest.collection,
-                points=[models.PointStruct(
-                    id=record.docid, vector=list(record.vector),
-                    payload={"doc_id": record.doc_id},
-                ) for record in batch],
-                wait=True,
-            )
+        self._owned_collection=manifest.collection
+        self._cleanup_client=client
+        ids,external_ids,batch=set(),set(),[]
+        try:
+            for record in records:
+                validate_vector(record.vector,manifest.embedding)
+                if type(record.docid) is not int or not 0<=record.docid<manifest.n_docs or record.docid in ids:
+                    raise ValueError('invalid or duplicate point id')
+                if not isinstance(record.doc_id,str) or not record.doc_id or record.doc_id in external_ids:
+                    raise ValueError('invalid or duplicate external id')
+                ids.add(record.docid);external_ids.add(record.doc_id)
+                batch.append(models.PointStruct(id=record.docid,vector=list(record.vector),payload={'doc_id':record.doc_id}))
+                if len(batch)>=self.batch_size:
+                    client.upsert(collection_name=manifest.collection,points=batch,wait=True);batch=[]
+            if batch:client.upsert(collection_name=manifest.collection,points=batch,wait=True)
+            if len(ids)!=manifest.n_docs:raise ValueError('incomplete vector records')
+        except Exception:
+            # Only this newly-created unpublished collection is owned here.
+            try:client.delete_collection(collection_name=manifest.collection)
+            except Exception:pass
+            raise
         info = client.get_collection(manifest.collection)
         metadata = getattr(getattr(info, "config", None), "metadata", None)
         if (not isinstance(metadata, dict)
@@ -140,8 +157,8 @@ class QdrantSnapshotWriter:
         # CollectionInfo.points_count is approximate; startup/publication needs
         # the exact count, even while Qdrant is optimizing segments.
         count = client.count(collection_name=manifest.collection, exact=True).count
-        if type(count) is not int or count != len(records):
-            raise ValueError(f"Qdrant 点数不符: {count} != {len(records)}")
+        if type(count) is not int or count != manifest.n_docs:
+            raise ValueError(f"Qdrant 点数不符: {count} != {manifest.n_docs}")
         try:
             snapshot = client.create_snapshot(collection_name=manifest.collection)
             snapshot_name = getattr(snapshot, "name", None) or getattr(snapshot, "result", None)

@@ -5,7 +5,7 @@ from pathlib import Path
 from contracts.index_format import BM25Spec
 from contracts.retrieval import TextEncoder, VectorWriter
 from .build import build
-from .disk_index import DiskIndex
+from .disk_documents import DiskDocuments
 from .vector_build import build_vectors
 
 
@@ -22,6 +22,7 @@ def build_hybrid(corpus_path: Path, out_dir: Path, dataset: str,
     if out_dir.exists() and any(out_dir.iterdir()):
         raise ValueError("双索引构建必须使用新的空输出目录")
     lexical = build(corpus_path, out_dir / "bm25", dataset, bm25)
-    vectors = build_vectors(DiskIndex(out_dir / "bm25"), encoder, writer, out_dir,
-                            collection, batch_size, backend, index_params)
+    with DiskDocuments(out_dir / "bm25") as documents:
+        vectors = build_vectors(documents, encoder, writer, out_dir,
+                                collection, batch_size, backend, index_params)
     return {"lexical": lexical.to_dict(), "vector": vectors.to_dict()}
