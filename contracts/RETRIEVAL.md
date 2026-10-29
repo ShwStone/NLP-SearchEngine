@@ -22,6 +22,11 @@
 - `manifest.bm25 = {k1, b, idf}`；默认 1.2、0.75、log1p-lucene。此字段为词法 v1 的可选扩展，老产物缺省时使用默认值。非默认实验参数应离线记录，在线默认读取，不硬编码覆盖。
 - 保留 docs.jsonl/postings.jsonl/offsets.jsonl/stats.json 的原有格式及文件校验。
 
+RFC-0004 的正式交付必须为这四个文件提供 64 位小写 SHA256；`verify_files` 的严格
+模式会拒绝缺失摘要。普通 `DiskIndex` 仍兼容早期 v1 产物，但兼容读取不等于可发布。
+构建输入、版本、依赖、运行资源和阶段耗时写入交付目录的 provenance/report sidecar，
+不写机器绝对路径、凭据或 qrels。
+
 ## 3. 接口 A2：向量构建/读取
 
 ### 配置与产物
@@ -74,8 +79,20 @@ class VectorReader(Protocol):
 - encode_documents 输出顺序与输入一致，数量相等。离线可分批调用；模板由构建器应用，前缀/模型 tokenizer/截断/归一化由编码器应用。
 - writer 必须消费全部 records，创建新 collection，校验点数/ID/向量、完成快照，再返回仅补齐 snapshot_files 的 manifest。快照写入与 build_vectors 相同的产物目录，文件名不允许路径穿越。
 - `build_vectors` 核验快照文件 SHA256，最后原子重命名发布 vector_manifest.json。构建失败不发布 manifest；调用方清理失败的新 collection/临时目录，不能污染旧线上版本。构建目录只能有一个 writer，不支持并发发布。
+- 若 writer 已返回成功而本地 manifest/provenance/report 发布随后失败，具有远端资源的 writer
+  应提供同名 `rollback(manifest)` 钩子，由 `build_vectors` 尝试删除本次版本 collection；
+  清理错误不能覆盖原始发布错误。没有该钩子的旧 writer 只能证明本地契约，不能宣称远端
+  失败清理完整。
+- 发布顺序是“新版本 collection 完整写入并核对 exact count → 快照下载到 `.part` → 快照
+  SHA256 校验 → 原子写入 vector_manifest → 写 provenance/report”。任何一步失败都不得
+  把半成品当作可发布版本；已存在的非空目标目录与已有 collection 不覆盖。默认重试语义是
+  使用新的版本化 collection 全量重建，不支持跨语料、模型、编码配置或索引参数的断点续写。
 - reader 返回 `VectorHit(docid, doc_id, score)`；score 是 cosine 相似度，越大越好，不是距离。最多 limit 条唯一结果，按 score 降序、内部 docid 升序；ANN 搜索不保证与精确全扫同集合。
 - 真实适配器须从已恢复的 collection 读取并核对嵌入配置/语料指纹等元数据，恢复时检查快照 SHA256；不能只信调用者传入的 manifest。
+- Qdrant 的“恢复通过”必须在隔离的干净实例上实际导入快照，并记录 server/client 版本、
+  collection metadata、向量规格、exact count、内部 ID 覆盖、外部 ID 与 corpus fingerprint。
+  本地 `memory-exact`、SDK double、仅有快照文件哈希的检查只能证明格式和身份，不能替代该项
+  恢复验收或 HNSW 性能实验。
 - Qdrant 服务与 `qdrant-client` 均要求 1.16+（collection metadata）。writer 创建 collection 时在 `config.metadata.nlp_search_engine` 保存 `VectorManifest.build_metadata()`：包含完整构建身份，仅排除 `snapshot_files`，避免快照包含自身校验和的循环依赖。reader 启动时逐字段比对这些持久化元数据，核对单向量维度、Cosine 距离，并使用 `count(exact=True)` 核对文档数，不依赖近似 `points_count`。缺元数据的旧 collection 必须重建，不能根据外部 manifest 补填后冒充已验证产物。
 - 超时、模型/后端不可用统一包装成 `RetrievalUnavailable`。不要把任意编程错误吞成空列表。
 

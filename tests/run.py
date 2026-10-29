@@ -6,9 +6,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from tests import test_contracts, test_hybrid, test_qdrant  # noqa: E402
+from tests import (test_contracts, test_hybrid, test_qdrant, test_offline_delivery,
+                   test_scale_support)  # noqa: E402
 
-ALL_TESTS = test_contracts.ALL_TESTS + test_hybrid.ALL_TESTS + test_qdrant.ALL_TESTS
+ALL_TESTS = (test_contracts.ALL_TESTS + test_hybrid.ALL_TESTS +
+             test_qdrant.ALL_TESTS + test_offline_delivery.ALL_TESTS +
+             test_scale_support.ALL_TESTS)
 
 
 def main() -> int:

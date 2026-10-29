@@ -4,6 +4,7 @@
 
 - [设计与分工](DESIGN.md)
 - [跨组 API 契约](contracts/RETRIEVAL.md)
+- [RFC-0004 离线产物交付补充](docs/contributions/rfc0004-delivery-validation.md)
 - [开题汇报 PDF](slides/proposal.pdf) / [Typst 源文件](slides/proposal.typ)
 - [实施计划与历史讨论](PLAN.md)
 
@@ -19,6 +20,8 @@ offline/      离线侧：BM25 与向量数据库都在这里构建
   build_hybrid.py       统一双索引构建编排（依赖注入）
   vector_build.py       文档批量编码、Qdrant upsert/快照校验与 manifest 发布
   disk_index.py         IndexReader 的真实磁盘实现
+  provenance.py         无凭据的输入/语料/模型/产物 provenance 与成本报告
+  validate.py            已发布双索引的严格哈希、指纹和快照校验器
 online/       在线侧：查询编码、BM25、Router、向量召回、RRF、高亮、HTTP
   embeddings.py         可选 Sentence-Transformers 编码器（固定 revision）
   router.py             规则选择器，不读 qrels、不调用大模型
@@ -66,6 +69,25 @@ curl -s localhost:8000/index/info
 演示服务没有认证，请勿直接暴露到不可信网络。
 
 当前 CLI 的 vector_ready=false。dense/hybrid 请求返回 503；adaptive 如需语义分支会明确标记 fallback，不能把降级结果当成成功的混合评测。
+
+## RFC-0004 离线交付校验
+
+`offline.build_hybrid` 使用同文件系统临时目录构建，完成后才发布 BM25 与向量 manifest；
+新构建失败会清理本次目录，已有非空产物不会被覆盖。成功交付会额外写出
+`build_provenance.json` 和 `build_report.json`，记录输入文件 SHA256、ordered corpus
+fingerprint、完整 embedding 配置、collection/index 参数、阶段耗时及产物哈希。报告不会
+伪造峰值 RAM/GPU；没有作业监控证据时对应字段为空。
+
+```bash
+python3 -m offline.validate --build-dir /path/to/released-dual-index
+```
+
+严格 validator 要求 A1 的四个 JSONL/统计文件都带 SHA256，并核对 BM25 与向量的文档数、
+corpus fingerprint、快照文件和 provenance/report。旧 v1 产物仍可由普通 `DiskIndex` 兼容
+读取，但缺少文件摘要的旧产物不能作为 RFC-0004 的生产交付。Qdrant writer 逐批消费向量，
+新 collection 后续失败时尝试清理，快照先写 `.part` 再原子改名。2026-10-29 已在
+Qdrant 1.16.0 服务端上完成 3 点小批快照的干净实例恢复和只读适配器验收；这不等于
+8M 规模的 HNSW 构建或性能验收。
 
 ## 扩充后的构建/在线接线
 
@@ -133,10 +155,12 @@ python3 -m evaluation.evaluate \
 
 **已可用**：bigram 占位分词、词法构建/读取、BM25/TF-IDF、普通 OR 查询、布尔/短语过滤、Top-K/高亮/HTTP；双索引构建编排、Qdrant upsert/快照发布检查；规则 Router、RRF、四模式编排、降级和阶段耗时；可选 Sentence-Transformers/Qdrant 适配器；浏览器 UI、HTTP-only 评测器与标准库测试。
 
-**已完成的资源准备**：已核验 RocketQA 官方 DuReader-Retrieval baseline archive，确认其包含
+**已完成的资源准备与受限实验**：已核验 RocketQA 官方 DuReader-Retrieval baseline archive，确认其包含
 8,096,668 个 passage、2,000 个 dev 查询和 9,839 条去重 qrels，并提供专用流式适配器、SHA256
-清单和 dev-only 边界。**待完成的实验工作**：该公开 archive 没有官方 test labels；真实 embedding、
-GPU 编码、Qdrant 和四组完整实验仍需在可用的 GPU/存储配额上运行，记录 nDCG/Recall/MAP/延迟
-和 paired bootstrap 区间。数据、模型和索引产物不随仓库提交，仓库已提供校验、固定划分和区间计算入口。
+清单和 dev-only 边界；已在固定 BGE revision、20k 前缀和冻结 Router 参数上完成 GPU 编码、四模式
+HTTP 评测与 paired bootstrap，并完成真实 Qdrant 1.16.0 服务端的小批快照恢复验收。**仍待完成**：
+该公开 archive 没有官方 test labels，团队自爬并人工确认的测试集、8M 规模索引、Qdrant HNSW
+全量性能和正式课程规模实验仍需独立完成。数据、模型和索引产物不随仓库提交，仓库已提供校验、
+固定划分和区间计算入口。
 
 RM3 已实现为确定性的本地伪相关反馈扩展；SLM 仍需要外部固定模型与离线缓存，返回 501。扩展不改变显式布尔/短语约束。内存测试通过不代表真实语义质量或 HNSW 性能已经验收。
