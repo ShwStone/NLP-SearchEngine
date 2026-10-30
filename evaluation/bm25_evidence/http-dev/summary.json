@@ -1,0 +1,207 @@
+{
+  "protocol": {
+    "model_sha256": "ebc274813ee38e9c6e802cc29ee56e36653b97b72f6a218d65d18717de060dc1",
+    "queries": [
+      "93bd746440c62fc7b70070c07ab6464b",
+      "95f2abeb932dbe5dfe096a21982c891f",
+      "0cff303a001e9144dbea56b5de62f2fc",
+      "d17caad1b67abb2df82d933db9041a27",
+      "b9e23c84ef626562fabdfd5a85f91257",
+      "ac21a5c2756d4829870be73cb7e5aaea",
+      "6a3efffd52ce867327c6407fe4a60b26",
+      "198aedd4ffffcfdbdd89c79df276d71b",
+      "a513818e1b4640ccde6fc5f58273d5b8",
+      "59a1f399dfae117ebdd0f50cb5b05f3e",
+      "c0e5a1afc87c55506bfd7694f8cb5a80",
+      "25a37a1b79ab8ca9626c76949f5c666c",
+      "1e6b45126a0e18caa37faa80764735fe",
+      "9be1c080bb128e757cf6f4338bb6a1c2",
+      "90644eb89a32ac73ac6af99d1b43e471",
+      "349a6c17917cec9238c6f865dc771c06",
+      "d630f85667eeeff03b9b65415a275119",
+      "f0912e819f089e066a125431f0fbab26",
+      "7871706c5cb1a1d6912ff8222434ccbd",
+      "91bbe7d5ff9edd518284531601d96f6b",
+      "dd16f0f939352b94d52c01219f381183",
+      "df714692ccee703c6c54c56aa7a5fce6",
+      "df20f68696d01ffa848b53580f0f9f7c",
+      "2d86d473b928698d91b080fc2121d2d9",
+      "73025c5b7712890937804cbe410d6197",
+      "aa2807519fff496d5b7b2f72bd319b1d",
+      "481f8925af8716a26658885a8c447bea",
+      "0554e12bf23d53cf71785eb77e5812b6",
+      "512042b52eff422eb3ef2cad09bb1b0d",
+      "3416cccb580a35fa59ccf11dfceecdc3",
+      "2f9b019e26d444d4ccbd7cbabffbeb44",
+      "6786f6b7a7007d646a9b6671014361d3",
+      "e652c308bf897050382872548e977ecc",
+      "9311d45a22f356b096e159deeee62a0c",
+      "7e2b8cf1fdd18bd47a0ea5ec5de67f51",
+      "983f04bed5035f0d8993ebf6b9ed7bbb",
+      "fd2e2802ec030db3612da428c4ef7a4d",
+      "b5188d72de4934c000cde296ceaffcf5",
+      "76759d2e539d016010402c4b287fcd1e",
+      "3bcd0d22f46580c06ca2ccc6323cd7f5",
+      "a7ebebee4737a59c5ffbbd848d60a393",
+      "fe04d1d516e979438d204eac666b6052",
+      "86e5850b24f03bc5c6a300410a46da0f",
+      "e906e3e9179e1ef28cde478e85ed90f2",
+      "372420a38ddee2bd522718d81d3bfc72",
+      "2832d65fe16d3a96592e8772ccd6d0aa",
+      "6ce23b32335e4b9310bf2605e771e5d6",
+      "188e39cb788ee0829d0335c0d411c414"
+    ],
+    "k": 100,
+    "repeats": 3,
+    "variants": {
+      "lexical": [
+        "baseline",
+        "lexical"
+      ],
+      "dense": [
+        "baseline",
+        "dense"
+      ],
+      "hybrid": [
+        "baseline",
+        "hybrid"
+      ],
+      "rules-v1": [
+        "baseline",
+        "adaptive"
+      ],
+      "gain-router": [
+        "learned",
+        "adaptive"
+      ]
+    },
+    "transfer": false,
+    "source_sha256": {
+      "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/queries.dev.jsonl": "d1c0a522946e89673b2b864d6c703edbf81e3e8280e504201fbf571b126bd6bd",
+      "/root/autodl-tmp/NLP-SearchEngine/artifacts/duretrieval/qrels.tsv": "db03d4b6cdf2d297d875d2c3f39c1106d70988d0aaf956e91e998aaa951532b6",
+      "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/du-vectors/vector_manifest.json": "40336c182a3b82dbd99d879f34b63b03749221f1d3e1013bd07763b1d6aec108"
+    },
+    "cost_caveat": "same-process reader/encoder/shared backend; deterministic per-query shuffled order; warm resident indexes; sequential load only"
+  },
+  "variants": {
+    "lexical": {
+      "queries": 48,
+      "requests": 144,
+      "latency_ms": {
+        "mean": 60.121352590310075,
+        "p50": 59.14668459445238,
+        "p95": 88.43570202589035
+      },
+      "router_mean_ms": 0.0,
+      "vector_attempt_rate": 0,
+      "metrics": {
+        "ndcg": 0.5808737738514759,
+        "recall": 0.620295214045214,
+        "mrr": 0.7030009920634921,
+        "map": 0.5105975279505516
+      }
+    },
+    "dense": {
+      "queries": 48,
+      "requests": 144,
+      "latency_ms": {
+        "mean": 67.00806974226401,
+        "p50": 74.39105771481991,
+        "p95": 84.90810692310332
+      },
+      "router_mean_ms": 0.0,
+      "vector_attempt_rate": 1,
+      "metrics": {
+        "ndcg": 0.8420173511061199,
+        "recall": 0.8693196849446849,
+        "mrr": 0.9173611111111111,
+        "map": 0.7826499993992339
+      }
+    },
+    "hybrid": {
+      "queries": 48,
+      "requests": 144,
+      "latency_ms": {
+        "mean": 79.97146014693297,
+        "p50": 82.06304628401995,
+        "p95": 104.91893067955971
+      },
+      "router_mean_ms": 0.0,
+      "vector_attempt_rate": 1,
+      "metrics": {
+        "ndcg": 0.7457056280968108,
+        "recall": 0.7881854256854257,
+        "mrr": 0.8356481481481481,
+        "map": 0.6840086461990842
+      }
+    },
+    "rules-v1": {
+      "queries": 48,
+      "requests": 144,
+      "latency_ms": {
+        "mean": 70.5954265108125,
+        "p50": 70.72882074862719,
+        "p95": 100.11190082877873
+      },
+      "router_mean_ms": 0.029638888888888888,
+      "vector_attempt_rate": 0.5,
+      "metrics": {
+        "ndcg": 0.6922335270262351,
+        "recall": 0.7199645262145262,
+        "mrr": 0.8087384259259259,
+        "map": 0.6263105083333834
+      }
+    },
+    "gain-router": {
+      "queries": 48,
+      "requests": 144,
+      "latency_ms": {
+        "mean": 81.13236209222426,
+        "p50": 82.69747346639633,
+        "p95": 104.61075790226457
+      },
+      "router_mean_ms": 0.44409027777777776,
+      "vector_attempt_rate": 0.8958333333333334,
+      "metrics": {
+        "ndcg": 0.7456065775790389,
+        "recall": 0.7905002405002405,
+        "mrr": 0.8356481481481481,
+        "map": 0.6802602222843591
+      }
+    }
+  },
+  "paired": {
+    "gain-router": {
+      "delta_latency_ms": {
+        "mean": 1.1609019452912928,
+        "ci95": [
+          -2.4422585954501628,
+          4.676337504901708
+        ]
+      },
+      "delta_ndcg": {
+        "mean": -9.905051777193512e-05,
+        "ci95": [
+          -0.0017928097160804833,
+          0.001780647267553057
+        ]
+      }
+    },
+    "rules-v1": {
+      "delta_latency_ms": {
+        "mean": -9.376033636120459,
+        "ci95": [
+          -13.622140898951331,
+          -5.365571290409818
+        ]
+      },
+      "delta_ndcg": {
+        "mean": -0.05347210107057581,
+        "ci95": [
+          -0.08646580229919132,
+          -0.025808045470581322
+        ]
+      }
+    }
+  }
+}

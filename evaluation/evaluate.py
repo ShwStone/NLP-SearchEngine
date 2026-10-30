@@ -56,7 +56,7 @@ class QueryRouting:
     fallback: bool
 
     @classmethod
-    def from_response(cls, value: object, mode: str) -> "QueryRouting":
+    def from_response(cls, value: object, mode: str, *, allow_adaptive_dense: bool = False) -> "QueryRouting":
         if not isinstance(value, dict):
             raise EvaluationError("搜索服务响应缺少 routing 对象")
         for key in ("requested_mode", "executed_mode", "reason"):
@@ -76,6 +76,8 @@ class QueryRouting:
         expected_mode = "lexical"
         if routing.vector_used:
             expected_mode = "dense" if mode == "dense" else "hybrid"
+            if mode=='adaptive' and allow_adaptive_dense and routing.executed_mode=='dense':
+                expected_mode='dense'
         if (routing.executed_mode != expected_mode
                 or (mode in ("dense", "hybrid") and not routing.vector_used)
                 or (mode == "lexical" and routing.vector_attempted)

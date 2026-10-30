@@ -6,6 +6,7 @@ UI 只做区间合并与 HTML 转义，不许自己再对文本做匹配。
 
 from contracts.api import Highlight
 from contracts.reader import Document
+from bisect import bisect_left
 
 
 def build_highlights(doc: Document, matched_terms: set) -> list:
@@ -31,3 +32,21 @@ def merge(spans: list, kind: str = "original") -> list:
         else:
             out.append(Highlight(s, e, kind))
     return out
+
+
+def indexed_highlights(reader,doc:Document,matched_terms:set) -> list:
+    """Explicit opt-in highlights from immutable postings and token offsets.
+
+    Uses the same analyzer's persisted positions instead of re-tokenizing the
+    whole document. Readers without complete offsets use the reference path.
+    """
+    if len(doc.offsets)!=reader.doc_length(doc.docid):
+        return build_highlights(doc,matched_terms)
+    spans=[]
+    for term in matched_terms:
+        posting=reader.postings(term)
+        if not posting:continue
+        i=bisect_left(posting,doc.docid,key=lambda row:row[0])
+        if i<len(posting) and posting[i][0]==doc.docid:
+            spans.extend(doc.offsets[pos] for pos in posting[i][2])
+    return merge(spans)

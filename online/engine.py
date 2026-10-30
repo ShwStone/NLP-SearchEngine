@@ -19,23 +19,30 @@ from . import parser, scorers
 from .expanders import EXPANDERS
 from .fusion import rrf
 from .highlight import build_highlights
-from .router import QueryFeatures, RuleRouter
+from .router import QueryFeatures, RouteDecision, Router, RuleRouter
+from .router_features import extract_statistics, extract_statistics_v2, FEATURE_VERSION_V2
 
 SNIPPET_LEN = 80
 
 
 class SearchEngine:
     def __init__(self, reader: IndexReader, encoder: TextEncoder | None = None,
-                 vectors: VectorReader | None = None, config: RetrievalConfig | None = None):
+                 vectors: VectorReader | None = None, config: RetrievalConfig | None = None,
+                 router: Router | None = None, bm25_accelerator=None):
         self.reader = reader
         self.encoder = encoder
         self.vectors = vectors
         self.config = config or RetrievalConfig()
-        self.router = RuleRouter(self.config)
+        self.router = router or RuleRouter(self.config)
+        if bm25_accelerator is not None and bm25_accelerator.reader is not reader:
+            raise ValueError('BM25 accelerator must be bound to the same immutable reader')
+        self.bm25_accelerator = bm25_accelerator
         if (encoder is None) != (vectors is None):
             raise ValueError("encoder 与 vectors 必须同时提供或同时省略")
         if vectors is not None:
             check_alignment(reader, vectors, encoder)
+        if router is not None and hasattr(router, 'check_binding'):
+            router.check_binding(reader, self.config, vectors)
 
     def info(self) -> dict:
         """能力与配置回显，不把尚未实现的后端宣称为可用。"""
@@ -43,6 +50,9 @@ class SearchEngine:
             "vector_ready": self.vectors is not None,
             "config": asdict(self.config),
             "vector_manifest": self.vectors.manifest().to_dict() if self.vectors else None,
+            "router": {"policy_version": self.router.policy_version,
+                       "requires_statistics": self.router.requires_statistics},
+            "bm25_accelerator": 'compiled-float64-topk' if self.bm25_accelerator is not None else None,
         }
 
     def _vector_search(self, query: str, timings: dict) -> list[tuple[int, float]]:
@@ -98,29 +108,47 @@ class SearchEngine:
         ranked = []
         if req.mode != "dense":
             start = time.perf_counter()
-            scores = scorers.SCORERS[req.scorer](self.reader, scoring_terms,
+            if (self.bm25_accelerator is not None and req.mode != 'lexical'
+                    and req.scorer == 'bm25' and not explicit):
+                ranked = self.bm25_accelerator.topk(scoring_terms, self.config.candidate_k,
+                                                  term_weights=term_weights)
+            else:
+                scores = scorers.SCORERS[req.scorer](self.reader, scoring_terms,
                                                  candidate_docs=candidate_docs,
                                                  term_weights=term_weights)
-            if candidate_docs:
-                # A NOT-only query, or the negative branch of an OR, has no
-                # positive BM25 contribution. Keep those hard-filtered docs
-                # with deterministic zero scores instead of dropping them.
-                scores = {docid: scores.get(docid, 0.0) for docid in candidate_docs}
-            ranked = sorted(scores.items(), key=lambda row: (-row[1], row[0]))
+                if candidate_docs:
+                    # A NOT-only query, or the negative branch of an OR, has no
+                    # positive BM25 contribution. Keep those hard-filtered docs
+                    # with deterministic zero scores instead of dropping them.
+                    scores = {docid: scores.get(docid, 0.0) for docid in candidate_docs}
+                ranked = sorted(scores.items(), key=lambda row: (-row[1], row[0]))
             timings["lexical"] = (time.perf_counter() - start) * 1000
         if req.mode != "lexical":
             ranked = ranked[:self.config.candidate_k]
 
         reason = f"forced_{req.mode}"
         use_vector = req.mode in ("dense", "hybrid")
+        semantic_mode = 'dense' if req.mode == 'dense' else 'hybrid'
+        route_policy = self.router.policy_version
         if req.mode == "adaptive":
             start = time.perf_counter()
             unique_terms = set(terms)
             coverage = sum(self.reader.df(t) > 0 for t in unique_terms) / len(unique_terms) if unique_terms else 0.0
             gap = ((ranked[0][1] - ranked[1][1]) / max(abs(ranked[0][1]), 1e-12)
                    if len(ranked) >= 2 else None)
-            decision = self.router.decide(QueryFeatures(explicit, len(unique_terms), coverage, len(ranked), gap))
+            router = self.router  # SearchRequest already requires BM25/no expansion here.
+            if router.requires_statistics and not explicit:
+                stats = (extract_statistics_v2(req.query, self.reader, terms, ranked)
+                         if getattr(router, 'feature_version', '') == FEATURE_VERSION_V2
+                         else extract_statistics(req.query, self.reader, terms, ranked))
+            else:
+                stats = {}
+            decision = (RouteDecision(False, 'explicit_constraints') if explicit else
+                        router.decide(QueryFeatures(False, len(unique_terms), coverage, len(ranked), gap, stats)))
             use_vector, reason = decision.use_vector, decision.reason
+            semantic_mode = decision.semantic_mode
+            if semantic_mode not in ('dense','hybrid'):
+                raise ValueError('router returned an unsupported semantic action')
             timings["router"] = (time.perf_counter() - start) * 1000
 
         executed = "lexical"
@@ -140,7 +168,7 @@ class SearchEngine:
                 fallback, reason = True, "vector_unavailable"
             else:
                 vector_used = True
-                if req.mode == "dense":
+                if semantic_mode == "dense":
                     ranked, executed, score_kind = dense_ranked, "dense", "cosine"
                 else:
                     start = time.perf_counter()
@@ -157,6 +185,7 @@ class SearchEngine:
                 snippet=doc.text[:SNIPPET_LEN], highlights=build_highlights(doc, set(terms)),
             ))
         routing = RoutingInfo(req.mode, executed, reason, vector_used, use_vector, fallback,
-                              score_kind, self.config.candidate_k, self.config.policy_version)
+                              score_kind, self.config.candidate_k,
+                              route_policy)
         return SearchResponse(int((time.perf_counter() - t0) * 1000), parsed, expanded,
                               results, routing, {k: round(v, 3) for k, v in timings.items()})

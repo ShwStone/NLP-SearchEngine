@@ -1,0 +1,15 @@
+{
+  "source_commit": "96e4f492b076bb7c6daf8c61494820e0f752b221",
+  "base_commit": "dba882b079f481cf03d86aef4b51d4566d63a28a",
+  "historical_evidence": true,
+  "files": {
+    "round3-comparisons.json": "69e32d725c98467e326b9dc05bdf74ee8d2739ae0afe4e92a50cfda9f304c3b5",
+    "round3-nested-cv.json": "40f77a47f2fb790c1fc686347155585c008685a6ad997c6b6898e78f27f7f3ce",
+    "round3-outer-predictions.jsonl": "c739bcfe2650cc6b99652bfacb977f6caa4b79bc9b948e857a471af79d1a55c0",
+    "round4-proxy-predictions.jsonl": "4e71493d885651a539b3ab04010195d85745c5a062c0401415f281230893ee84",
+    "round4-proxy-summary.json": "c478216eea580cb04198ac7d8b5a622620b5d3457d2ecab393ef663fc8fb62ae",
+    "round4-time-predictions.jsonl": "86bbc2e23ff522f5ce26eb7048b6ab8237c0aaffcca5e9190cc823ef272e2026",
+    "round4-time-summary.json": "d1a7fe4d6bfd6661358fd1e4f9c15509e1f94e73c22b1be6a688275ff0ae0afc",
+    "vector-first-du-v1.json": "122b0ca64dcf19a2d32daead001a4876a9aeb4ae42cbab615090a7d681cd85a1"
+  }
+}

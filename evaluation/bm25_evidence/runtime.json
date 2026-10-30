@@ -1,0 +1,18 @@
+{
+  "python": "3.10.8",
+  "packages": {
+    "numpy": "1.26.4",
+    "scikit-learn": "1.5.2",
+    "scipy": "1.11.4",
+    "torch": "2.1.2+cu118",
+    "transformers": "4.46.3",
+    "qdrant-client": "1.16.0",
+    "pyarrow": "17.0.0"
+  },
+  "gpu": "NVIDIA GeForce RTX 4090 24GiB",
+  "semantic_device": "cuda",
+  "torch_threads_environment": 4,
+  "index": "upstream DiskIndex; warm resident; no compact/packed/scorer/highlight optimisations",
+  "concurrency": 1,
+  "latency_k": 100
+}

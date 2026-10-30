@@ -141,6 +141,8 @@ if __name__ == "__main__":
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--candidate-k", type=int, default=200)
     ap.add_argument("--rrf-c", type=float, default=60.0)
+    ap.add_argument("--adaptive-policy", choices=("rules-v1", "recall-v1", "hybrid-v1"),
+                    default="rules-v1", help="BM25-first adaptive routing policy")
     ap.add_argument("--vector-url", help="Qdrant URL; requires --vector-manifest")
     ap.add_argument("--vector-manifest", help="published vector_manifest.json")
     args = ap.parse_args()
@@ -162,7 +164,7 @@ if __name__ == "__main__":
         except (OSError, ValueError, RetrievalUnavailable) as error:
             ap.error(f"向量后端初始化失败: {error}")
     engine = SearchEngine(reader, encoder, vectors, RetrievalConfig(
-        candidate_k=args.candidate_k, rrf_c=args.rrf_c))
+        candidate_k=args.candidate_k, rrf_c=args.rrf_c, adaptive_policy=args.adaptive_policy))
     server = ThreadingHTTPServer((args.host, args.port), make_handler(engine))
     print(f"索引已加载（{engine.reader.n_docs} 篇），监听 {server.server_address[0]}:{server.server_port}",
           flush=True)

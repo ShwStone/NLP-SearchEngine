@@ -1,0 +1,4 @@
+# Optional historical nested-CV training; not needed by online routing or evidence replay.
+numpy>=1.24,<2
+scikit-learn==1.5.2
+scipy==1.11.4
