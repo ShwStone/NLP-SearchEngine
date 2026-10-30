@@ -24,10 +24,20 @@ from contracts.retrieval import VectorManifest
 from offline.disk_index import DiskIndex
 from online.engine import SearchEngine
 from online.gain_router import GainRouter
+from online.router import RouteDecision
 from online.server import make_handler
 from online.vector_index import QdrantVectorIndex
 from .prepare_bm25_router import sha, metrics, jsonl_rows
 from .router_metrics import percentile, bootstrap
+from .evaluate import QueryRouting
+
+
+class BM25ThenDense:
+    policy_version='bm25-actions-v1-dense-control'
+    requires_statistics=False
+
+    def decide(self,features):
+        return RouteDecision(not features.explicit_constraints,'fixed_bm25_then_dense','dense')
 
 
 def free_port():
@@ -60,6 +70,8 @@ def run(args):
     variants={'lexical':('baseline','lexical'),'dense':('baseline','dense'),
               'hybrid':('baseline','hybrid'),'rules-v1':('baseline','adaptive'),
               'gain-router':('learned','adaptive')}
+    if args.action_study:
+        variants['bm25-dense']=('dense-control','adaptive')
     repeats=1 if args.transfer else 3
     protocol=dict(model_sha256=model.sha256,queries=[q['query_id'] for q in queries],k=100,repeats=repeats,
                   variants=variants,transfer=args.transfer,source_sha256={str(p):sha(p) for p in (args.queries,args.qrels,args.manifest)},
@@ -99,7 +111,10 @@ def run(args):
         learned=SearchEngine(reader,encoder,vectors,router=model)
         (root/'engine-info.json').write_text(json.dumps({'baseline':baseline.info(),'learned':learned.info()},ensure_ascii=False,indent=2)+'\n')
         endpoints={}
-        for name,engine in [('baseline',baseline),('learned',learned)]:
+        engines=[('baseline',baseline),('learned',learned)]
+        if args.action_study:
+            engines.append(('dense-control',SearchEngine(reader,encoder,vectors,router=BM25ThenDense())))
+        for name,engine in engines:
             handler=make_handler(engine)
             handler.log_message=lambda *args:None
             server=ThreadingHTTPServer(('127.0.0.1',0),handler)
@@ -113,6 +128,7 @@ def run(args):
                 payload=json.load(response)
             elapsed=(time.perf_counter()-started)*1000
             if payload['routing']['fallback']:raise ValueError('fallback invalidates comparison')
+            QueryRouting.from_response(payload['routing'],mode,allow_adaptive_dense=args.action_study)
             return payload,elapsed
         for name in variants:
             for query in queries[:3]:request(name,query['text'])
@@ -168,4 +184,5 @@ if __name__=='__main__':
     p.add_argument('--adapter-root',type=Path)
     p.add_argument('--device',default='cuda')
     p.add_argument('--transfer',action='store_true')
+    p.add_argument('--action-study',action='store_true',help='explicit experimental adaptive dense action and BM25-then-dense control')
     run(p.parse_args())

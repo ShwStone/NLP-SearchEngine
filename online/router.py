@@ -23,6 +23,7 @@ class QueryFeatures:
 class RouteDecision:
     use_vector: bool
     reason: str
+    semantic_mode: str = 'hybrid'
 
 
 class Router(Protocol):

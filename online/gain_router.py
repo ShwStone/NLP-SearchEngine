@@ -6,7 +6,7 @@ import math
 from pathlib import Path
 
 from .router import RouteDecision
-from .router_features import FEATURE_NAMES, FEATURE_VERSION
+from .router_features import FEATURE_NAMES, FEATURE_NAMES_V2, FEATURE_VERSION, FEATURE_VERSION_V2
 
 
 class GainRouter:
@@ -18,18 +18,31 @@ class GainRouter:
         self.policy_version = 'bm25-gain-v1-'+self.sha256[:12]
         self.allow_transfer = allow_transfer
         self.model = m = json.loads(raw)
-        if (m.get('schema_version')!=1 or m.get('feature_version')!=FEATURE_VERSION
-                or m.get('feature_names')!=list(FEATURE_NAMES)):
+        if m.get('kind')=='action-linear':
+            self.policy_version = 'bm25-actions-v1-'+self.sha256[:12]
+        self.feature_version = m.get('feature_version')
+        allowed = {FEATURE_VERSION:list(FEATURE_NAMES), FEATURE_VERSION_V2:list(FEATURE_NAMES_V2)}
+        if (m.get('schema_version')!=1 or m.get('feature_version') not in allowed
+                or m.get('feature_names')!=allowed[m.get('feature_version')]):
             raise ValueError('gain router feature/schema mismatch')
+        source = m.get('provenance', {}).get('source', {})
+        if not {'source_manifest','candidate_k','rrf_c','vector_manifest','vector_search_params'} <= source.keys():
+            raise ValueError('incomplete gain router retrieval provenance')
         selected = m['selected_features']
-        if (not selected or len(set(selected))!=len(selected) or any(name not in FEATURE_NAMES for name in selected)
+        if (not selected or len(set(selected))!=len(selected) or any(name not in allowed[m['feature_version']] for name in selected)
                 or not math.isfinite(m['threshold'])):
             raise ValueError('invalid features or threshold')
-        if m['kind']=='linear':
-            for key in ('mean','scale','coef'):
+        if m['kind'] in ('linear','action-linear'):
+            for key in ('mean','scale'):
                 if len(m[key])!=len(selected) or any(not math.isfinite(v) for v in m[key]):
                     raise ValueError('invalid linear router')
-            if any(v<=0 for v in m['scale']) or not math.isfinite(m['intercept']):
+            heads = [m] if m['kind']=='linear' else list(m.get('heads',{}).values())
+            if m['kind']=='action-linear' and (set(m.get('heads',{}))!={'dense','hybrid'} or not math.isfinite(m['margin'])):
+                raise ValueError('invalid action heads')
+            for head in heads:
+                if len(head['coef'])!=len(selected) or any(not math.isfinite(v) for v in head['coef']) or not math.isfinite(head['intercept']):
+                    raise ValueError('invalid linear coefficients')
+            if any(v<=0 for v in m['scale']):
                 raise ValueError('invalid router scaling')
         elif m['kind']=='tree':
             n = len(m['feature'])
@@ -72,6 +85,8 @@ class GainRouter:
 
     def predict(self, features):
         m = self.model
+        if m['kind']=='action-linear':
+            raise ValueError('action router requires predict_actions')
         x = [features[name] for name in m['selected_features']]
         if any(not math.isfinite(v) for v in x):
             raise ValueError('nonfinite gain router input')
@@ -89,9 +104,25 @@ class GainRouter:
                       and features['n_terms']<=spec['terms'] and features['candidate_hits']>=2)
         return -1. if sufficient else 1.
 
+    def predict_actions(self, features):
+        m=self.model
+        x=[features[name] for name in m['selected_features']]
+        if any(not math.isfinite(v) for v in x):
+            raise ValueError('nonfinite action router input')
+        return {name:head['intercept']+sum(c*(v-a)/b for v,a,b,c in zip(x,m['mean'],m['scale'],head['coef']))
+                for name,head in m['heads'].items()}
+
     def decide(self, features):
         if features.explicit_constraints:
             return RouteDecision(False,'explicit_constraints')
+        if self.model['kind']=='action-linear':
+            if not features.lexical_hits:
+                return RouteDecision(True,'no_lexical_hits','dense')
+            values=self.predict_actions(features.statistics)
+            if max(values.values())<=self.model['threshold']:
+                return RouteDecision(False,'predicted_lexical_sufficient')
+            mode='dense' if values['dense']>=values['hybrid']+self.model['margin'] else 'hybrid'
+            return RouteDecision(True,'predicted_'+mode+'_gain',mode)
         if not features.lexical_hits:
             return RouteDecision(True,'no_lexical_hits')
         use = self.predict(features.statistics)>self.model['threshold']

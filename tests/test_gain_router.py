@@ -94,4 +94,46 @@ def test_gain_router_binding_and_malformed_model_rejection():
         _raises(ValueError,lambda:GainRouter(path))
 
 
+def test_v2_coverage_and_online_feature_dispatch_are_consistent():
+    from online.router_features import extract_statistics_v2, FEATURE_NAMES_V2, FEATURE_VERSION_V2
+    engine, encoder, vectors = _setup()
+    values=extract_statistics_v2('phone water missing',engine.reader,
+                                 ['phone','water','missing'],[(0,2.),(1,1.)])
+    assert tuple(values)==FEATURE_NAMES_V2
+    assert math.isclose(values['top1_term_coverage'],2/3)
+    assert math.isclose(values['top10_term_coverage'],2/3)
+    assert math.isclose(values['top10_mean_term_coverage'],1/3)
+    assert math.isclose(values['top10_rare_term_coverage'],2/3)
+    assert values['top10_all_terms']==0
+    vectors.search_params={'hnsw_ef':128,'exact':False}
+    artifact=_artifact(engine)
+    artifact.update(feature_version=FEATURE_VERSION_V2,feature_names=list(FEATURE_NAMES_V2),
+                    selected_features=['top1_term_coverage'],mean=[0.],scale=[1.],coef=[1.],intercept=0.,threshold=.9)
+    with tempfile.TemporaryDirectory() as tmp:
+        path=Path(tmp)/'v2.json';path.write_text(json.dumps(artifact))
+        router=GainRouter(path)
+        experiment=SearchEngine(engine.reader,encoder,vectors,router=router)
+        assert experiment.search(SearchRequest('phone',mode='adaptive')).routing.vector_attempted
+        assert not experiment.search(SearchRequest('phone absent',mode='adaptive')).routing.vector_attempted
+        constrained=experiment.search(SearchRequest('phone AND NOT camera',mode='adaptive'))
+        assert not constrained.routing.vector_attempted
+        broken=dict(artifact,provenance={'source':{'index_manifest':engine.reader.manifest()}})
+        path.write_text(json.dumps(broken))
+        _raises(ValueError,lambda:GainRouter(path))
+
+
+def test_v2_coverage_does_not_scan_whole_postings_blocks():
+    from online.router_features import extract_statistics_v2
+    class LookupOnly(list):
+        def __iter__(self):
+            raise AssertionError('coverage scanned every posting')
+    class Reader:
+        n_docs=5000
+        values=LookupOnly((i,1,[0]) for i in range(5000))
+        def df(self,term):return 5000
+        def postings(self,term):return self.values
+    values=extract_statistics_v2('term',Reader(),['term'],[(999,1.),(2500,.5)])
+    assert values['top1_term_coverage']==values['top10_term_coverage']==1.
+
+
 ALL_TESTS=[value for name,value in sorted(globals().items()) if name.startswith('test_')]

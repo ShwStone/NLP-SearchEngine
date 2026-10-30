@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import unicodedata
+import time
 
 from online.parser import parse, QuerySyntaxError
 from .prepare_bm25_router import sha, jsonl_rows
@@ -16,8 +17,10 @@ def grams(text):
     return {text[i:i+2] for i in range(len(text)-1)} if len(text)>1 else {text}
 
 
-def prepare(history_root, model, freeze, out):
+def prepare(history_root, model, freeze, out, exclude_queries=(), limit=256,
+            salt='rfc01-cmedqa-unused|'):
     import pyarrow.parquet as pq
+    preparation_started=time.time()
     root, out = Path(history_root), Path(out)
     frozen = json.loads(Path(freeze).read_text())
     if sha(model)!=frozen['model_sha256']:
@@ -34,7 +37,9 @@ def prepare(history_root, model, freeze, out):
             raise ValueError('historical CMedQA corpus/query checksum mismatch')
     ids = {row['doc_id'] for row in jsonl_rows(data/'corpus.jsonl')}
     prior_ids = {row['qid'] for row in jsonl_rows(data/'queries.jsonl')}
-    paths = sorted((root/'artifacts').rglob('queries*.jsonl'))
+    paths = sorted(set((root/'artifacts').rglob('queries*.jsonl')) | {Path(p) for p in exclude_queries})
+    for path in exclude_queries:
+        prior_ids.update(row.get('query_id',row.get('qid')) for row in jsonl_rows(path))
     history, index = [], defaultdict(set)
     def remember(tokens):
         i=len(history);history.append(tokens)
@@ -48,7 +53,7 @@ def prepare(history_root, model, freeze, out):
     queries=pq.read_table(raw/'queries-00000-of-00001-daeedab899d3c839.parquet').to_pylist()
     relations=pq.read_table(raw/'dev-00000-of-00001-57fb84a4aceaa695.parquet').to_pylist()
     eligible={r['qid'] for r in relations if r['pid'] in ids and r['score']>0}
-    candidates=sorted(queries,key=lambda q:hashlib.sha256(('rfc01-cmedqa-unused|'+q['id']).encode()).hexdigest())
+    candidates=sorted(queries,key=lambda q:hashlib.sha256((salt+q['id']).encode()).hexdigest())
     selected=[];exclusions=Counter()
     for row in candidates:
         if row['id'] in prior_ids:exclusions['prior_id']+=1;continue
@@ -60,7 +65,7 @@ def prepare(history_root, model, freeze, out):
             exclusions['invalid_syntax']+=1;continue
         tokens=grams(row['text'])
         if near(tokens):exclusions['near_observed_or_selected_query']+=1;continue
-        if len(selected)<256:
+        if len(selected)<limit:
             selected.append(dict(query_id=row['id'],text=row['text']))
             remember(tokens)
         else:exclusions['over_predeclared_cap']+=1
@@ -68,7 +73,9 @@ def prepare(history_root, model, freeze, out):
     qids={r['query_id'] for r in selected}
     (out/'queries.jsonl').write_text(''.join(json.dumps(row,ensure_ascii=False)+'\n' for row in selected))
     (out/'qrels.tsv').write_text(''.join(f"{r['qid']}\t0\t{r['pid']}\t{r['score']}\n" for r in relations if r['qid'] in qids and r['pid'] in ids))
-    result=dict(model_sha256=frozen['model_sha256'],queries=len(selected),documents=len(ids),
+    result=dict(model_sha256=frozen['model_sha256'],queries=len(selected),documents=len(ids),limit=limit,hash_salt=salt,
+                freeze_sha256=sha(freeze),preparation_started_epoch=preparation_started,
+                preparation_code_sha256=sha(Path(__file__)),
                 old_query_ids=len(prior_ids),exclusions=dict(exclusions),
                 history_sha256={str(p):sha(p) for p in paths},source_manifest=manifest,
                 output_sha256={p.name:sha(p) for p in out.iterdir()},
@@ -82,5 +89,8 @@ if __name__=='__main__':
     p=argparse.ArgumentParser()
     for name in ('history-root','model','freeze','out'):
         p.add_argument('--'+name,required=True,type=Path)
+    p.add_argument('--exclude-queries',action='append',type=Path,default=[])
+    p.add_argument('--limit',type=int,default=256)
+    p.add_argument('--salt',default='rfc01-cmedqa-unused|')
     args=p.parse_args()
-    print(json.dumps(prepare(args.history_root,args.model,args.freeze,args.out),ensure_ascii=False,indent=2))
+    print(json.dumps(prepare(args.history_root,args.model,args.freeze,args.out,args.exclude_queries,args.limit,args.salt),ensure_ascii=False,indent=2))
