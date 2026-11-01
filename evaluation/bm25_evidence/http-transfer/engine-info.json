@@ -1,0 +1,82 @@
+{
+  "baseline": {
+    "vector_ready": true,
+    "config": {
+      "candidate_k": 200,
+      "rrf_c": 60.0,
+      "min_vocab_coverage": 0.7,
+      "min_relative_gap": 0.1,
+      "policy_version": "rules-v1",
+      "adaptive_policy": "rules-v1"
+    },
+    "vector_manifest": {
+      "corpus_sha256": "bc9375f9130ee0724664f5d742e160b9ae0f5bda5d1815959b9eab5f38345396",
+      "n_docs": 20000,
+      "embedding": {
+        "model_id": "BAAI/bge-small-zh-v1.5",
+        "revision": "7999e1d3359715c523056ef9478215996d62a620",
+        "dimension": 512,
+        "max_tokens": 512,
+        "normalize": true,
+        "distance": "cosine",
+        "document_template": "title\ntext",
+        "query_prefix": "为这个句子生成表示以用于检索相关文章：",
+        "document_prefix": ""
+      },
+      "collection": "round5-cmedqa-v1",
+      "backend": "qdrant-hnsw",
+      "index_params": {
+        "m": 16,
+        "ef_construct": 100
+      },
+      "schema_version": 1,
+      "snapshot_files": {
+        "round5-cmedqa-v1-2540985381257663-2026-10-26-05-44-52.snapshot": "f217625ec32e9a96d712ca585de439ad1d2ed36db6c727e0727b30341da9951b"
+      }
+    },
+    "router": {
+      "policy_version": "rules-v1",
+      "requires_statistics": false
+    }
+  },
+  "learned": {
+    "vector_ready": true,
+    "config": {
+      "candidate_k": 200,
+      "rrf_c": 60.0,
+      "min_vocab_coverage": 0.7,
+      "min_relative_gap": 0.1,
+      "policy_version": "rules-v1",
+      "adaptive_policy": "rules-v1"
+    },
+    "vector_manifest": {
+      "corpus_sha256": "bc9375f9130ee0724664f5d742e160b9ae0f5bda5d1815959b9eab5f38345396",
+      "n_docs": 20000,
+      "embedding": {
+        "model_id": "BAAI/bge-small-zh-v1.5",
+        "revision": "7999e1d3359715c523056ef9478215996d62a620",
+        "dimension": 512,
+        "max_tokens": 512,
+        "normalize": true,
+        "distance": "cosine",
+        "document_template": "title\ntext",
+        "query_prefix": "为这个句子生成表示以用于检索相关文章：",
+        "document_prefix": ""
+      },
+      "collection": "round5-cmedqa-v1",
+      "backend": "qdrant-hnsw",
+      "index_params": {
+        "m": 16,
+        "ef_construct": 100
+      },
+      "schema_version": 1,
+      "snapshot_files": {
+        "round5-cmedqa-v1-2540985381257663-2026-10-26-05-44-52.snapshot": "f217625ec32e9a96d712ca585de439ad1d2ed36db6c727e0727b30341da9951b"
+      }
+    },
+    "router": {
+      "policy_version": "bm25-gain-v1-ebc274813ee3",
+      "requires_statistics": true
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "feature_version": "vector-first-v1",
+  "feature_names": [
+    "query_chars",
+    "n_terms",
+    "ascii_fraction",
+    "digit_fraction",
+    "hits",
+    "top1",
+    "mean5",
+    "mean10",
+    "std10",
+    "gap2",
+    "gap5",
+    "gap10",
+    "gap50",
+    "score200"
+  ],
+  "threshold": 0,
+  "retrieval": {
+    "candidate_k": 200,
+    "rrf_c": 10,
+    "lexical_weight": 0.25,
+    "dense_weight": 1.0
+  },
+  "corpus_sha256": "9c1a3ca3499d9b601425536a875e3f881e2f6b93ac8f8f00b7fbf87430187b7a",
+  "embedding": {
+    "model_id": "BAAI/bge-small-zh-v1.5",
+    "revision": "7999e1d3359715c523056ef9478215996d62a620",
+    "dimension": 512,
+    "max_tokens": 512,
+    "normalize": true,
+    "distance": "cosine",
+    "document_template": "title\ntext",
+    "query_prefix": "\u4e3a\u8fd9\u4e2a\u53e5\u5b50\u751f\u6210\u8868\u793a\u4ee5\u7528\u4e8e\u68c0\u7d22\u76f8\u5173\u6587\u7ae0\uff1a",
+    "document_prefix": ""
+  },
+  "vector_search_params": {
+    "hnsw_ef": 128,
+    "exact": false
+  },
+  "provenance": {
+    "capture_sha256": "1571090d17cbf4213eaf00726766f3b2996c1371e1a4feddfb68a647c321b47f",
+    "queries": 997,
+    "selected_model": {
+      "kind": "ridge",
+      "alpha": 100
+    },
+    "threshold": 0,
+    "selection": {
+      "mean_loss": 2.4785445030295995e-05,
+      "upper95": 0.0012371818430664564,
+      "saving": 0.34804413239719156,
+      "model": {
+        "kind": "ridge",
+        "alpha": 100
+      },
+      "threshold": 0
+    },
+    "reads_test_or_external_labels": false,
+    "caveat": "nested group CV conditional on fusion selected in a previous round; empirical intervals, no population guarantee"
+  },
+  "kind": "linear",
+  "mean": [
+    9.318956870611835,
+    7.362086258776329,
+    0.09010654862605132,
+    0.021806515253458236,
+    200.0,
+    0.7001291340822464,
+    0.6473727010732201,
+    0.6119124492246729,
+    0.045839175171966076,
+    0.033871513671013,
+    0.09324923037111331,
+    0.1388465797592779,
+    0.20199654153460375,
+    0.4544350917151457
+  ],
+  "scale": [
+    3.326223534905311,
+    2.6497831823229645,
+    0.1802405841760095,
+    0.07122124852662072,
+    1.0,
+    0.06789220000308017,
+    0.06366414661279941,
+    0.05899325967794128,
+    0.022557341091760608,
+    0.03621503275015382,
+    0.0566129581133756,
+    0.06391597835665931,
+    0.06883063249780835,
+    0.04668775746798805
+  ],
+  "coef": [
+    0.0033861023353199153,
+    -0.001677178373372674,
+    0.003794770842861174,
+    0.00028071516299978854,
+    0.0,
+    -0.0019044992912205126,
+    -0.0028916162314321834,
+    -0.0030916816414004564,
+    0.0011332241114870056,
+    -0.0009274585743124218,
+    -3.315907173844986e-05,
+    0.0009149089423682115,
+    -0.001243121868801317,
+    0.003632562011130537
+  ],
+  "intercept": 0.00462737648766754
+}

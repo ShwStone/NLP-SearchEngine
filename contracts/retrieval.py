@@ -150,8 +150,11 @@ class RetrievalConfig:
     min_vocab_coverage: float = 0.7
     min_relative_gap: float = 0.1
     policy_version: str = "rules-v1"
+    adaptive_policy: str = "rules-v1"
 
     def __post_init__(self):
+        if self.adaptive_policy not in ("rules-v1", "recall-v1", "hybrid-v1"):
+            raise ValueError("unknown adaptive_policy")
         if type(self.candidate_k) is not int or self.candidate_k < 1:
             raise ValueError("candidate_k 必须是正整数")
         if not math.isfinite(self.rrf_c) or self.rrf_c <= 0:

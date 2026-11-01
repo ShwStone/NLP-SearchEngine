@@ -6,9 +6,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from tests import test_contracts, test_hybrid, test_qdrant  # noqa: E402
+from importlib import import_module  # noqa: E402
 
-ALL_TESTS = test_contracts.ALL_TESTS + test_hybrid.ALL_TESTS + test_qdrant.ALL_TESTS
+MODULES = [import_module("tests." + path.stem)
+           for path in sorted(Path(__file__).resolve().parent.glob("test_*.py"))]
+ALL_TESTS = [fn for module in MODULES for fn in module.ALL_TESTS]
 
 
 def main() -> int:
