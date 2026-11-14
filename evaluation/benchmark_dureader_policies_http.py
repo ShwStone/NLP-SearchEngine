@@ -32,6 +32,7 @@ from online.parser import parse
 from online.router import QueryFeatures,RuleRouter
 from online.vector_index import QdrantVectorIndex
 from online.scorers import boolean_docs
+from evaluation.prece_router import FrozenTreeEnsemble, FrozenScalarTree, extract_features
 
 
 def quality_guard_heavy(score, threshold, explicit_constraints=False):
@@ -40,6 +41,11 @@ def quality_guard_heavy(score, threshold, explicit_constraints=False):
 
 
 def policy_ce_budget(policy, fixed_budget, heavy):
+    if policy in ('same-cost-prece-router','same-cost-calibrated-router'): return 40 if heavy else 20
+    if policy=='same-cost-ce28-router': return 40 if heavy else 28
+    if policy=='same-cost-ce24-router': return 40 if heavy else 24
+    if policy=='ce20': return 20
+    if policy=='ce24': return 24
     if policy.startswith('ce28'): return 28
     if policy.startswith('ce40') or heavy: return 40
     if policy in ('fixed-pair-budget', 'quality-guard-40'): return fixed_budget
@@ -48,7 +54,7 @@ def policy_ce_budget(policy, fixed_budget, heavy):
 
 def benchmark(index,vector_manifest,model_path,ce_model,url,queries,qrels,
               policy_dir,output,policies='bm25,dense,ce0,old-rules-router,ce28,ce40,ce28-ranker,ce40-ranker,learned-router,fixed-pair-budget',
-              limit=0,reader_source=None,quality_threshold=0.153):
+              limit=0,reader_source=None,quality_threshold=0.153,prece_model=None,scalar_model=None):
     from adapters.embedding import BGEEncoder
     output=Path(output)
     if output.exists():raise FileExistsError(output)
@@ -66,7 +72,7 @@ def benchmark(index,vector_manifest,model_path,ce_model,url,queries,qrels,
                   for seed in (20261113,20261114)}
     if limit:rows=rows[:limit]
     selected=policies.split(',')
-    allowed={'bm25','dense','ce0','old-rules-router','ce28','ce40','ce28-ranker','ce40-ranker','learned-router','fixed-pair-budget','quality-guard-40'}
+    allowed={'bm25','dense','ce0','ce20','ce24','old-rules-router','ce28','ce40','ce28-ranker','ce40-ranker','learned-router','fixed-pair-budget','quality-guard-40','same-cost-prece-router','same-cost-ce28-router','same-cost-ce24-router','same-cost-calibrated-router'}
     allowed.update({'random-20261113','random-20261114'})
     if not selected or set(selected)-allowed:raise ValueError('invalid policies')
     accelerator=None
@@ -81,6 +87,10 @@ def benchmark(index,vector_manifest,model_path,ce_model,url,queries,qrels,
     lexical_engine=SearchEngine(reader)
     ce=FrozenCrossEncoder(ce_model,device='cuda',batch_size=20,max_length=256)
     gate=FrozenLinear(bundle['gate']['model']);threshold=bundle['gate']['threshold']
+    prece=FrozenTreeEnsemble.load(prece_model) if prece_model else None
+    scalar=FrozenScalarTree.load(scalar_model) if scalar_model else None
+    if ('same-cost-prece-router' in policies or 'same-cost-ce28-router' in policies or 'same-cost-ce24-router' in policies) and prece is None: raise ValueError('same-cost-prece-router requires --prece-model')
+    if 'same-cost-calibrated-router' in policies and scalar is None: raise ValueError('same-cost-calibrated-router requires --scalar-model')
     rankers={b:(FrozenLinear(bundle['rankers'][str(b)]['model'])
                 if bundle['rankers'][str(b)]['model'] is not None else None) for b in (28,40)}
     rules=RuleRouter(RetrievalConfig())
@@ -115,7 +125,16 @@ def benchmark(index,vector_manifest,model_path,ce_model,url,queries,qrels,
         # This policy uses only online BM25 statistics; the threshold is frozen
         # from the training distribution and is never selected from qrels.
         policy_threshold = quality_threshold if policy=='quality-guard-40' else threshold
-        heavy=policy in ('learned-router','quality-guard-40') and quality_guard_heavy(gate.predict([features])[0], policy_threshold, constrained)
+        prece_features=extract_features(row).tolist() if prece is not None else None
+        prece_score=prece.predict_one(prece_features) if prece_features is not None else None
+        if policy in ('same-cost-prece-router','same-cost-ce28-router','same-cost-ce24-router'):
+            heavy=quality_guard_heavy(prece_score, prece.threshold, constrained)
+        elif policy=='same-cost-calibrated-router':
+            prece_score=prece.predict_one(extract_features(row)) if prece is not None else 0.0
+            calibrated_score=scalar.predict_one(prece_score)
+            heavy=quality_guard_heavy(calibrated_score, scalar.threshold, constrained)
+        else:
+            heavy=policy in ('learned-router','quality-guard-40') and quality_guard_heavy(gate.predict([features])[0], policy_threshold, constrained)
         if policy.startswith('random-'):
             if qid not in source_predictions:raise ValueError('random control requires frozen evaluation qid')
             heavy=not constrained and qid in random_heavy[policy]
@@ -147,7 +166,7 @@ def benchmark(index,vector_manifest,model_path,ce_model,url,queries,qrels,
             results=rerank(row,budget,rankers[budget] if policy.endswith('-ranker') else None)
         return {'results':results,'heavy':budget>0,'ce_pairs':min(budget,len(row['pool'])),
                 'ce_ms':elapsed,'vector_attempt':use_vector,'gate_heavy':bool(heavy),
-                'gate_features':features.tolist(),'router_ms':router_ms}
+                'gate_features':features.tolist(),'prece_features':prece_features,'prece_score':prece_score,'router_ms':router_ms}
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):
             try:
@@ -165,8 +184,11 @@ def benchmark(index,vector_manifest,model_path,ce_model,url,queries,qrels,
     endpoint=f'http://127.0.0.1:{server.server_port}/search'
     def request(text,policy,qid):
         start=time.perf_counter()
-        response=json.load(opener.open(urllib.request.Request(endpoint,
-              json.dumps({'query':text,'policy':policy,'query_id':qid}).encode(),{'Content-Type':'application/json'}),timeout=180))
+        try:
+            response=json.load(opener.open(urllib.request.Request(endpoint,
+                  json.dumps({'query':text,'policy':policy,'query_id':qid}).encode(),{'Content-Type':'application/json'}),timeout=180))
+        except urllib.error.HTTPError as error:
+            detail=error.read().decode(errors='replace'); raise RuntimeError(f'HTTP policy {policy} failed: {detail}') from error
         response['client_wall_ms']=(time.perf_counter()-start)*1000
         return response
     output.mkdir(parents=True)
@@ -207,7 +229,7 @@ def benchmark(index,vector_manifest,model_path,ce_model,url,queries,qrels,
                          'e2e_ms':{k:percentile([r['client_wall_ms'] for r in rs],p) for k,p in [('p50',.5),('p95',.95)]},
                          'ce_ms':{k:percentile([r['ce_ms'] for r in rs],p) for k,p in [('p50',.5),('p95',.95)]},
                          'ce_pairs_mean':statistics.mean(r['ce_pairs'] for r in rs),
-                         'heavy_rate':statistics.mean(r['gate_heavy'] if policy=='quality-guard-40' else r['heavy'] for r in rs),
+                         'heavy_rate':statistics.mean(r['gate_heavy'] if policy in ('quality-guard-40','same-cost-prece-router','same-cost-ce28-router','same-cost-ce24-router','same-cost-calibrated-router') else r['heavy'] for r in rs),
                          'vector_attempt_rate':statistics.mean(r['vector_attempt'] for r in rs),
                          'router_ms':{k:percentile([r['router_ms'] for r in rs],p) for k,p in [('p50',.5),('p95',.95)]},
                          'exact_ids_match_capture_rate':(statistics.mean(r['exact_ids_match_capture'] for r in rs) if policy=='learned-router' else None)}
@@ -233,4 +255,6 @@ if __name__=='__main__':
     p.add_argument('--limit',type=int,default=0)
     p.add_argument('--reader-source')
     p.add_argument('--quality-threshold',type=float,default=0.153)
+    p.add_argument('--prece-model')
+    p.add_argument('--scalar-model')
     print(json.dumps(benchmark(**vars(p.parse_args())),indent=2))
