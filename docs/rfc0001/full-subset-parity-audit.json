@@ -1,0 +1,9 @@
+{
+  "status": "verified",
+  "full_documents": 8096668,
+  "subset_documents": 100000,
+  "full_corpus_sha256": "bc67f3ccfe7423c039f04c7a5e7f6eae07a7f722087edf0caa7cfc694a8c45e8",
+  "subset_corpus_sha256": "f24b50b6012b47f6fb5f72272666dbf187124a869f19d1c8d83f7e30d6cb62b4",
+  "exact_fields_and_relative_order": true,
+  "scope": "frozen subset coverage; not an all-document official archive identity check"
+}

@@ -1,6 +1,9 @@
 """Replay rejects missing request evidence and altered experiment inputs."""
 import argparse
+from contextlib import redirect_stdout
 import hashlib
+from importlib.util import find_spec
+from io import StringIO
 import json
 from pathlib import Path
 import tempfile
@@ -8,7 +11,7 @@ import unittest
 
 from evaluation.evaluate import EvaluationError
 from online.linear_gain_router import FEATURE_VERSION
-from scripts.replay_router_gain import MODES, freeze, score
+from scripts.replay_router_gain import MODES, development_budget_curve, freeze, main, score
 
 
 class ReplayGainTests(unittest.TestCase):
@@ -75,6 +78,66 @@ class ReplayGainTests(unittest.TestCase):
         self.assertEqual(result["metrics"]["gain_fixed_budget"]["ndcg_at_10"], 1.0)
         self.assertEqual(result["experiment_binding"]["corpus_sha256"], "a" * 64)
         self.assertIn("legacy_ordered_http200", result["request_evidence_formats"]["hybrid"])
+
+    def test_curve_is_optional_and_uses_validated_score_inputs(self):
+        self.assertNotIn("development_budget_curve", score(self.args))
+        self.args.output = self.root / "curve.json"
+        self.args.development_budget_curve = True
+        curve = score(self.args)["development_budget_curve"]
+        self.assertEqual([point["vector_calls"] for point in curve["points"]], [0, 1])
+        self.write("hybrid.trec", "q Q0 foreign 1 1 fixture\n")
+        self.args.output = self.root / "invalid-curve.json"
+        with self.assertRaisesRegex(EvaluationError, "source hashes"):
+            score(self.args)
+
+    def test_curve_preserves_lexical_constraints_and_uses_deterministic_ties(self):
+        rows = [
+            {"qid": "z", "explicit_constraints": False, "predicted_gain": 0.5},
+            {"qid": "a", "explicit_constraints": False, "predicted_gain": 0.5},
+            {"qid": "c", "explicit_constraints": True, "predicted_gain": None},
+        ]
+        qrels = {row["qid"]: {"right": 1.0} for row in rows}
+        runs = {"lexical": {"z": ["right"], "c": ["right"]},
+                "hybrid": {"a": ["right"]}}
+        curve = development_budget_curve(rows, qrels, runs, 1)
+        self.assertEqual([point["vector_calls"] for point in curve["points"]], [0, 1, 2])
+        zero, one, full = curve["points"]
+        self.assertAlmostEqual(zero["gain_replay"]["ndcg_at_10"], 2 / 3)
+        self.assertAlmostEqual(one["query_trigger_rate"], 1 / 3)
+        self.assertEqual(one["gain_replay"]["ndcg_at_10"], 1.0)
+        self.assertAlmostEqual(one["uniform_fixed_budget_expectation"]["ndcg_at_10"], 2 / 3)
+        self.assertAlmostEqual(full["gain_replay"]["ndcg_at_10"], 2 / 3)
+
+    def test_ablation_rejects_unpinned_or_changed_development_qrels(self):
+        self.args.development_ablation_inputs = self.root / "unused-map.json"
+        with self.assertRaisesRegex(EvaluationError, "frozen qrels SHA256"):
+            score(self.args)
+        self.args.expected_development_qrels_sha256 = self.sha(self.args.qrels)
+        self.args.qrels.write_text("q 0 d 2\n", encoding="utf-8")
+        with self.assertRaisesRegex(EvaluationError, "frozen qrels SHA256"):
+            score(self.args)
+        self.assertFalse(self.args.output.exists())
+
+    def test_opportunity_requires_frozen_qrels_before_scoring(self):
+        self.args.routing_opportunity = True
+        with self.assertRaisesRegex(EvaluationError, "frozen qrels SHA256"):
+            score(self.args)
+        self.assertFalse(self.args.output.exists())
+
+    @unittest.skipUnless(find_spec("numpy"), "NumPy required for grouped sensitivity")
+    def test_opportunity_cli_scores_and_keeps_original_result_fields(self):
+        previous = score(self.args)
+        self.args.output = self.root / "opportunity.json"
+        arguments = ["score", "--routing-opportunity", "--expected-qrels-sha256", self.sha(self.args.qrels)]
+        for name, value in vars(self.args).items():
+            arguments.extend([f"--{name.replace('_', '-')}", str(value)])
+        with redirect_stdout(StringIO()):
+            self.assertEqual(main(arguments), 0)
+        current = json.loads(self.args.output.read_bytes())
+        opportunity = current.pop("routing_opportunity")
+        self.assertEqual(current, previous)
+        self.assertEqual(opportunity["vector_call_budget"], 0)
+        self.assertEqual(opportunity["observed_policy_grouped_sensitivity"]["group_count"], 1)
 
     def test_foreign_corpus_binding_rejected_by_frozen_identity(self):
         self.binding["corpus_sha256"] = "e" * 64

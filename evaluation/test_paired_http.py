@@ -13,6 +13,7 @@ from contracts.retrieval import EmbeddingSpec, VectorManifest, VectorRecord, cor
 from online.engine import SearchEngine
 from online.memory_index import MemoryIndex
 from online.observability import SearchLogger
+from online.router import RouteDecision
 from online.server import make_handler
 from online.vector_index import MemoryVectorIndex
 
@@ -30,7 +31,14 @@ class FixtureEncoder:
         return [0.0, 1.0] if query == "camera" else [1.0, 0.0]
 
 
-def fixture_service():
+class DensePolicy:
+    policy_version = "paired-dense-fixture-v1"
+
+    def decide(self, features):
+        return RouteDecision(True, "fixture_dense", semantic_mode="dense")
+
+
+def fixture_service(router=None):
     docs = [
         {"doc_id": "phone", "title": "", "text": "phone water"},
         {"doc_id": "case", "title": "", "text": "phone case"},
@@ -45,7 +53,7 @@ def fixture_service():
         VectorRecord(i, doc["doc_id"], encoder.encode_query(doc["doc_id"]))
         for i, doc in enumerate(docs)
     ])
-    engine = SearchEngine(reader, encoder, vectors)
+    engine = SearchEngine(reader, encoder, vectors, router=router)
     identity = engine.info()
     bound_identity = {key: identity[key] for key in ("index_identity", "vector_identity",
                                                      "search_config", "policy")}
@@ -114,29 +122,7 @@ class PairedHTTPTest(unittest.TestCase):
                 service_identity(bound_identity, corpus, startup["policy_version"], schema_version=2)
 
     def test_public_handler_roundtrip_and_unverifiable_runs(self):
-        docs = [
-            {"doc_id": "phone", "title": "", "text": "phone water"},
-            {"doc_id": "case", "title": "", "text": "phone case"},
-            {"doc_id": "camera", "title": "", "text": "camera lens"},
-        ]
-        reader = MemoryIndex.from_corpus(docs)
-        encoder = FixtureEncoder()
-        corpus = corpus_fingerprint(reader)
-        manifest = VectorManifest(corpus, reader.n_docs, encoder.spec,
-                                  "paired-fixture", backend="memory-exact")
-        vectors = MemoryVectorIndex(manifest, [
-            VectorRecord(i, doc["doc_id"], encoder.encode_query(doc["doc_id"]))
-            for i, doc in enumerate(docs)
-        ])
-        engine = SearchEngine(reader, encoder, vectors)
-        identity = engine.info()
-        startup = {"event": "startup", "dataset": identity["index_identity"]["dataset"],
-                   "policy_version": identity["policy"]["policy_version"],
-                   **{key: identity[key] for key in (
-                       "index_identity", "vector_identity", "search_config", "policy",
-                   )}}
-        bound_identity = {key: startup[key] for key in ("index_identity", "vector_identity",
-                                                       "search_config", "policy")}
+        engine, corpus, startup, bound_identity = fixture_service()
         sink = io.StringIO()
         logger = SearchLogger(sink)
         logger.emit(startup)
@@ -185,6 +171,7 @@ class PairedHTTPTest(unittest.TestCase):
             self.assertEqual(len(result["paired_client_latency"]), 6)
             self.assertEqual({r["queries"] for r in result["paired_client_latency"]}, {2})
             for mode in modes:
+                self.assertNotIn("allow_adaptive_dense", result["arms"][mode])
                 self.assertEqual(result["arms"][mode]["client_ms"]["n"], 4)
                 self.assertEqual(result["arms"][mode]["warmup_requests"], 1)
                 path = output / f"{mode}.trec"
@@ -194,6 +181,11 @@ class PairedHTTPTest(unittest.TestCase):
             self.assertEqual(result["arms"]["dense"]["route_counts"], {"dense": 4})
             self.assertEqual(result["arms"]["dense"]["identity_sha256"], identity_digest(bound_identity))
             self.assertEqual(result["arms"]["lexical"]["vector_attempts"], 0)
+
+            startup_with_ce = {**json.loads(lines[0]), "reranker": {"depth": 40}}
+            log.write_text("\n".join([json.dumps(startup_with_ce), *lines[1:]]) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "CE-enabled hybrid arm"):
+                verify(plan, digest, journal, logs)
 
             # A duplicate server event and a second startup both invalidate the
             # time sample, even if every individual response still looks valid.
@@ -207,6 +199,104 @@ class PairedHTTPTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 verify(plan, digest, journal, logs, bad)
             self.assertFalse(bad.exists())
+
+    def test_hybrid_baseline_rejects_ce_at_collection_even_with_matching_digest(self):
+        from online.reranking import HybridReranker
+        from tests.test_peer_routing_integration import RecordingScorer
+
+        engine, corpus, _, identity = fixture_service()
+        engine = SearchEngine(engine.reader, engine.encoder, engine.vectors,
+                              reranker=HybridReranker(RecordingScorer(), depth=3))
+        with ThreadingHTTPServer(("127.0.0.1", 0), make_handler(engine)) as server:
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                endpoint = f"http://127.0.0.1:{server.server_port}"
+                arm = {"label": "baseline", "mode": "hybrid", "endpoint": endpoint,
+                       "policy_version": identity["policy"]["policy_version"],
+                       "identity_sha256": identity_digest(identity)}
+                plan = {"arms": [arm], "corpus_sha256": corpus, "depth": 3, "timeout_s": 5}
+                with self.assertRaisesRegex(ValueError, "CE-enabled hybrid arm"):
+                    get_identities(plan)
+                arm["mode"] = "lexical"
+                self.assertEqual(get_identities(plan)["baseline"], identity)
+            finally:
+                server.shutdown()
+                thread.join(timeout=5)
+
+    def test_adaptive_dense_requires_an_opt_in_and_frozen_service_identity(self):
+        engine, corpus, startup, bound_identity = fixture_service(DensePolicy())
+        sink = io.StringIO()
+        logger = SearchLogger(sink)
+        logger.emit(startup)
+        with (tempfile.TemporaryDirectory() as temp,
+              ThreadingHTTPServer(("127.0.0.1", 0), make_handler(engine, search_log=logger)) as server):
+            root = Path(temp)
+            query_file = root / "queries.jsonl"
+            query_file.write_text('{"qid":"q","query":"phone"}\n', encoding="utf-8")
+            plan_file = root / "plan.json"
+            identity = identity_digest(bound_identity)
+            service = {"endpoint": f"http://127.0.0.1:{server.server_port}",
+                       "policy_version": startup["policy_version"]}
+            lexical = {**service, "label": "base", "mode": "lexical"}
+            adaptive = {**service, "label": "route", "mode": "adaptive", "identity_sha256": identity}
+
+            def frozen(arm):
+                plan_file.write_text(json.dumps({
+                    "schema_version": 1, "queries_sha256": sha256(query_file.read_bytes()),
+                    "corpus_sha256": corpus, "query_ids": ["q"], "warmup_query_ids": [],
+                    "repeats": 1, "depth": 3, "timeout_s": 5, "arms": [lexical, arm],
+                }), encoding="utf-8")
+                return load_protocol(plan_file, query_file)
+
+            enabled = {**adaptive, "allow_adaptive_dense": True}
+            for arm, error in (
+                ({**adaptive, "allow_adaptive_dense": "true"}, "must be a boolean"),
+                ({**enabled, "mode": "dense"}, "requires an adaptive arm"),
+                ({**service, "label": "route", "mode": "adaptive", "allow_adaptive_dense": True},
+                 "requires an adaptive arm"),
+                ({**enabled, "identity_sha256": False}, "Invalid arm identity SHA256"),
+            ):
+                with self.subTest(arm=arm), self.assertRaisesRegex(ValueError, error):
+                    frozen(arm)
+
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                omitted, omitted_digest, queries = frozen(adaptive)
+                with self.assertRaisesRegex(ValueError, "执行模式或向量标记不一致"):
+                    collect(omitted, omitted_digest, queries, root / "omitted")
+                wrong, wrong_digest, queries = frozen({**enabled, "identity_sha256": "0" * 64})
+                with self.assertRaisesRegex(ValueError, "Effective service identity differs"):
+                    collect(wrong, wrong_digest, queries, root / "wrong")
+                plan, digest, queries = frozen(enabled)
+                journal = Path(collect(plan, digest, queries, root / "allowed")["journal"])
+            finally:
+                server.shutdown()
+                thread.join(timeout=5)
+
+            log = root / "server.log"
+            log.write_text(sink.getvalue(), encoding="utf-8")
+            logs = {"base": log, "route": log}
+            result = verify(plan, digest, journal, logs)
+            self.assertIs(result["arms"]["route"]["allow_adaptive_dense"], True)
+            self.assertEqual(result["arms"]["route"]["route_counts"], {"dense": 1})
+
+            # A matching START digest is insufficient when the frozen plan forbids the route.
+            events = [json.loads(line) for line in journal.read_bytes().splitlines()]
+            events[0]["plan_sha256"] = omitted_digest
+            rebound = root / "rebound.jsonl"
+            rebound.write_text("".join(json.dumps(event) + "\n" for event in events), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "执行模式或向量标记不一致"):
+                verify(omitted, omitted_digest, rebound, logs)
+
+            logged = [json.loads(line) for line in log.read_bytes().splitlines()]
+            tag = next(event["tag"] for event in events if event["event"] == "OUTCOME"
+                       and event["routing"]["executed_mode"] == "dense")
+            next(event for event in logged if event.get("run_tag") == tag)["executed_mode"] = "hybrid"
+            log.write_text("".join(json.dumps(event) + "\n" for event in logged), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "routing disagreement"):
+                verify(plan, digest, journal, logs)
 
 
 if __name__ == "__main__":

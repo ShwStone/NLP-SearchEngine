@@ -169,8 +169,14 @@ def summarize_run(sidecar, server_log):
     sidecar, server_log = Path(sidecar), Path(server_log)
     receipt, receipt_hash = read_evaluation(sidecar)
     mode = receipt["request"]["mode"]
+    allow_adaptive_dense = receipt["request"].get("allow_adaptive_dense", False)
+    require(type(allow_adaptive_dense) is bool and (not allow_adaptive_dense or mode == "adaptive"),
+            "Invalid adaptive dense request policy")
     tag = receipt["request"]["run_tag"]
     startup, startup_line, logged, log_hash, untagged, other_tag = read_server_log(server_log, tag)
+    require(mode != "hybrid" or ("reranker" not in startup and all(
+        "rerank" not in row and "rerank" not in (row.get("timings_ms") or {}) for row in logged)),
+        "Use evaluation.ce_http for a CE-enabled hybrid run")
     outcomes = receipt["outcomes"]
     require(len(logged) == len(outcomes),
             f"Exact HTTP tag count disagreement (server {len(logged)}, evaluator {len(outcomes)})")
@@ -201,8 +207,9 @@ def summarize_run(sidecar, server_log):
                 values.append(milliseconds(row[field], field))
             client_400.append(milliseconds(outcome["latency_ms"], "client latency_ms"))
             continue
-        routing = QueryRouting.from_response(row, mode)
-        require(routing == QueryRouting.from_response(outcome["routing"], mode),
+        routing = QueryRouting.from_response(row, mode, allow_adaptive_dense=allow_adaptive_dense)
+        require(routing == QueryRouting.from_response(outcome["routing"], mode,
+                                                      allow_adaptive_dense=allow_adaptive_dense),
                 f"Ordered routing disagreement at request {attempt}")
         execution[routing.executed_mode] += 1
         reasons[routing.reason] += 1

@@ -1,0 +1,52 @@
+{
+  "100k": {
+    "queries": 1019,
+    "metrics": {
+      "ndcg": 0.2647649750590566,
+      "recall": 0.2908343473050085,
+      "mrr": 0.41024736358396807,
+      "map": 0.24782272149945553
+    },
+    "protocol": {
+      "queries": 1020,
+      "queries_sha256": "ce010e6ea3a498a696d653b58bcf7976b5101d4034341983429df0a44837cfd9",
+      "vector_manifest_sha256": "e3082f45bc789a895050d13abb9237036c2acb8269d7eee3b6cc0b69a0803866",
+      "model_inventory_sha256": "bd839c7eb57bd6a63a4c50be96e702ad4b727a7b710f335de04e29b6165645b1",
+      "documents": 100000,
+      "k": 200,
+      "search_params": {
+        "hnsw_ef": 128,
+        "exact": false
+      },
+      "qrels_read": false,
+      "explicit_dense_skipped": 1,
+      "latency_scope": "query encoding and Qdrant components; not end-to-end HTTP",
+      "capture_sha256": "f823798d46132b9acc07d06afb7b2016447b4827bacac09096e66b772543fbd3"
+    }
+  },
+  "full": {
+    "queries": 1019,
+    "metrics": {
+      "ndcg": 0.26005197191794077,
+      "recall": 0.2837592503378605,
+      "mrr": 0.4051186192501207,
+      "map": 0.2021710429328802
+    },
+    "protocol": {
+      "queries": 1020,
+      "queries_sha256": "ce010e6ea3a498a696d653b58bcf7976b5101d4034341983429df0a44837cfd9",
+      "vector_manifest_sha256": "22769be7e3cf5dc6326b9fd4ce39f1b16c63d005076411fad6d2b9843f842280",
+      "model_inventory_sha256": "bd839c7eb57bd6a63a4c50be96e702ad4b727a7b710f335de04e29b6165645b1",
+      "documents": 8096668,
+      "k": 200,
+      "search_params": {
+        "hnsw_ef": 128,
+        "exact": false
+      },
+      "qrels_read": false,
+      "explicit_dense_skipped": 1,
+      "latency_scope": "query encoding and Qdrant components; not end-to-end HTTP",
+      "capture_sha256": "04e732fd5ae3996ea9454a4019856512a09466bdb6a0c871493f4e38d37f1caa"
+    }
+  }
+}

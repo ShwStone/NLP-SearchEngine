@@ -151,8 +151,8 @@ index/<dataset>/<build-id>/
 
 性能目标中的 p95 < 100ms 仅针对 BM25 热查询，向量与混合路径单独测量，不套用同一目标。
 
-## 8. 当前代码状态（不是最终实现声明）
+## 8. 实现与验收状态
 
 已实现：词法索引构建/读取、普通 OR 查询、BM25/TF-IDF、布尔/短语过滤、高亮与 HTTP；双索引构建编排和 manifest 发布检查；四模式编排、规则 Router、RRF、分页/降级回显；浏览器 UI、HTTP-only 评测器、可选 Sentence-Transformers 编码器与 Qdrant 建库/快照/只读适配器。
 
-默认 CLI 不传向量参数时只启动词法服务；强制 dense/hybrid 在向量依赖未配置时返回 503，adaptive 明确降级。仓库已提供外部数据校验/固定划分、HTTP 评测和 paired bootstrap 工具；待完成的是依赖真实 DuRetrieval 数据、模型和 Qdrant 实例的全量四组实验与 HNSW 性能测量。内存向量测试不能作为 HNSW 性能或语义效果结论。
+默认 CLI 不传向量参数时只启动词法服务。强制 dense/hybrid 在向量依赖未配置时返回 503，adaptive 回显降级。离线构建与恢复已在真实 DuReader 全量语料上验收，实际 BGE/Qdrant 的四种检索模式已用 808 条内部留出查询完成 HTTP 评测和 paired bootstrap，延迟按各自运行阶段报告。新闻 20k 的四种模式也已通过本地检索与浏览器验收。正式 CE Router 留出、新闻独立人工复评分和公开 20k 部署仍由 [TODO](TODO.md) 跟踪。数据范围、运行条件和结果见[报告](REPORT.md)及[资源记录](evaluation/RESOURCES.md)。

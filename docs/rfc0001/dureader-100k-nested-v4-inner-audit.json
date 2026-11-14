@@ -1,0 +1,46 @@
+{
+  "status": "verified",
+  "train_queries": 172,
+  "dev_labels_read": false,
+  "recorded_trials_independently_recomputed": 70,
+  "folds": [
+    {
+      "fold": 0,
+      "queries": 129,
+      "inner_folds": 3,
+      "group_disjoint": true,
+      "gate_threshold_verified": true
+    },
+    {
+      "fold": 1,
+      "queries": 129,
+      "inner_folds": 3,
+      "group_disjoint": true,
+      "gate_threshold_verified": true
+    },
+    {
+      "fold": 2,
+      "queries": 129,
+      "inner_folds": 3,
+      "group_disjoint": true,
+      "gate_threshold_verified": true
+    },
+    {
+      "fold": 3,
+      "queries": 129,
+      "inner_folds": 3,
+      "group_disjoint": true,
+      "gate_threshold_verified": true
+    },
+    {
+      "fold": "final-train",
+      "queries": 172,
+      "inner_folds": 3,
+      "group_disjoint": true,
+      "gate_threshold_verified": true
+    }
+  ],
+  "selection_sha256": "43cc8f4e9a9f3d6285a9c2c36f303d8f8e1455b8a8c44fa8e60c214215a06cbb",
+  "models_sha256": "2a766227839dd3cb4a94ef8beaa99f6c0477627904e26a4728b159fbdb2dc4d8",
+  "scope": "independent train-only inner ranker/gate refits and threshold reconstruction"
+}

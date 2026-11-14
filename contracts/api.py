@@ -113,6 +113,7 @@ class SearchResponse:
     results: list         # [ResultItem]
     routing: RoutingInfo
     timings_ms: dict = field(default_factory=dict)
+    rerank: dict | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -123,6 +124,7 @@ class SearchResponse:
             "parsed": self.parsed,
             "expanded": self.expanded,
             "results": [r.to_dict() for r in self.results],
+            **({"rerank": self.rerank} if self.rerank is not None else {}),
         }
 
 
@@ -170,8 +172,20 @@ RESPONSE_JSON_SCHEMA = {
             "type": "object",
             "required": ["lexical", "router", "encode", "vector", "fusion"],
             "properties": {name: {"type": "number", "minimum": 0}
-                           for name in ("lexical", "router", "encode", "vector", "fusion")},
+                           for name in ("lexical", "router", "encode", "vector", "fusion", "rerank")},
             "additionalProperties": False,
+        },
+        "rerank": {
+            "type": "object",
+            "required": ["depth", "scored"],
+            "additionalProperties": False,
+            "properties": {
+                "depth": {"type": "integer", "minimum": 1, "maximum": 40},
+                "scored": {"type": "integer", "minimum": 0, "maximum": 40},
+                "features": {"type": "array", "minItems": 4, "maxItems": 4,
+                             "items": {"type": "number"}},
+                "gate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            },
         },
         "took_ms": {"type": "integer", "minimum": 0},
         "parsed": {"type": "object"},

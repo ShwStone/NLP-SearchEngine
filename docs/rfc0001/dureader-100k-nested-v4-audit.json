@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "train_queries": 172,
+  "dev_queries": 1020,
+  "train_groups": 171,
+  "outer_group_exclusion_verified": true,
+  "oof_coverage_verified": true,
+  "all_exported_gate_and_ranker_predictions_verified": true,
+  "all_aggregate_quality_metrics_recomputed": true,
+  "summary_sha256": "27485f0092506cb12a2364397079ab3cd3600a3fbe068ace97f7df97d82df6c3",
+  "models_sha256": "2a766227839dd3cb4a94ef8beaa99f6c0477627904e26a4728b159fbdb2dc4d8",
+  "scope": "artifact integrity, outer group exclusion, exported inference and quality; no latency or inner-fold refitting audit"
+}

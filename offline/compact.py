@@ -6,6 +6,7 @@ No numpy/SDK dependency. Read-only files plus bounded decoded-postings caching.
 
 import argparse
 from array import array
+from contextlib import ExitStack
 from functools import lru_cache
 import json
 import math
@@ -174,17 +175,29 @@ class CompactIndex:
         self._doc_index=(self.root/'docs.idx').read_bytes();self._offset_index=(self.root/'offsets.idx').read_bytes()
         if len(self._doc_index)!=self.n_docs*PAIR.size or len(self._offset_index)!=self.n_docs*PAIR.size:
             raise ValueError('compact row index mismatch')
-        binary_flag = getattr(os, 'O_BINARY', 0)
-        self._files={name:os.open(self.root/name,os.O_RDONLY | binary_flag) for name in ('docs.jsonl','offsets.bin','postings.bin')}
         self._document_path=(self.root/'docs.jsonl').absolute()
-        self._db=sqlite3.connect((self.root/'terms.sqlite').resolve().as_uri()+'?mode=ro&immutable=1',uri=True,check_same_thread=False)
-        self._lock=threading.RLock()
-        self._term=lru_cache(maxsize=4096)(self._lookup)
-        self.postings=lru_cache(maxsize=cache_terms)(self._postings)
-        # At most 16 MiB of serialized document payload plus bounded cache-key
-        # overhead. Oversized rows are read normally and never retained.
-        self._document_bytes=lru_cache(maxsize=DOCUMENT_CACHE_ROWS)(self._read_document_bytes)
-        self._closed=False
+        with ExitStack() as cleanup:
+            database = (self.root / 'terms.sqlite').resolve().as_uri() + '?mode=ro&immutable=1'
+            try:
+                self._db = sqlite3.connect(database, uri=True, check_same_thread=False)
+                cleanup.callback(self._db.close)
+                self._db.execute('SELECT term, start, size, df FROM terms LIMIT 0').close()
+            except sqlite3.Error as error:
+                raise ValueError('invalid compact term index') from error
+            self._files = {}
+            binary_flag = getattr(os, 'O_BINARY', 0)
+            for name in ('docs.jsonl', 'offsets.bin', 'postings.bin'):
+                fd = os.open(self.root / name, os.O_RDONLY | binary_flag)
+                cleanup.callback(os.close, fd)
+                self._files[name] = fd
+            self._lock = threading.RLock()
+            self._term = lru_cache(maxsize=4096)(self._lookup)
+            self.postings = lru_cache(maxsize=cache_terms)(self._postings)
+            # At most 16 MiB of serialized document payload plus bounded cache-key
+            # overhead. Oversized rows are read normally and never retained.
+            self._document_bytes = lru_cache(maxsize=DOCUMENT_CACHE_ROWS)(self._read_document_bytes)
+            self._closed = False
+            cleanup.pop_all()
 
     def _lookup(self,term):
         with self._lock:

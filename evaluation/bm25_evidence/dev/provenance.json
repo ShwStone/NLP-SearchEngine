@@ -1,0 +1,86 @@
+{
+  "feature_version": "bm25-statistics-v1",
+  "feature_names": [
+    "query_chars",
+    "n_terms",
+    "ascii_fraction",
+    "digit_fraction",
+    "vocab_coverage",
+    "mean_idf",
+    "max_idf",
+    "std_idf",
+    "sum_df_fraction",
+    "candidate_hits",
+    "top1",
+    "mean10",
+    "cv10",
+    "relative_gap",
+    "relative_gap10",
+    "entropy10",
+    "top1_share10"
+  ],
+  "queries": 997,
+  "bm25_candidate_parity": 997,
+  "candidate_k": 200,
+  "rrf_c": 60.0,
+  "fusion": "equal-weight RRF",
+  "source_manifest": {
+    "schema_version": 1,
+    "dataset": "duretrieval",
+    "n_docs": 99999,
+    "avgdl": 234.76176761767618,
+    "analyzer": {
+      "name": "simple-bigram",
+      "version": "0.1.0",
+      "config_hash": "12bee770ee080a665c95862486cc711c658b8d5bbacf6e06dce6d9cc01fc0926"
+    },
+    "files": {
+      "docs.jsonl": "01b3ffa2edbea6599b3301ef935a1ce467885315186ea83534d13e34884b1af7",
+      "postings.jsonl": "b5b67dbc6632d5bb14d6cc08f47dd9b4324c2f8262b634a0158cc252e53f4e91",
+      "offsets.jsonl": "f568a15e641c0b2f3101343a69d00b2ed95b495faea5d56bbf980393d6c98db3",
+      "stats.json": "bd3c768feff866c35df8d7697b9c361e7e0264ccf502e2873948f4f42656163c"
+    },
+    "bm25": {
+      "k1": 1.2,
+      "b": 0.75,
+      "idf": "log1p-lucene"
+    }
+  },
+  "source_sha256": {
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/dev-candidates.jsonl": "1571090d17cbf4213eaf00726766f3b2996c1371e1a4feddfb68a647c321b47f",
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/query-audit.json": "3edf281d14f572e8aace714d97e93b133bc42b1779f7259d69aedc8e5ec4e4b1",
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/duretrieval/qrels.tsv": "db03d4b6cdf2d297d875d2c3f39c1106d70988d0aaf956e91e998aaa951532b6"
+  },
+  "table_sha256": "2987fa9749d5e4976519b7ee2b4a288ee0b8eae1a816e8d9ff63208e1f9559bf",
+  "dense_source": "historical frozen BGE/ANN capture; ef=128; no fresh dense runs",
+  "status": "reused observed development labels; not a new independent holdout",
+  "vector_manifest": {
+    "corpus_sha256": "9c1a3ca3499d9b601425536a875e3f881e2f6b93ac8f8f00b7fbf87430187b7a",
+    "n_docs": 99999,
+    "embedding": {
+      "model_id": "BAAI/bge-small-zh-v1.5",
+      "revision": "7999e1d3359715c523056ef9478215996d62a620",
+      "dimension": 512,
+      "max_tokens": 512,
+      "normalize": true,
+      "distance": "cosine",
+      "document_template": "title\ntext",
+      "query_prefix": "为这个句子生成表示以用于检索相关文章：",
+      "document_prefix": ""
+    },
+    "collection": "nlp-round3-du-v1",
+    "backend": "qdrant-hnsw",
+    "index_params": {
+      "m": 16,
+      "ef_construct": 100
+    },
+    "schema_version": 1,
+    "snapshot_files": {
+      "vectors.snapshot": "fe30f1516e9a5c90dcaa766973371ef24b3e6c93e4b6e5a155e66726a614f775"
+    }
+  },
+  "vector_search_params": {
+    "hnsw_ef": 128,
+    "exact": false
+  }
+}

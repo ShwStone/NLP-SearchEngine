@@ -34,6 +34,7 @@ from .embeddings import SentenceTransformerEncoder
 from .expanders import ExpanderNotReady
 from .observability import SearchLogger
 from .parser import QuerySyntaxError
+from .reranking import HybridReranker, RerankUnavailable
 from .router import load_router
 from .serving_config import (
     DEFAULT_CANDIDATE_K, DEFAULT_HOST, DEFAULT_MAX_BODY_BYTES, DEFAULT_PORT,
@@ -58,6 +59,7 @@ _LEGACY_FLAGS = {
     "bge_model_path": "--bge-model-path",
     "encoder_device": "--encoder-device",
     "router_factory": "--router-factory",
+    "adaptive_policy": "--adaptive-policy",
     "vector_timeout_s": "--vector-timeout-s",
     "max_body_bytes": "--max-body-bytes",
     "request_timeout_s": "--request-timeout-s",
@@ -204,7 +206,7 @@ def make_handler(engine: SearchEngine, static_root: Path | None = None, *,
                         executed_mode=None, reason=None, vector_attempted=None,
                         vector_used=None, fallback=None, took_ms=None,
                         timings_ms=None, serialization_ms=None,
-                        http_elapsed_ms=None):
+                        http_elapsed_ms=None, rerank=None):
             dataset, corpus = identity()
             logger.search(
                 status=status, run_tag=run_tag, requested_mode=requested_mode,
@@ -214,6 +216,7 @@ def make_handler(engine: SearchEngine, static_root: Path | None = None, *,
                 dataset=dataset, corpus_sha256=corpus, took_ms=took_ms,
                 timings_ms=timings_ms, serialization_ms=serialization_ms,
                 http_elapsed_ms=http_elapsed_ms,
+                rerank=rerank,
             )
 
         def do_GET(self):
@@ -339,6 +342,16 @@ def make_handler(engine: SearchEngine, static_root: Path | None = None, *,
                     http_elapsed_ms=(time.perf_counter() - started) * 1000,
                 )
                 return
+            except RerankUnavailable:
+                serialization_ms = self._send(
+                    503, {"error": "cross-encoder unavailable", "code": "reranker_unavailable"})
+                self._log_search(
+                    status=503, run_tag=req.run_tag, requested_mode=req.mode,
+                    reason="reranker_unavailable", vector_attempted=True, vector_used=True,
+                    fallback=False, serialization_ms=serialization_ms,
+                    http_elapsed_ms=(time.perf_counter() - started) * 1000,
+                )
+                return
             except Exception:
                 # Plugin/engine failures must not masquerade as empty results, and
                 # the response/log must not expose the raw exception.
@@ -360,6 +373,7 @@ def make_handler(engine: SearchEngine, static_root: Path | None = None, *,
                 took_ms=resp.took_ms, timings_ms=resp.timings_ms,
                 serialization_ms=serialization_ms,
                 http_elapsed_ms=(time.perf_counter() - started) * 1000,
+                rerank=resp.rerank,
             )
 
     return Handler
@@ -373,6 +387,8 @@ def _parser() -> argparse.ArgumentParser:
     ap.add_argument("--port", type=int, help="监听端口；默认 8000")
     ap.add_argument("--candidate-k", type=int, help="每路候选池；默认 200")
     ap.add_argument("--rrf-c", type=float, help="RRF 常数；默认 60.0")
+    ap.add_argument("--adaptive-policy", choices=("rules-v1", "recall-v1", "hybrid-v1"),
+                    help="BM25-first adaptive routing policy for the built-in rule router")
     ap.add_argument("--vector-url", help="Qdrant URL; requires --vector-manifest")
     ap.add_argument("--vector-manifest", help="published vector_manifest.json")
     ap.add_argument("--hnsw-ef", type=int,
@@ -544,7 +560,12 @@ def main(argv=None):
         forward_vector_timeout = settings["forward_vector_timeout"]
         expected_dataset = None
 
-    retrieval_config = RetrievalConfig(candidate_k=candidate_k, rrf_c=rrf_c)
+    if args.adaptive_policy is not None and router_factory != DEFAULT_ROUTER_FACTORY:
+        ap.error("--adaptive-policy requires the built-in rule router")
+    retrieval_config = RetrievalConfig(
+        candidate_k=candidate_k, rrf_c=rrf_c,
+        adaptive_policy=args.adaptive_policy or "rules-v1",
+    )
     encoder = vectors = None
     vector_record = None
     embedding_record = None
@@ -604,7 +625,18 @@ def main(argv=None):
     except Exception as error:
         ap.error(f"路由策略加载失败: {error}")
     try:
-        engine = SearchEngine(reader, encoder, vectors, retrieval_config, router)
+        reranker = None
+        if config is not None and config.rerank is not None:
+            from adapters.reranker import FrozenCrossEncoder
+            from .ce_gate import load_gate
+            settings = config.rerank
+            gate = (load_gate(settings.gate_path, settings.gate_sha256)
+                    if settings.gate_path is not None else None)
+            reranker = HybridReranker(FrozenCrossEncoder(
+                settings.model_path, device=settings.device, batch_size=settings.batch_size),
+                settings.depth, gate=gate, capture_features=settings.capture_features)
+        engine = SearchEngine(reader, encoder, vectors, retrieval_config, router,
+                              **({"reranker": reranker} if reranker is not None else {}))
     except Exception as error:
         ap.error(f"检索引擎初始化失败: {error}")
 
@@ -653,6 +685,7 @@ def main(argv=None):
         "policy": info.get("policy"),
         **({"query_encoder_runtime": info["query_encoder_runtime"]}
            if "query_encoder_runtime" in info else {}),
+        **({"reranker": info["reranker"]} if "reranker" in info else {}),
     })
     print(f"索引已加载（{engine.reader.n_docs} 篇），监听 {actual_host}:{actual_port}",
           flush=True)

@@ -106,6 +106,26 @@ class ServingCostTests(unittest.TestCase):
         self.assertEqual(rejected["client_latency_ms"]["p95"], 2.0)
         self.assertNotIn("encode", rejected["server"])
 
+    def test_hybrid_cost_rejects_a_ce_epoch(self):
+        queries = self.root / "hybrid.tsv"
+        queries.write_text("q1\tfirst\n", encoding="utf-8")
+        sidecar = self.root / "hybrid.requests.json"
+        routing = QueryRouting("hybrid", "hybrid", "forced_hybrid", True, True, False)
+        with patch("evaluation.evaluate._request_search", return_value=([("d", 1.0)], 20.0, routing)):
+            evaluate_http("http://unused", load_queries(queries), {"q1": {"d": 1}},
+                          mode="hybrid", request_tag=self.TAG, request_output=sidecar)
+        row = self.logged_events()[3]
+        row.update(requested_mode="hybrid", executed_mode="hybrid", reason="forced_hybrid")
+        self.write_log([self.startup, row])
+        self.assertEqual(summarize_run(sidecar, self.log)["requested_mode"], "hybrid")
+        for startup, search in (
+            ({**self.startup, "reranker": {"depth": 40}}, row),
+            (self.startup, {**row, "timings_ms": {**row["timings_ms"], "rerank": 0.8}}),
+        ):
+            self.write_log([startup, search])
+            with self.assertRaisesRegex(ValueError, "CE-enabled hybrid run"):
+                summarize_run(sidecar, self.log)
+
     def test_exact_tag_and_epoch_are_required(self):
         events = self.logged_events()
         for event in events[3:]:

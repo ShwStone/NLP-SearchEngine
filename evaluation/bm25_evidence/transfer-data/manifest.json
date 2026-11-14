@@ -1,0 +1,48 @@
+{
+  "model_sha256": "ebc274813ee38e9c6e802cc29ee56e36653b97b72f6a218d65d18717de060dc1",
+  "queries": 256,
+  "documents": 20000,
+  "old_query_ids": 512,
+  "exclusions": {
+    "no_positive_in_fixed_corpus": 2745,
+    "prior_id": 512,
+    "explicit_constraints": 3,
+    "over_predeclared_cap": 483
+  },
+  "history_sha256": {
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round5/cmedqa-data/queries.jsonl": "fc7033e474ec345d6a2e101896a8ca73862bf4d02618cba7469cb022ca3a0da9",
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/queries.dev.jsonl": "d1c0a522946e89673b2b864d6c703edbf81e3e8280e504201fbf571b126bd6bd",
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/queries.known-test.jsonl": "29174be4f494444b8e12398e2b8f5ff2d616f2ae5a5eceded2461ae437ae6480",
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round3/queries.external.jsonl": "1dabc213c761e8dd0fd616265f7a63017750da710958ea459a4a423ab56594e7",
+    "/root/autodl-tmp/NLP-SearchEngine/artifacts/round2/t2-data/queries.external.jsonl": "02ffde4dcff26beb0b768a7035edfb50e0299111d591b16a32aa8f1104c59441"
+  },
+  "source_manifest": {
+    "dataset": "C-MTEB/CmedqaRetrieval",
+    "revision": "cd540c506dae1cf9e9a59c3e06f42030d54e7301",
+    "qrels_revision": "279d737f36c731c8ff6e2b055f31fe02216fa23d",
+    "source_sha256": {
+      "corpus-00000-of-00001-a3949861f65a3226.parquet": "15191de1c0568805e536d5eb4f4233e105b819390ae816d88d42102f89b5261a",
+      "queries-00000-of-00001-daeedab899d3c839.parquet": "ffa5d51ae6fed9de058fca0842cdb30d7c7e3a252e8ccb868c9c2710a06c3f4c",
+      "dev-00000-of-00001-57fb84a4aceaa695.parquet": "4d104c611091a9d366c4b279a92a6849565529761253cd91003af99e0608d387"
+    },
+    "original_documents": 100001,
+    "original_queries": 3999,
+    "documents": 20000,
+    "queries": 512,
+    "selection": "lowest SHA256(round5-cmedqa-corpus|id), then lowest SHA256(round5-cmedqa-queries|id) among answerable plain queries",
+    "purpose": "Previously unobserved external dev; fixed configurations, no tuning on these labels",
+    "limitation": "20k sampled corpus, answerability-conditioned queries, restricted qrels; not official full benchmark or category-specific judgments",
+    "outputs_sha256": {
+      "corpus.jsonl": "08800a14b2cdf9c47269b69190519a3aaa9bfdccea0d31055b3c37bc31344f1b",
+      "queries.jsonl": "fc7033e474ec345d6a2e101896a8ca73862bf4d02618cba7469cb022ca3a0da9",
+      "qrels.tsv": "4439c292d8caf99733c9780eb3f00989a189364f4fe514c4e484cd10589eb94e"
+    }
+  },
+  "output_sha256": {
+    "queries.jsonl": "de6dc914bbfd7a1d51dcf07964354956e4f62ed01bce00420bf8e17c24328176",
+    "qrels.tsv": "873d32e929ddbf6d4d82c869beb3f42a13bad9c82291c427f6c348e6eb49d459"
+  },
+  "selection": "predeclared hash order; no retrieval scores; answerability-conditioned on fixed 20k corpus; no near duplicates of prior or selected queries",
+  "limitation": "same observed 20k corpus; answerability-conditioned restricted qrels; not a new corpus, official full benchmark, or final team-approved holdout",
+  "no_tuning_on_these_labels": true
+}

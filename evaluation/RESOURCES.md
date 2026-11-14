@@ -100,9 +100,9 @@ Qdrant 适配器和快照发布逻辑已在 `offline/vector_build.py`、`online/
 
 2026-10-29 已使用仓库的 `evaluation.crawl_web` 对公开的中国政府网执行一次有界抓取：seed 为 `https://www.gov.cn/`，同域 HTTP(S) BFS，`max_documents=30`、`max_depth=1`、`max_bytes=500000`、请求间隔 0.2 秒，并要求 robots.txt 允许。抓取结果为 30 篇文档，corpus SHA256 为 `8e6cde8dfa0647deb9d55466064d951b445eb19f13740d349ef8398b86d5ab1b`；该语料和抓取收据保存在版本库外。
 
-从这 30 篇文档构造了 10 个查询和 97 条 BM25 候选池记录，生成了带标题、URL、片段和启发式建议的 `annotation_review.md`。启发式建议文件的 SHA256 为 `61f38c72504dfbe4ff764946d4c149a6585faa9226646b9edff7b0b629303ba8`；它只作为候选建议，不是正式 qrels。该 30 篇抓取也不等于 Issue #6 要求的自爬 20k 有效文档。
+从这 30 篇文档构造了 10 个查询和 97 条 BM25 候选池记录，生成了带标题、URL、片段和启发式建议的 `annotation_review.md`。启发式建议文件的 SHA256 为 `61f38c72504dfbe4ff764946d4c149a6585faa9226646b9edff7b0b629303ba8`，用途为早期标注建议。后续 20k 自爬评测使用本节开头记录的独立新华网语料。
 
-随后使用相同 seed、robots 和同域约束，将 `max_depth` 提高到 2、`max_documents=20000`，实际前沿耗尽后得到 393 篇有效文档；该 corpus 的字节数为 5,048,778，SHA256 为 `757e93bfc08f800827cff925864155032bbfe5d4be6cdcc5009b7b8996419531`。对这 393 篇文档重新生成了 10 查询、100 条 top-10 候选池和独立的 provisional suggestion manifest；建议仍标记为 `ai_suggested_needs_human_review`，不构成正式 qrels。随后修复分块传输中断边界并运行 depth-3 重试，得到 799 篇有效文档，corpus 字节数为 9,083,175，SHA256 为 `1f209cad5da40808b14f6249b886308e977f708dd222f2c9eaf984f3d5b9f258`；该批次只有未标注模板，尚未生成正式候选 qrels。由于该站点在当前边界下没有形成 20k 文档，Issue #6 的“自爬确认后 20k”验收仍未通过；所有 corpus、模板和建议文件均保存在版本库外。
+随后使用相同 seed、robots 和同域约束，将 `max_depth` 提高到 2、`max_documents=20000`，实际前沿耗尽后得到 393 篇有效文档；该 corpus 的字节数为 5,048,778，SHA256 为 `757e93bfc08f800827cff925864155032bbfe5d4be6cdcc5009b7b8996419531`。对这 393 篇文档重新生成了 10 查询、100 条 top-10 候选池和独立的 provisional suggestion manifest，标记为 `ai_suggested_needs_human_review`。随后修复分块传输中断边界并运行 depth-3 重试，得到 799 篇有效文档，corpus 字节数为 9,083,175，SHA256 为 `1f209cad5da40808b14f6249b886308e977f708dd222f2c9eaf984f3d5b9f258`，该批次只生成了未标注模板。该站点的结果保留作小批试采证据，所有 corpus、模板和建议文件均保存在版本库外。
 
 随后运行 depth-4 重试，得到 1,029 篇有效文档；corpus 字节数为 11,681,876，SHA256 为 `463ac4eff4fdc22047da362fdc22d47f0be6bf09c1587c3c8ba318b9e8164ff3`。该批次生成了 10 个查询、100 条 top-10 候选池记录和 `annotation20k-depth4_review.md`；建议文件 SHA256 为 `5400b65c24c1a4e114df67c1cf4e9428621cde92052ec5ebe7bef5ae8beda643`，状态仍为 `ai_suggested_needs_human_review`。它仍不是人工 qrels，也没有达到 20k 有效文档。
 
@@ -375,7 +375,7 @@ Qdrant 快照 SHA-256 `143724e357d88a40ed5ec5f0d0a22f2f3c1e3769e8aa6d0cad3585910
 
 Chrome 无头浏览器访问实际服务，用开发查询“抚州采茶戏如何培养青年演员并抢救散落的老剧本和曲谱？”
 经表单执行四模式，并验证索引身份和路由回显。未闭合引号返回查询错误，浏览器清除先前的结果。
-这些记录覆盖本地端到端演示和故障恢复。检索质量的人评结论等待盲审 qrels。
+这些记录覆盖本地端到端演示和故障恢复。检索质量沿用冻结的 AI 池化 qrels，见[自动复评](../docs/contributions/rfc0002-news20k-dataset-card.md#自动复评)。
 
 同一语料和快照上的另一轮本地工程验收使用冻结的 50 条开发查询。四种模式分别运行
 50 次串行 HTTP 请求，200 次全部返回 HTTP 200，且客户端 journal 与同一服务进程的
@@ -384,6 +384,6 @@ Chrome 无头浏览器访问实际服务，用开发查询“抚州采茶戏如�
 决策耗时 p95 为 0.091 ms。
 
 这轮是顺序单次工程测量，运行时同机有 BGE 文档编码，未独立预热或交错各臂。HTTP
-延迟保留在原始收据中，速度比较需要独立的交错重复测量。相关性判断仍沿用已有辅助标注，
-人评质量结论等待盲审。完整 TREC、journal、服务日志与对账收据保存在 Git 外，
+延迟保留在原始收据中，速度比较需要独立的交错重复测量。相关性判断仍沿用冻结的 AI 标签。
+完整 TREC、journal、服务日志与对账收据保存在 Git 外，
 对账收据 SHA-256 为 `c5b5b167e505404b5539210e158270feb226b66479ab04db38d5573b7c2d308c`。

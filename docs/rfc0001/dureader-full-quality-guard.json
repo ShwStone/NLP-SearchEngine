@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "policy": "quality-guarded-fixed-heavy",
+  "fallback_activated": true,
+  "acceptance_margin": 0.0,
+  "learned_router_ndcg": 0.33637543729082553,
+  "fixed_action_ndcg": 0.35345757048780274,
+  "learned_minus_fixed_ndcg": -0.017082133196977194,
+  "fixed_action_recall": 0.35783829623089597,
+  "heavy_rate": 1.0,
+  "ce_pairs_mean": 33,
+  "quality_guard_reason": "independent same-budget quality regression",
+  "production_default_safe": true,
+  "quality_savings_tradeoff": "zero vector/CE savings when fallback activates"
+}

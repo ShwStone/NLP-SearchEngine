@@ -1,16 +1,24 @@
 """Portable regression checks for the optional compact/offline scale path."""
 
+from contextlib import closing
 import json
+import os
+import sqlite3
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
+from contracts.api import SearchRequest
 from contracts.conformance import check_reader
+from contracts.index_format import sha256_of
 from offline.build import build
 from offline.compact import CompactIndex, compile_index
 from offline.disk_documents import DiskDocuments
+from offline.disk_index import DiskIndex
 from offline.packed_index import PackedIndex
 from offline.prepare import prepare
 from offline.stream_build import build as stream_build
+from online.engine import SearchEngine
 
 
 CORPUS = [
@@ -47,6 +55,111 @@ def test_prepare_compact_and_packed_readers_preserve_contract():
             assert reader.doc(1).doc_id == "d1"
         with DiskDocuments(lexical) as documents:
             assert documents.doc(0).doc_id == "d0"
+
+
+def test_compact_readers_preserve_full_lexical_results():
+    # Preserve the cross-reader regression introduced in PR #7.
+    rows = [
+        {"doc_id": "d0", "title": "", "text": "alpha beta beta gamma"},
+        {"doc_id": "d1", "title": "", "text": "alpha gamma"},
+        {"doc_id": "d2", "title": "", "text": "😀心肌梗死急救。"},
+        {"doc_id": "d3", "title": "", "text": "delta beta"},
+        {"doc_id": "d4", "title": "", "text": "alpha alpha beta"},
+    ]
+    requests = [
+        SearchRequest(query=query, k=3)
+        for query in ("alpha beta", "心肌梗死", "NOT alpha",
+                      "alpha AND NOT gamma", '"alpha beta"', "absent")
+    ] + [
+        SearchRequest(query="alpha", expander="rm3", k=3),
+        SearchRequest(query="alpha beta", scorer="tfidf", k=2, offset=1),
+    ]
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        corpus = root / "corpus.jsonl"
+        corpus.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
+                          encoding="utf-8")
+        lexical, compact = root / "lexical", root / "compact"
+        build(corpus, lexical, "reader-parity")
+        compile_index(lexical, compact)
+        reference = DiskIndex(lexical)
+        baseline = SearchEngine(reference)
+        expected = [baseline.search(request).to_dict() for request in requests]
+        assert expected[1]["results"] and expected[4]["results"]
+        assert expected[-1]["results"] and expected[-2]["expanded"]
+
+        for reader_type in (CompactIndex, PackedIndex):
+            with reader_type(compact) as reader:
+                check_reader(reader, rows)
+                assert reader.manifest() == reference.manifest()
+                engine = SearchEngine(reader)
+                for request, want in zip(requests, expected):
+                    actual = engine.search(request).to_dict()
+                    assert actual["results"] == want["results"], (reader_type.__name__, request)
+                    assert actual["expanded"] == want["expanded"], (reader_type.__name__, request)
+
+
+def test_compact_startup_rejects_bad_terms_and_releases_partial_resources():
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        corpus = root / "corpus.jsonl"
+        _write_corpus(corpus)
+        lexical, compact = root / "lexical", root / "compact"
+        build(corpus, lexical, "compact-startup")
+        compile_index(lexical, compact)
+
+        open_file, connect = os.open, sqlite3.connect
+        descriptors, connections = [], []
+
+        def failing_open(path, *args, **kwargs):
+            if Path(path).name == "offsets.bin":
+                raise OSError("injected second file open failure")
+            fd = open_file(path, *args, **kwargs)
+            descriptors.append(fd)
+            return fd
+
+        def tracked_connect(*args, **kwargs):
+            db = connect(*args, **kwargs)
+            connections.append(db)
+            return db
+
+        with patch("offline.compact.os.open", side_effect=failing_open), \
+                patch("offline.compact.sqlite3.connect", side_effect=tracked_connect):
+            try:
+                PackedIndex(compact)
+            except OSError as error:
+                assert str(error) == "injected second file open failure"
+            else:
+                raise AssertionError("compact reader ignored a required file open failure")
+        assert len(descriptors) == len(connections) == 1
+        try:
+            os.fstat(descriptors[0])
+        except OSError:
+            pass
+        else:
+            os.close(descriptors[0])
+            raise AssertionError("startup left an open artifact descriptor")
+        try:
+            connections[0].execute("SELECT 1")
+        except sqlite3.ProgrammingError:
+            pass
+        else:
+            connections[0].close()
+            raise AssertionError("startup left an open term database")
+
+        database = compact / "terms.sqlite"
+        with closing(connect(database)) as db, db:
+            db.execute("DROP TABLE terms")
+        metadata = compact / "compact.json"
+        manifest = json.loads(metadata.read_text(encoding="utf-8"))
+        manifest["files"]["terms.sqlite"] = sha256_of(database)
+        metadata.write_text(json.dumps(manifest), encoding="utf-8")
+        for reader_type in (CompactIndex, PackedIndex):
+            try:
+                with reader_type(compact):
+                    raise AssertionError("reader admitted a term database with no terms table")
+            except ValueError as error:
+                assert str(error) == "invalid compact term index"
 
 
 def test_prepare_preserves_tokenless_documents_in_both_policies():

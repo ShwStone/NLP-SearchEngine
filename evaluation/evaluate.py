@@ -146,7 +146,7 @@ class QueryRouting:
     fallback: bool
 
     @classmethod
-    def from_response(cls, value: object, mode: str) -> "QueryRouting":
+    def from_response(cls, value: object, mode: str, *, allow_adaptive_dense: bool = False) -> "QueryRouting":
         if not isinstance(value, dict):
             raise EvaluationError("搜索服务响应缺少 routing 对象")
         for key in ("requested_mode", "executed_mode", "reason"):
@@ -166,6 +166,8 @@ class QueryRouting:
         expected_mode = "lexical"
         if routing.vector_used:
             expected_mode = "dense" if mode == "dense" else "hybrid"
+            if allow_adaptive_dense and mode == "adaptive" and routing.executed_mode == "dense":
+                expected_mode = "dense"
         if (routing.executed_mode != expected_mode
                 or (mode in ("dense", "hybrid") and not routing.vector_used)
                 or (mode == "lexical" and routing.vector_attempted)
@@ -480,7 +482,8 @@ def _endpoint_url(endpoint: str) -> str:
 
 
 def _request_search(endpoint: str, query: str, *, k: int, mode: str, scorer: str,
-                    expander: str, timeout: float, request_tag: str | None = None
+                    expander: str, timeout: float, request_tag: str | None = None,
+                    allow_adaptive_dense: bool = False,
                     ) -> tuple[list[tuple[str, float]], float, QueryRouting]:
     body = {
         "query": query,
@@ -529,19 +532,24 @@ def _request_search(endpoint: str, query: str, *, k: int, mode: str, scorer: str
             error_body = None
         raise HTTPResponseError(status, error_body, latency_ms)
     try:
-        results, routing = _decode_search_response(body, mode)
+        results, routing = _decode_search_response(body, mode, allow_adaptive_dense=allow_adaptive_dense)
     except EvaluationError as error:
         raise HTTPResponseError(200, None, latency_ms, str(error)) from error
     return results, latency_ms, routing
 
 
-def _decode_search_response(body: bytes, mode: str) -> tuple[list[tuple[str, float]], QueryRouting]:
+def _decode_search_response(body: bytes, mode: str, *, allow_adaptive_dense: bool = False,
+                            allow_hybrid_rerank: bool = False) -> tuple[list[tuple[str, float]], QueryRouting]:
     try:
         value = json.loads(body)
     except (ValueError, UnicodeError) as error:
         raise EvaluationError("搜索服务返回的不是 JSON") from error
     if not isinstance(value, dict) or not isinstance(value.get("results"), list):
         raise EvaluationError("搜索服务响应缺少 results 数组")
+    timings = value.get("timings_ms")
+    if (mode == "hybrid" and not allow_hybrid_rerank
+            and ("rerank" in value or (isinstance(timings, dict) and "rerank" in timings))):
+        raise EvaluationError("Use evaluation.ce_http for a CE-enabled hybrid response")
     results: list[tuple[str, float]] = []
     seen: set[str] = set()
     for position, item in enumerate(value["results"], 1):
@@ -559,7 +567,8 @@ def _decode_search_response(body: bytes, mode: str) -> tuple[list[tuple[str, flo
         if not math.isfinite(score):
             raise EvaluationError("搜索服务 results 含非有限 score")
         results.append((docid, score))
-    routing = QueryRouting.from_response(value.get("routing"), mode)
+    routing = QueryRouting.from_response(value.get("routing"), mode,
+                                         allow_adaptive_dense=allow_adaptive_dense)
     return results, routing
 
 
@@ -573,7 +582,7 @@ def _write_trec_run(path: str | Path, qid: str, rows: Sequence[tuple[str, float]
             handle.write(f"{qid} Q0 {docid} {rank} {score:.8f} {tag}\n")
 
 
-def evaluate_http(endpoint: str, queries: Iterable[QueryRecord], qrels: Mapping[str, Mapping[str, float]], *, k: int = 10, mode: str = "lexical", scorer: str = "bm25", expander: str = "none", timeout: float = 10.0, run_output: str | Path | None = None, tag: str = "http-search", map_k: int = 100, fail_on_fallback: bool = False, unsupported_policy: str | Path | None = None, queries_source: str | Path | None = None, request_output: str | Path | None = None, request_tag: str | None = None) -> EvaluationSummary:
+def evaluate_http(endpoint: str, queries: Iterable[QueryRecord], qrels: Mapping[str, Mapping[str, float]], *, k: int = 10, mode: str = "lexical", scorer: str = "bm25", expander: str = "none", timeout: float = 10.0, run_output: str | Path | None = None, tag: str = "http-search", map_k: int = 100, fail_on_fallback: bool = False, unsupported_policy: str | Path | None = None, queries_source: str | Path | None = None, request_output: str | Path | None = None, request_tag: str | None = None, allow_adaptive_dense: bool = False) -> EvaluationSummary:
     """Query a public HTTP endpoint and evaluate its responses.
 
     Retrieve ``max(k, map_k)`` results, then apply each metric cutoff separately.
@@ -631,6 +640,10 @@ def evaluate_http(endpoint: str, queries: Iterable[QueryRecord], qrels: Mapping[
              "query_ids": [record.qid for record in records], "outcomes": [],
              "last_event_sequence": 0, "inflight_outcome": None, "last_outcome": None,
              "journal": None if journal_path is None else {"file": journal_path.name}}
+    if allow_adaptive_dense:
+        if mode != "adaptive":
+            raise EvaluationError("allow_adaptive_dense 仅用于 adaptive 评测")
+        state["request"]["allow_adaptive_dense"] = True
     if request_tag is not None:
         state["request"]["run_tag"] = request_tag
     state["query_universe_sha256"] = hashlib.sha256(json.dumps(
@@ -685,6 +698,7 @@ def evaluate_http(endpoint: str, queries: Iterable[QueryRecord], qrels: Mapping[
                 rows, latency, observation = _request_search(
                     endpoint, record.query, k=retrieval_depth, mode=mode,
                     scorer=scorer, expander=expander, timeout=timeout, request_tag=request_tag,
+                    allow_adaptive_dense=allow_adaptive_dense,
                 )
             except HTTPResponseError as error:
                 outcome.update(http_status=error.status, latency_ms=error.latency_ms,
@@ -758,6 +772,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--request-tag", help="HTTP run_tag used to correlate request and server logs")
     parser.add_argument("--fail-on-fallback", action="store_true",
                         help="HTTP 评测遇到 adaptive 向量降级时返回非零状态")
+    parser.add_argument("--allow-adaptive-dense", action="store_true",
+                        help="允许实验 Router 选择 adaptive 的纯向量动作")
     return parser
 
 
@@ -779,7 +795,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise EvaluationError("output 已存在，拒绝覆盖旧评测证据")
         qrels = load_qrels(args.qrels)
         if args.run is not None:
-            if (args.endpoint or args.queries or args.output_run or args.fail_on_fallback
+            if (args.endpoint or args.queries or args.output_run or args.fail_on_fallback or args.allow_adaptive_dense
                     or args.unsupported_policy or args.output_requests or args.request_tag is not None):
                 raise EvaluationError("--run 不能与 HTTP 选项同时使用")
             summary = evaluate_run(qrels, load_run(args.run), k=args.k, map_k=args.map_k)
@@ -792,7 +808,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 run_output=args.output_run, tag=args.tag, map_k=args.map_k,
                 fail_on_fallback=args.fail_on_fallback, unsupported_policy=args.unsupported_policy,
                 queries_source=args.queries, request_output=args.output_requests,
-                request_tag=args.request_tag,
+                request_tag=args.request_tag, allow_adaptive_dense=args.allow_adaptive_dense,
             )
         output = json.dumps(summary.to_dict(args.include_per_query), ensure_ascii=False, indent=2)
         if args.output_json:

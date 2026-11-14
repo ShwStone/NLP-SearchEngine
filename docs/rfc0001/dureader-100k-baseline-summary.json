@@ -1,0 +1,95 @@
+{
+  "lexical": {
+    "queries": 1020,
+    "metrics": {
+      "ndcg": 0.13395871187433772,
+      "recall": 0.15712019170222746,
+      "mrr": 0.2173159819483349,
+      "map": 0.13182677598549616
+    },
+    "latency_ms": {
+      "p50": 51.35039845481515,
+      "p95": 102.30603630188853,
+      "mean": 54.108675240137266
+    }
+  },
+  "dense": {
+    "queries": 1019,
+    "metrics": {
+      "ndcg": 0.2647649750590566,
+      "recall": 0.2908343473050085,
+      "mrr": 0.41024736358396807,
+      "map": 0.24778244992229098
+    },
+    "latency_ms": {
+      "p50": 42.94325038790703,
+      "p95": 57.426102412864545,
+      "mean": 44.62357879944431
+    }
+  },
+  "hybrid": {
+    "queries": 1020,
+    "metrics": {
+      "ndcg": 0.2278722377196519,
+      "recall": 0.26478904452884877,
+      "mrr": 0.34746498599439773,
+      "map": 0.2074138719796746
+    },
+    "latency_ms": {
+      "p50": 67.25838081911206,
+      "p95": 117.26820047479123,
+      "mean": 69.75523958156141
+    }
+  },
+  "adaptive": {
+    "queries": 1020,
+    "metrics": {
+      "ndcg": 0.20463631732502127,
+      "recall": 0.24055293401997374,
+      "mrr": 0.3168635231870526,
+      "map": 0.18629752264829544
+    },
+    "latency_ms": {
+      "p50": 60.02306449227035,
+      "p95": 114.77044224739073,
+      "mean": 70.24603507928916
+    }
+  },
+  "protocol": {
+    "dataset_manifest_sha256": "9c46ee7ab36b145c4a2d454470693774868ec8fe0d540f664c64b74e630137fe",
+    "corpus_sha256": "f24b50b6012b47f6fb5f72272666dbf187124a869f19d1c8d83f7e30d6cb62b4",
+    "queries_sha256": "ce010e6ea3a498a696d653b58bcf7976b5101d4034341983429df0a44837cfd9",
+    "qrels_sha256": "e75a68b89fa8a1ed1879e6703cffc1d6514ba295c82667dc4ce574e24b318f30",
+    "vector_manifest_sha256": "e3082f45bc789a895050d13abb9237036c2acb8269d7eee3b6cc0b69a0803866",
+    "index_manifest_sha256": "d79e1b83508126e68317462ebb14cda0e76c58ba7500e9891c0441a7535a560a",
+    "queries": 1020,
+    "labels_read_after_frozen_index": true,
+    "per_query_records_written": false,
+    "cutoffs": {
+      "ndcg": 10,
+      "recall": 10,
+      "map": 100
+    },
+    "dense_explicit_skipped": 1
+  },
+  "adaptive-hybrid-v1": {
+    "queries": 1020,
+    "metrics": {
+      "ndcg": 0.22768260399061538,
+      "recall": 0.2642988484504174,
+      "mrr": 0.3473424369747899,
+      "map": 0.20736768577469616
+    },
+    "latency_ms": {
+      "p50": 70.77117939479649,
+      "p95": 126.18733237031847,
+      "mean": 79.75118367238811
+    }
+  },
+  "router_repair": {
+    "policy": "hybrid-v1",
+    "reason": "rules-v1 regressed against equal-RRF on frozen DuReader 100k; hybrid-v1 preserves explicit constraints and selects hybrid for ordinary queries",
+    "relative_ndcg_gain_vs_rules_v1": 0.1126207066607341,
+    "relative_ndcg_delta_vs_equal_rrf": -0.0008321932102577367
+  }
+}

@@ -1,3 +1,4 @@
 # JSON artifacts carry SHA256 manifests; keep their checkout bytes stable.
 *.json text eol=lf
 *.jsonl text eol=lf
+/evaluation/bm25_evidence/*.txt text eol=lf

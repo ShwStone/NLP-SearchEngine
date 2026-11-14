@@ -18,6 +18,8 @@ from .router_budget import digest, parse_json, read_adaptive_receipt, read_ranki
 
 
 FEATURE_FIELDS = {"qid", "explicit_constraints", "n_terms", "vocab_coverage", "lexical_hits", "relative_gap"}
+FEATURE_GROUPS = {"query_length": (0,), "vocabulary_coverage": (1,),
+                  "lexical_hits": (2,), "relative_gap": (3, 4)}
 TARGET_DEPTH = 10
 
 
@@ -117,10 +119,17 @@ def calibrate_threshold(scores, target_calls):
     return threshold, selected_calls
 
 
+def model_json(model):
+    return json.dumps(model, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"
+
+
 def train_router_gain(train_features, train_queries, train_qrels, lexical_run, hybrid_run,
-                      adaptive_receipt, *, feature_receipt, alpha=1.0):
+                      adaptive_receipt, *, feature_receipt, alpha=1.0, omit_feature_group=None):
     require(type(alpha) in (int, float) and math.isfinite(alpha) and alpha > 0,
             "Ridge alpha must be a positive finite number")
+    require(omit_feature_group is None or omit_feature_group in FEATURE_GROUPS,
+            "Unknown omitted feature group")
+    omitted_columns = FEATURE_GROUPS.get(omit_feature_group, ())
     sources = {name: Path(path) for name, path in {
         "train_features": train_features, "train_queries": train_queries, "train_qrels": train_qrels,
         "lexical_run": lexical_run, "hybrid_run": hybrid_run, "adaptive_receipt": adaptive_receipt,
@@ -174,7 +183,8 @@ def train_router_gain(train_features, train_queries, train_qrels, lexical_run, h
         lexical_ndcg = _metric_for_query(qrels[qid], first, TARGET_DEPTH, TARGET_DEPTH)[0]
         hybrid_ndcg = _metric_for_query(qrels[qid], fused, TARGET_DEPTH, TARGET_DEPTH)[0]
         targets.append(hybrid_ndcg - lexical_ndcg)
-        vectors.append(feature_vector(features[qid]))
+        vectors.append(tuple(0.0 if i in omitted_columns else value
+                             for i, value in enumerate(feature_vector(features[qid]))))
     mean, scale, weights, bias = fit_ridge(vectors, targets, alpha)
     scores = [predict_gain(features[qid], mean, scale, weights, bias) for qid in eligible]
     rule_calls = sum(rules[qid].vector_attempted for qid in eligible)
@@ -183,7 +193,7 @@ def train_router_gain(train_features, train_queries, train_qrels, lexical_run, h
             "Calibrated threshold disagrees with the runtime predicate")
     require(all(digest(path.read_bytes()) == source_hashes[name] for name, path in sources.items()),
             "A training input changed during fitting")
-    return {
+    model = {
         "schema_version": 1,
         "feature_version": FEATURE_VERSION,
         "mean": mean,
@@ -216,6 +226,9 @@ def train_router_gain(train_features, train_queries, train_qrels, lexical_run, h
             },
         },
     }
+    if omit_feature_group is not None:
+        model["provenance"]["omitted_feature_group"] = omit_feature_group
+    return model
 
 
 def main(argv=None):
@@ -229,9 +242,8 @@ def main(argv=None):
     try:
         require(not target.exists(), "Output model already exists")
         model = train_router_gain(**options)
-        content = json.dumps(model, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"
         with target.open("x", encoding="utf-8", newline="\n") as handle:
-            handle.write(content)
+            handle.write(model_json(model))
     except (ValueError, TypeError, KeyError, OSError, OverflowError) as error:
         print(f"train router gain error: {error}", file=sys.stderr)
         return 2

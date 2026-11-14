@@ -1,0 +1,26 @@
+{
+  "status": "verified",
+  "dataset_manifest_sha256": "9c46ee7ab36b145c4a2d454470693774868ec8fe0d540f664c64b74e630137fe",
+  "data_hashes": {
+    "corpus": "f24b50b6012b47f6fb5f72272666dbf187124a869f19d1c8d83f7e30d6cb62b4",
+    "qrels.dev": "e75a68b89fa8a1ed1879e6703cffc1d6514ba295c82667dc4ce574e24b318f30",
+    "qrels.train": "176fc7b3f3eda48a00a5d3b8dc33c165e9e1c8ab18c9410815cf1229a4931ce5",
+    "queries.dev": "ce010e6ea3a498a696d653b58bcf7976b5101d4034341983429df0a44837cfd9",
+    "queries.train": "0fc31d70fb1c4548483b3c3d115d0e89fe957c813312d6823ff155b4ef488290"
+  },
+  "counts": {
+    "documents": 100000,
+    "queries.dev": 1020,
+    "queries.train": 172,
+    "qrels.dev": 4960,
+    "qrels.train": 825
+  },
+  "bm25_manifest_sha256": "d79e1b83508126e68317462ebb14cda0e76c58ba7500e9891c0441a7535a560a",
+  "bm25_documents": 100000,
+  "vector_manifest_sha256": "e3082f45bc789a895050d13abb9237036c2acb8269d7eee3b6cc0b69a0803866",
+  "vector_documents": 100000,
+  "snapshot": "dureader-mini100k-v1-bge-small-6631132135497628-2026-11-11-17-00-36.snapshot",
+  "snapshot_sha256": "fda4f8d3562743b0350a3840842d324a50ec1c93a0d4b3116bb731e0e6bbc787",
+  "labels_read_after_index_freeze": true,
+  "per_query_records_committed": false
+}

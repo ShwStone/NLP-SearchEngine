@@ -1,0 +1,11 @@
+{
+  "status": "verified",
+  "documents": 8096668,
+  "corpus_file_sha256": "bc67f3ccfe7423c039f04c7a5e7f6eae07a7f722087edf0caa7cfc694a8c45e8",
+  "corpus_contract_fingerprint": "0ae8b1174d0ee8e55f269c3c6d8e5f12d7e9c79fcb72c3966e99de18c9061019",
+  "vector_manifest_sha256": "22769be7e3cf5dc6326b9fd4ce39f1b16c63d005076411fad6d2b9843f842280",
+  "all_server_point_ids_and_payload_ids_verified": true,
+  "indexed_vectors_count": 8096668,
+  "vectors_numerically_verified": false,
+  "scope": "all ordered corpus fields fingerprinted; every server ID/payload read back"
+}

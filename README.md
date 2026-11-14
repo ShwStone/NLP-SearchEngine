@@ -60,9 +60,11 @@ python3 -m contracts.conformance /tmp/nlp-tiny-bm25 fixtures/tiny_corpus.jsonl
 
 # 3. 核心契约与评测器
 python3 tests/run.py
+# 扩展回归需要 Router 研究依赖、pytest、PyTorch（CPU 版即可）和 ijson
+python3 -m pip install -r requirements-router-research.txt pytest torch ijson==3.4.0.post0
 python3 -m unittest discover -s evaluation -p 'test_*.py'
-# 扩展测试包括流式索引合并，需要 ijson
-python3 -m pip install ijson==3.4.0.post0
+# 同时收集函数式和 unittest 评测用例
+python3 -m pytest evaluation tests/test_gain_router.py tests/test_replay_router_gain.py
 python3 -m unittest discover -s tests -p 'test_*.py'
 # 可选：浏览器高亮逻辑的 Unicode/转义回归测试（Node.js 18+，无需 npm 依赖）
 node --test tests/test_web.cjs

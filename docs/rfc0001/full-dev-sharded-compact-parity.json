@@ -1,0 +1,9 @@
+{
+  "status": "verified",
+  "queries": 1020,
+  "ordered_candidate_hits": 204000,
+  "maximum_absolute_score_difference": 0.0,
+  "reference_capture_sha256": "22bfcd6c823abc6763d6b41f4338b420de91ec92a9778e1ec14fd8ce2e278407",
+  "compact_lexical_capture_sha256": "e7ed22eec4c54f4e302149ade4d56f7bd062b2b658d3f47a7010f33a419efce3",
+  "scope": "full corpus dev BM25 candidate and score parity between 81-shard scorer and audited compact reader"
+}

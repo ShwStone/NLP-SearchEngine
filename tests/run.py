@@ -6,15 +6,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from tests import (test_contracts, test_hybrid, test_qdrant, test_offline_delivery,
-                   test_scale_support, test_online_fastpaths,
-                   test_router_seam)  # noqa: E402
+from tests import (test_contracts, test_gain_router, test_hybrid,
+                   test_offline_delivery, test_online_fastpaths, test_packed_reader_concurrency, test_qdrant,
+                   test_router_contribution, test_router_seam,
+                   test_scale_support)  # noqa: E402
 
 ALL_TESTS = (test_contracts.ALL_TESTS + test_hybrid.ALL_TESTS +
              test_qdrant.ALL_TESTS + test_offline_delivery.ALL_TESTS +
              test_scale_support.ALL_TESTS + test_online_fastpaths.ALL_TESTS +
-             # Function-style module: unittest discovery cannot collect it.
-             test_router_seam.ALL_TESTS)
+             test_packed_reader_concurrency.ALL_TESTS +
+             test_router_seam.ALL_TESTS + test_gain_router.ALL_TESTS +
+             test_router_contribution.ALL_TESTS)
 
 
 def main() -> int:

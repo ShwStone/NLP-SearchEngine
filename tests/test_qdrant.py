@@ -69,8 +69,9 @@ class _Client:
         del self.collections[collection_name]
         del self.records[collection_name]
 
-    def query_points(self, collection_name, query, limit, with_payload):
+    def query_points(self, collection_name, query, limit, with_payload, **kwargs):
         assert with_payload is True
+        self.last_search_params = kwargs.get('search_params')
         return SimpleNamespace(points=[
             SimpleNamespace(id=point.id, score=0.5, payload=point.payload)
             for point in list(self.records[collection_name].values())[:limit]
@@ -82,6 +83,7 @@ def _sdk(client):
     models = SimpleNamespace(
         VectorParams=SimpleNamespace, PointStruct=SimpleNamespace,
         Distance=SimpleNamespace(COSINE="Cosine"),
+        SearchParams=SimpleNamespace,
     )
     module = SimpleNamespace(QdrantClient=lambda **_: client, models=models)
     with patch.dict(sys.modules, {"qdrant_client": module}):
@@ -143,6 +145,48 @@ def test_qdrant_writer_persists_metadata_before_snapshot_and_reader_checks_it():
         assert client.snapshots == ["new-build"]
         # Snapshot hashes are transport artifacts, not part of the collection identity.
         assert replace(manifest, snapshot_files={"other.snapshot": "c" * 64}).build_metadata() == metadata
+
+
+def test_qdrant_search_parameters_reach_sdk_and_reject_invalid_values():
+    manifest = _manifest()
+    client = _seed(manifest)
+    with _sdk(client):
+        index = QdrantVectorIndex(manifest, 'http://fixture', ef=128)
+        index.search([1.0, 0.0], 2)
+        assert vars(client.last_search_params) == {'hnsw_ef': 128, 'exact': False}
+        index.search_params = {'hnsw_ef': 256, 'exact': True}
+        index.search([1.0, 0.0], 2)
+        assert vars(client.last_search_params) == {'hnsw_ef': 256, 'exact': True}
+        for ef in (0, -1, True, 1.5, '128'):
+            _raises(ValueError, lambda: QdrantVectorIndex(manifest, 'http://fixture', ef=ef))
+        _raises(ValueError, lambda: QdrantVectorIndex(manifest, 'http://fixture', exact=1))
+        index.search_params = {'hnsw_ef': 0, 'exact': False}
+        _raises(RetrievalUnavailable, lambda: index.search([1.0, 0.0], 2))
+
+
+def test_qdrant_legacy_search_receives_frozen_parameters():
+    manifest = _manifest()
+    client = _seed(manifest)
+    received = {}
+    def search(**kwargs):
+        received.update(kwargs)
+        return []
+    legacy = SimpleNamespace(get_collection=client.get_collection, count=client.count, search=search)
+    with _sdk(legacy):
+        index = QdrantVectorIndex(manifest, 'http://fixture', ef=128, exact=True)
+        assert index.search([1.0, 0.0], 2) == []
+        assert vars(received['search_params']) == {'hnsw_ef': 128, 'exact': True}
+
+
+def test_qdrant_actual_hnsw_settings_must_match_declared_manifest():
+    manifest = replace(_manifest(), index_params={'m': 16, 'ef_construct': 100})
+    client = _seed(manifest)
+    config = client.collections[manifest.collection].config
+    config.hnsw_config = SimpleNamespace(m=16, ef_construct=100)
+    with _sdk(client):
+        QdrantVectorIndex(manifest, 'http://fixture')
+        config.hnsw_config.m = 32
+        _raises(ValueError, lambda: QdrantVectorIndex(manifest, 'http://fixture'))
 
 
 def test_qdrant_hybrid_bundle_stages_snapshot_and_can_retry_failed_publication():

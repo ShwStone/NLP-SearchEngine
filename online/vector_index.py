@@ -47,7 +47,13 @@ class QdrantVectorIndex:
     """Read-only Qdrant adapter with manifest/collection compatibility checks."""
 
     def __init__(self, manifest: VectorManifest, url: str, *, hnsw_ef: int | None = None,
-                 timeout_s: float = 30.0):
+                 timeout_s: float = 30.0, ef: int | None = None, exact: bool = False):
+        if ef is not None:
+            if hnsw_ef is not None and hnsw_ef != ef:
+                raise ValueError("ef and hnsw_ef must agree")
+            hnsw_ef = ef
+        if type(exact) is not bool:
+            raise ValueError("exact must be boolean")
         if hnsw_ef is not None and (type(hnsw_ef) is not int or hnsw_ef <= 0):
             raise ValueError("hnsw_ef must be a positive integer")
         if (type(timeout_s) is bool or not isinstance(timeout_s, (int, float))
@@ -57,17 +63,11 @@ class QdrantVectorIndex:
             raise ValueError("Qdrant 适配器需要 qdrant-hnsw manifest")
         try:
             from qdrant_client import QdrantClient
-            if hnsw_ef is not None:
-                from qdrant_client import models
         except ImportError as error:
             raise RetrievalUnavailable("QdrantVectorIndex 需要安装 qdrant-client") from error
         self._manifest = manifest
-        self._hnsw_ef = hnsw_ef
+        self.search_params = {"hnsw_ef": hnsw_ef, "exact": exact}
         self._timeout_s = float(timeout_s)
-        # exact=False permits ANN; collection state and the planner still decide
-        # whether a particular query traverses HNSW or scans a small segment.
-        self._search_params = (models.SearchParams(hnsw_ef=hnsw_ef, exact=False)
-                               if hnsw_ef is not None else None)
         self._client = QdrantClient(url=url, timeout=self._timeout_s)
         self._collection = manifest.collection
         try:
@@ -87,6 +87,11 @@ class QdrantVectorIndex:
             raise ValueError("Qdrant collection 缺少构建元数据；请使用 1.16+ 服务和客户端重建")
         if metadata[VECTOR_BUILD_METADATA_KEY] != manifest.build_metadata():
             raise ValueError("Qdrant collection 构建元数据与 manifest 不一致，请加载同版本产物")
+        actual_hnsw = getattr(config, "hnsw_config", None)
+        if any(type(getattr(actual_hnsw, name, None)) is not type(expected)
+               or getattr(actual_hnsw, name, None) != expected
+               for name, expected in manifest.index_params.items()):
+            raise ValueError("Qdrant actual HNSW build parameters mismatch")
         try:
             count = self._client.count(collection_name=self._collection, exact=True).count
         except Exception as error:
@@ -99,15 +104,24 @@ class QdrantVectorIndex:
 
     @property
     def search_config(self) -> dict:
-        return {"hnsw_ef": self._hnsw_ef, "exact": False, "timeout_s": self._timeout_s}
+        return {**self.search_params, "timeout_s": self._timeout_s}
 
     def search(self, query_vector: Sequence[float], limit: int) -> list[VectorHit]:
         validate_vector(query_vector, self._manifest.embedding)
         if type(limit) is not int or limit <= 0:
             raise ValueError("limit 必须是正整数")
         try:
-            search_options = ({"search_params": self._search_params}
-                              if self._search_params is not None else {})
+            params = self.search_params
+            if (not isinstance(params, dict) or set(params) != {"hnsw_ef", "exact"}
+                    or (params["hnsw_ef"] is not None
+                        and (type(params["hnsw_ef"]) is not int or params["hnsw_ef"] <= 0))
+                    or type(params["exact"]) is not bool):
+                raise ValueError("invalid Qdrant search parameters")
+            search_options = {}
+            if params["hnsw_ef"] is not None or params["exact"]:
+                from qdrant_client import models
+
+                search_options["search_params"] = models.SearchParams(**params)
             if hasattr(self._client, "query_points"):
                 response = self._client.query_points(
                     collection_name=self._collection, query=list(query_vector), limit=limit,

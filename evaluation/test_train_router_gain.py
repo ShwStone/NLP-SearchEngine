@@ -106,6 +106,25 @@ class TrainRouterGainTests(unittest.TestCase):
         self.assertEqual(calibrate_threshold(scores, 3), (-.2, 3))
         self.assertEqual(calibrate_threshold(scores, 0)[1], 0)
 
+    def test_ablation_refits_and_removes_both_relative_gap_columns(self):
+        self.feature_rows[1].update(lexical_hits=2, relative_gap=0.7)
+        for name in ("lexical_run", "hybrid_run"):
+            with self.files[name].open("a", encoding="utf-8") as run:
+                run.write("b Q0 extra 2 0 fixture\n")
+        self.write_features()
+        original = self.train()
+        self.assertNotEqual(original["weights"][3:], [0.0, 0.0])
+        without_gap = self.train(omit_feature_group="relative_gap")
+        self.assertEqual(without_gap["weights"][3:], [0.0, 0.0])
+        self.assertEqual(without_gap["provenance"]["omitted_feature_group"], "relative_gap")
+        self.assertEqual(without_gap["provenance"]["inputs_sha256"], original["provenance"]["inputs_sha256"])
+        policy = LinearGainRouter.from_dict(without_gap, "a" * 64)
+        self.assertEqual(policy.predict(QueryFeatures(False, 4, .25, 2, .2)),
+                         policy.predict(QueryFeatures(False, 4, .25, 2, .8)))
+        self.assertFalse(policy.decide(QueryFeatures(True, 4, .25, 2, .2)).use_vector)
+        with self.assertRaisesRegex(EvaluationError, "feature group"):
+            self.train(omit_feature_group="unknown")
+
     def test_malformed_features_and_incomplete_rankings_fail(self):
         self.feature_rows[0]["target"] = 1.0
         self.write_features()

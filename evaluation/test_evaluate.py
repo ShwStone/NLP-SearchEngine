@@ -101,7 +101,12 @@ class _Handler(BaseHTTPRequestHandler):
             "fallback": fallback,
         }
         payload = {"results": rows[:request["k"]], "routing": routing}
-        if query == "missing-routing":
+        if query == "ce-result":
+            payload["rerank"] = {"depth": 2, "scored": 2}
+            payload["results"].reverse()
+        elif query == "ce-timing":
+            payload["timings_ms"] = {"rerank": 0.0}
+        elif query == "missing-routing":
             payload.pop("routing")
         elif query == "bad-routing":
             routing["fallback"] = "false"
@@ -427,6 +432,19 @@ class EvaluatorTests(unittest.TestCase):
             self.assertEqual(len(path.read_text().splitlines()), 3)
             self.assertEqual(summary.routing.vector_attempts, 0)
             self.assertIsNone(summary.routing.vector_success_rate)
+
+    def test_hybrid_baseline_rejects_ce_response_and_preserves_incomplete_run(self):
+        for marker in ("ce-result", "ce-timing"):
+            with self.subTest(marker=marker), _serve() as (endpoint, server), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "baseline.trec"
+                queries = [QueryRecord("plain", "q1"), QueryRecord("ce", marker)]
+                with self.assertRaisesRegex(EvaluationError, r"evaluation\.ce_http"):
+                    evaluate_http(endpoint, queries, {}, mode="hybrid", run_output=path)
+                self.assertEqual(len(server.requests), 2)
+                self.assertEqual(set(load_run(path)), {"plain"})
+                state = json.loads(Path(str(path) + ".requests.json").read_text(encoding="utf-8"))
+                self.assertEqual(state["status"], "INCOMPLETE")
+                self.assertEqual(state["unexpected_errors"], 1)
 
     def test_http_fetches_map_depth_without_changing_top_ten_metrics(self):
         with _serve() as (endpoint, server), tempfile.TemporaryDirectory() as directory:

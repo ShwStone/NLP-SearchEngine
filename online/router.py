@@ -3,8 +3,7 @@
 阈值仅为可执行骨架默认值，不代表经过验证的质量/成本最优配置。
 
 这里同时定义外部策略的注入缝：`Router` 只要求固定的 `policy_version` 和非空
-`reason` 的 `decide(features)`；可选 `requires_statistics`/`statistics` 由
-SearchEngine 在 adaptive 决策窗口内调用。本模块不定义新的路由算法。
+`reason` 的 `decide(features)`。统计钩子由 SearchEngine 在 adaptive 决策窗口内调用。
 """
 
 import importlib
@@ -12,6 +11,8 @@ from dataclasses import dataclass, field
 from typing import Protocol
 
 from contracts.retrieval import RetrievalConfig
+
+from .router_features import FEATURE_VERSION, FEATURE_VERSION_V2
 
 
 @dataclass(frozen=True)
@@ -28,6 +29,7 @@ class QueryFeatures:
 class RouteDecision:
     use_vector: bool
     reason: str
+    semantic_mode: str = "hybrid"
 
 
 class Router(Protocol):
@@ -35,8 +37,9 @@ class Router(Protocol):
 
     可选属性：
     - `name`：info() 中展示的策略名；缺省用类名。
-    - `requires_statistics = True`：此时必须实现
-      `statistics(reader, terms_tuple, ranked_tuple) -> dict`。
+    - `requires_statistics = True`：此时须实现
+      `statistics(reader, terms_tuple, ranked_tuple) -> dict` 或
+      `statistics_for_query(query, reader, terms_tuple, ranked_tuple) -> dict`。
     """
 
     policy_version: str
@@ -54,15 +57,21 @@ class RuleRouter:
 
     @property
     def policy_version(self) -> str:
-        return self.config.policy_version
+        if self.config.adaptive_policy == "rules-v1":
+            return self.config.policy_version
+        return self.config.adaptive_policy
 
     def decide(self, features: QueryFeatures) -> RouteDecision:
         if features.explicit_constraints:
             return RouteDecision(False, "explicit_constraints")
+        if self.config.adaptive_policy == "hybrid-v1":
+            return RouteDecision(True, "quality_first_hybrid")
         if features.n_terms == 0 or features.lexical_hits == 0:
             return RouteDecision(True, "no_lexical_hits")
         if features.vocab_coverage < self.config.min_vocab_coverage:
             return RouteDecision(True, "low_vocab_coverage")
+        if self.config.adaptive_policy == "recall-v1" and features.lexical_hits < 2:
+            return RouteDecision(True, "insufficient_lexical_evidence")
         if (features.relative_gap is not None
                 and features.relative_gap < self.config.min_relative_gap):
             return RouteDecision(True, "small_relative_gap")
@@ -79,9 +88,12 @@ def router_identity(router) -> dict:
     requires_statistics = getattr(router, "requires_statistics", False)
     if type(requires_statistics) is not bool:
         raise ValueError("路由策略 requires_statistics 必须是布尔值")
-    if requires_statistics and not callable(getattr(router, "statistics", None)):
+    if (requires_statistics
+            and not callable(getattr(router, "statistics", None))
+            and not callable(getattr(router, "statistics_for_query", None))
+            and getattr(router, "feature_version", None) not in (FEATURE_VERSION, FEATURE_VERSION_V2)):
         raise ValueError(
-            "requires_statistics=True 时必须实现 statistics(reader, terms, ranked)")
+            "requires_statistics=True 时必须实现统计钩子或声明支持的特征版本")
     name = getattr(router, "name", None)
     if not isinstance(name, str) or not name:
         name = type(router).__name__

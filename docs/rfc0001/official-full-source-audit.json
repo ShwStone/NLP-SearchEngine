@@ -1,0 +1,23 @@
+{
+  "status": "verified",
+  "documents": 8096668,
+  "parts": {
+    "part-00": 2024167,
+    "part-01": 2024167,
+    "part-02": 2024167,
+    "part-03": 2024167
+  },
+  "official_archive_sha256": "b051d3d966f7b0288aed95a923fc3b706176767d8bdcff8aa8fe5fff84b20662",
+  "verified_archive_members": {
+    "passage-collection/part-01": "1932d660169e7034eb466e75afce86cdd2622100f016403ec226698bd0a7ec9b",
+    "passage-collection/passage2id.map.json": "9b091ee62278b02973c6fa6de5798c3b0bee9a493613ab29a4b807efdd38741a",
+    "passage-collection/part-03": "f74f040fcf35f8d9c167a6b6df6f2ef7b6d09cf2cb249d789929e196f59cd84f",
+    "passage-collection/part-02": "5f64da4b8ca0180c23aa9e5605ed33c2654ac78a299fa68d60c18d7365a016f5",
+    "passage-collection/part-00": "877b6be5a2956177f742b76f7efb3011b63a4e3957b025e0c00d4c622576d9a0",
+    "dev/q2qid.dev.json": "2cfe3abe2e5d940882aed829d7c6012143bca081d559b936c53de838f360fed4",
+    "dev/dev.json": "15528e80b820106ba187bfe9116c45e105657f0c0c20fb09f2bb8e827fd5ce62"
+  },
+  "corpus_file_sha256": "bc67f3ccfe7423c039f04c7a5e7f6eae07a7f722087edf0caa7cfc694a8c45e8",
+  "all_official_normalized_rows_verified": true,
+  "scope": "official archive identity, extracted source hashes and every normalized document ID/text/order"
+}

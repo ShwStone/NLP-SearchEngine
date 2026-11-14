@@ -1,0 +1,13 @@
+{
+  "source_commit": "96e4f492b076bb7c6daf8c61494820e0f752b221",
+  "base_commit": "dba882b079f481cf03d86aef4b51d4566d63a28a",
+  "historical_evidence": true,
+  "files": {
+    "round3-comparisons.json": "69e32d725c98467e326b9dc05bdf74ee8d2739ae0afe4e92a50cfda9f304c3b5",
+    "round4-proxy-summary.json": "c478216eea580cb04198ac7d8b5a622620b5d3457d2ecab393ef663fc8fb62ae",
+    "round4-time-summary.json": "d1a7fe4d6bfd6661358fd1e4f9c15509e1f94e73c22b1be6a688275ff0ae0afc"
+  },
+  "external_files": {
+    "vector-first-du-v1.json": "122b0ca64dcf19a2d32daead001a4876a9aeb4ae42cbab615090a7d681cd85a1"
+  }
+}

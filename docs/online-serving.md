@@ -87,6 +87,7 @@ python3 -m venv .venv-serving
 | `retrieval` | 否 | `candidate_k` 默认 200、`rrf_c` 默认 60.0；非 lexical 必须 `offset+k <= candidate_k` |
 | `serve` | 否 | `host` 默认 `127.0.0.1`，`port` 默认 8000，`max_body_bytes` 默认 65536，`request_timeout_s` 默认 10.0 |
 | `policy` | 否 | `factory` 默认 `rule`；其他值必须是受信本地 `module:factory` 导入路径，工厂收到配置后返回带 `policy_version` 的 Router 对象 |
+| `rerank` | 否 | 固定混合候选重排实验；需要 `vector`。必填 `model_path` 与 `depth`（1 至 40，且不超过 `candidate_k`）；可选 `device`（默认 `cpu`）、`batch_size`（1 至 32，默认 20）、`capture_features`（默认 `false`）及 `gate`（仅 `depth=40`） |
 
 两个示例 profile 都用 8000 端口；同时运行两个实例时给 `port` 不同值，不要复用同一端口。
 
@@ -101,6 +102,81 @@ python3 -m venv .venv-serving
   报错不回显这些片段（避免把凭据写进日志或异常）。默认只监听回环地址；显式配置
   非回环 `host` 时会打印明确警告。
 - `dataset` 不做别名（`news20k`、`rfc4-clean-news20k` 都不是合法值）。
+
+### RFC-0001 策略与固定重排对照
+
+要加载组员的 BM25 收益 Router，设置 `policy.factory` 为
+`online.gain_router:load_gain_router`，并在本机进程提供 `NLP_PEER_GAIN_MODEL`
+与 `NLP_PEER_GAIN_SHA256`。工厂核对模型文件摘要，启动时再核对词法和向量
+manifest、候选池、RRF 常数及向量查询实际生效的 ANN 设置。早期实验脚本声明
+ef=128 时尚未实际传给 Qdrant，复验应重新捕获训练排序并生成相同配置的模型。
+当前可选动作包括 lexical、dense、hybrid。评测包含 dense 动作的策略时使用
+`evaluation.evaluate --mode adaptive --allow-adaptive-dense`。
+
+使用 [BAAI 的固定 revision](https://huggingface.co/BAAI/bge-reranker-base/tree/2cfc18c9415c912f9d8155881c133215df768a70)
+准备重排模型。下载器复用独立缓存，校验 safetensors 权重和分词文件后发布本地目录。
+启动服务从该目录加载，推理使用 FP32，最大输入长度为 256 个 token。
+
+```bash
+python -m scripts.download_reranker --out artifacts/bge-reranker-base \
+  --cache-dir artifacts/hf-download-cache
+```
+
+对照分别启动无 `rerank` 块的 RRF 基线和含 `rerank` 块的服务，三者共用同一个
+Qdrant collection、词法索引、编码器和候选配置。将下面的块加入重排 profile，
+CE28 与 CE40 各用自己的端口，`depth` 分别设为 28 与 40。
+
+```json
+"rerank": {"model_path": "../artifacts/bge-reranker-base", "depth": 28,
+           "device": "cpu", "batch_size": 20}
+```
+
+该设置对自然语言的固定 `hybrid` 请求生效。CE 给 RRF 前缀打分，按 CE 分数降序和
+外部文档 ID 升序排列，再追加原尾部，最后按请求分页。原 RRF 分数保留在 `score`。
+显式布尔和短语查询沿用原结果。服务在 `/index/info` 回显模型身份，成功重排时返回
+`rerank.depth`、`rerank.scored` 和 `timings_ms.rerank`。模型打分失败返回
+`503 reranker_unavailable`，以便评测拒绝该请求。
+
+```bash
+python -m evaluation.ce_http \
+  --baseline http://127.0.0.1:8000 --rerank 28 http://127.0.0.1:8028 \
+  --rerank 40 http://127.0.0.1:8040 --queries data/queries.dev.jsonl \
+  --warmup-queries data/queries.warmup.jsonl --qrels data/qrels.dev.tsv \
+  --out runs/ce-fixed-controls
+```
+
+预热查询须与评测查询的 ID 和归一化文本均不重叠。每条查询的各臂全部成功后才
+写入可续跑的 SQLite 记录，评分在 HTTP 采集结束后进行。结果记录实际 CE pair、
+完整 HTTP 延迟和 10,000 次配对 bootstrap。中断续跑的延迟分批报告。
+
+本机真实冒烟通过 8 次请求，其中 3 条自然查询共执行 84 个 CE pair，另 1 条
+显式约束查询在两套服务的排名相同。两套服务使用同一个 100k Qdrant 恢复实例，
+实际 `hnsw_ef=128`。验收回执 SHA-256 为
+`30b4a5650e11ead6b59d4cc00e3261d5552495edfc2769aefbd4a18ecbcc129f`。
+完整 100k 开发集的固定对照和等预算排名复算见[课程报告](../REPORT.md#同检索配置下的-100k-等预算开发对照)。全量 CE 留出复验另行验收。
+
+### 学习门控 CE40
+
+训练采集使用无 `rerank` 的 RRF 服务和固定 CE40 服务。在固定 CE40 的
+`rerank` 块设 `"depth": 40, "capture_features": true`，不设 `gate`。
+按[评测手册](../evaluation/README.md#train-and-evaluate-a-ce40-gate)采集训练集，
+生成门控 JSON 和训练回执。另启一个 profile，保留固定 CE40 的模型、批大小和检索设置，
+在其 `rerank` 块增加以下对象（摘要替换为回执的 `model_sha256`）：
+
+```json
+"gate": {"model_path": "../artifacts/ce40-gate.json", "sha256": "<64-hex SHA256>"}
+```
+
+服务在监听前校验 JSON 摘要、特征顺序和系数，并比对训练绑定的词法索引、向量索引、
+搜索配置及 CE 模型身份。现有门控文件的启动校验仅覆盖这些字段。正式 HTTP 评测传入
+`--fit-receipt`，另行核对查询编码器运行时与 BM25 加速配置，并保持各臂的 CE 设备和
+其他运行条件一致。`/index/info` 的 `reranker` 回显 `gate_sha256` 和
+`capture_features: true`，不需再显式开启特征采集。
+
+门控只用于无显式约束且 RRF 候选非空的固定 `hybrid` 请求：标准化 BM25 特征后的
+线性分数大于 0 时执行 CE40，否则保留 RRF 顺序并返回 `rerank.scored: 0`。
+两种门控结果都回显 `rerank.features` 和 `rerank.gate_sha256`；显式约束、空候选
+和其他检索模式不返回 `rerank` 对象。
 
 ### CLI 选择
 

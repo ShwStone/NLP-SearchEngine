@@ -1,0 +1,254 @@
+{
+  "du-cascade": {
+    "modes": {
+      "adaptive": {
+        "queries": 1000,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.7750235051149191,
+          "recall@10": 0.7968572376081166,
+          "map@100": 0.7143974195162702
+        },
+        "latency_ms": {
+          "mean": 74.7275383817032,
+          "p50": 45.62548454850912,
+          "p95": 231.97344029322264
+        },
+        "lexical_attempt_rate": 0.664,
+        "vector_attempt_rate": 1.0,
+        "vector_success_rate": 1.0,
+        "fallback_rate": 0.0
+      }
+    },
+    "source": "artifacts/round3/du-cascade/summary.json",
+    "source_sha256": "5ab8421ce8b58c380d80602e57b6a9c5140fa159a2cec7e1e79a5676f4539aae"
+  },
+  "du-dense-control": {
+    "modes": {
+      "adaptive": {
+        "queries": 1000,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.7708821366352218,
+          "recall@10": 0.7903883691511522,
+          "map@100": 0.7090677366819201
+        },
+        "latency_ms": {
+          "mean": 66.0944064669311,
+          "p50": 39.99971225857735,
+          "p95": 203.26797803863883
+        },
+        "lexical_attempt_rate": 0.0,
+        "vector_attempt_rate": 1.0,
+        "vector_success_rate": 1.0,
+        "fallback_rate": 0.0
+      }
+    },
+    "source": "artifacts/round3/du-dense-control/summary.json",
+    "source_sha256": "a2898329810411d3b7451c89fbacc5093627d802b139ebe333e838eec10ee75a"
+  },
+  "du-known": {
+    "modes": {
+      "lexical": {
+        "queries": 1000,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.5588118301693701,
+          "recall@10": 0.578133777553342,
+          "map@100": 0.4788541196258119
+        },
+        "latency_ms": {
+          "mean": 55.31308727990836,
+          "p50": 26.867312379181385,
+          "p95": 208.59993197955188
+        },
+        "lexical_attempt_rate": 1.0,
+        "vector_attempt_rate": 0.0,
+        "vector_success_rate": 0.0,
+        "fallback_rate": 0.0
+      },
+      "dense": {
+        "queries": 1000,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.7708821366352218,
+          "recall@10": 0.7903883691511522,
+          "map@100": 0.7090677366819201
+        },
+        "latency_ms": {
+          "mean": 69.27759592793882,
+          "p50": 40.45997466892004,
+          "p95": 215.01663327217102
+        },
+        "lexical_attempt_rate": 0.0,
+        "vector_attempt_rate": 1.0,
+        "vector_success_rate": 1.0,
+        "fallback_rate": 0.0
+      },
+      "hybrid": {
+        "queries": 1000,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.7743002311240662,
+          "recall@10": 0.7966667974926764,
+          "map@100": 0.7134821231980383
+        },
+        "latency_ms": {
+          "mean": 79.25259667728096,
+          "p50": 50.198358949273825,
+          "p95": 236.48531534709034
+        },
+        "lexical_attempt_rate": 1.0,
+        "vector_attempt_rate": 1.0,
+        "vector_success_rate": 1.0,
+        "fallback_rate": 0.0
+      },
+      "adaptive": {
+        "queries": 1000,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.6720381268538995,
+          "recall@10": 0.6910614645292489,
+          "map@100": 0.5969831843885688
+        },
+        "latency_ms": {
+          "mean": 66.004923209548,
+          "p50": 40.88812042027712,
+          "p95": 219.25266315229234
+        },
+        "lexical_attempt_rate": 1.0,
+        "vector_attempt_rate": 0.485,
+        "vector_success_rate": 0.485,
+        "fallback_rate": 0.0
+      }
+    },
+    "source": "artifacts/round3/du-known/summary.json",
+    "source_sha256": "36df7d65ac0d1fb005475a8f369b1585d7b54defb24ead04abbfc8e1980761f9"
+  },
+  "external-cascade": {
+    "modes": {
+      "adaptive": {
+        "queries": 999,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.6551409154726953,
+          "recall@10": 0.7654320987654321,
+          "map@100": 0.622735016628155
+        },
+        "latency_ms": {
+          "mean": 54.16467734654476,
+          "p50": 36.73808928579092,
+          "p95": 182.160747423768
+        },
+        "lexical_attempt_rate": 0.8158158158158159,
+        "vector_attempt_rate": 1.0,
+        "vector_success_rate": 1.0,
+        "fallback_rate": 0.0
+      }
+    },
+    "source": "artifacts/round3/external-cascade/summary.json",
+    "source_sha256": "69997907bb7c9566c510729c48762dacad537559604cea12c711153dc2e11811"
+  },
+  "external-dense-control": {
+    "modes": {
+      "adaptive": {
+        "queries": 999,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.6453718704165168,
+          "recall@10": 0.7585919252585919,
+          "map@100": 0.6107209510110081
+        },
+        "latency_ms": {
+          "mean": 46.226244155985036,
+          "p50": 30.4483063519001,
+          "p95": 174.83442798256874
+        },
+        "lexical_attempt_rate": 0.0,
+        "vector_attempt_rate": 1.0,
+        "vector_success_rate": 1.0,
+        "fallback_rate": 0.0
+      }
+    },
+    "source": "artifacts/round3/external-dense-control/summary.json",
+    "source_sha256": "dc75a52a738e40b602281b7dea6abd3b6641ef1342eb2a074d2098a45e68c179"
+  },
+  "external": {
+    "modes": {
+      "lexical": {
+        "queries": 999,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.4724395999936326,
+          "recall@10": 0.5929262595929262,
+          "map@100": 0.4389464796100633
+        },
+        "latency_ms": {
+          "mean": 31.70909664245906,
+          "p50": 15.740860253572464,
+          "p95": 156.09370181336993
+        },
+        "lexical_attempt_rate": 1.0,
+        "vector_attempt_rate": 0.0,
+        "vector_success_rate": 0.0,
+        "fallback_rate": 0.0
+      },
+      "dense": {
+        "queries": 999,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.6453718704165168,
+          "recall@10": 0.7585919252585919,
+          "map@100": 0.6107209510110081
+        },
+        "latency_ms": {
+          "mean": 47.510308328199315,
+          "p50": 31.24215453863144,
+          "p95": 179.7634044662117
+        },
+        "lexical_attempt_rate": 0.0,
+        "vector_attempt_rate": 1.0,
+        "vector_success_rate": 1.0,
+        "fallback_rate": 0.0
+      },
+      "hybrid": {
+        "queries": 999,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.6561563713162479,
+          "recall@10": 0.7664330997664331,
+          "map@100": 0.6237280663625582
+        },
+        "latency_ms": {
+          "mean": 53.328296490334296,
+          "p50": 36.772542633116245,
+          "p95": 180.2508797496557
+        },
+        "lexical_attempt_rate": 1.0,
+        "vector_attempt_rate": 1.0,
+        "vector_success_rate": 1.0,
+        "fallback_rate": 0.0
+      },
+      "adaptive": {
+        "queries": 999,
+        "errors": 0,
+        "metrics": {
+          "ndcg@10": 0.6156207617886689,
+          "recall@10": 0.721388054721388,
+          "map@100": 0.5837915303290482
+        },
+        "latency_ms": {
+          "mean": 43.07240231598432,
+          "p50": 29.067056253552437,
+          "p95": 173.67914905771607
+        },
+        "lexical_attempt_rate": 1.0,
+        "vector_attempt_rate": 0.47847847847847846,
+        "vector_success_rate": 0.47847847847847846,
+        "fallback_rate": 0.0
+      }
+    },
+    "source": "artifacts/round3/external/summary.json",
+    "source_sha256": "6b56d65bf44d8fffdbf8195018d37c3d1293e6d858b5e0e4709b0eb3895bcb2b"
+  }
+}

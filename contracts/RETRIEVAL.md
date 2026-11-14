@@ -147,7 +147,7 @@ engine = SearchEngine(reader, encoder=query_encoder, vectors=vector_reader,
 - lexical：仅词法分数，保留 scorer=bm25/tfidf 与旧 expander 参数。
 - dense：只查询向量，不做 BM25；score_kind=cosine。
 - hybrid：每次查询 BM25 + 向量，用 RRF；score_kind=rrf。
-- adaptive：先 BM25，再由规则决定是否做向量召回与 RRF；执行模式回显 lexical 或 hybrid。
+- adaptive：先 BM25，再由 Router 选择分支。默认规则回显 lexical 或 hybrid。绑定的实验策略可以选择纯向量分支，此时回显 dense。
 - 非 lexical 只允许 scorer=bm25、expander=none；不支持的组合报 400，不能悄悄忽略。
 - 普通查询使用 OR 候选，未知词不会清空其他词的候选；这是与旧骨架隐式 AND 的明确变化。parser 已支持显式 `AND`、`OR`、`NOT`、括号和双引号连续短语，并标注 `explicit_constraints`。adaptive 遇到硬约束走词法，hybrid 在 RRF 前保留过滤结果，dense 对显式约束返回 400，不能绕过约束。
 - `parsed.terms` 只包含正向评分词；NOT 的排除词仍保留在 `parsed.ast` 中作为硬过滤，不参与 BM25/TF-IDF 加分或高亮。双重否定按极性恢复正向词。
@@ -183,8 +183,9 @@ engine = SearchEngine(reader, encoder=query_encoder, vectors=vector_reader,
 - vector_used：向量查询成功完成（即便返回空结果）；不能用它代替 attempted 估算全部调用成本。
 - fallback：adaptive 语义分支失败后是否明确退化到词法；此时 executed_mode=lexical、reason=vector_unavailable。
 - reason 当前值：forced_lexical/forced_dense/forced_hybrid、explicit_constraints、no_lexical_hits、low_vocab_coverage、small_relative_gap、lexical_sufficient、vector_unavailable。客户端可显示字符串，但不要依赖展示文案解析流程。
-- timings_ms 五个阶段固定存在，未调用阶段为 0。took_ms 为整个请求耗时，含解析/高亮等，不能要求阶段和严格等于总耗时。
-- score_kind 为 bm25/tfidf/cosine/rrf。分数同模式内排序，不跨模式直接比较。所有排序同分按内部 docid 升序。
+- timings_ms 的五个基础阶段固定存在，未调用阶段为 0。固定 CE 或学习门控处理请求时另有 `rerank` 阶段，包括门控特征计算和决策耗时。took_ms 为整个请求耗时，含解析和高亮，阶段和可以与总耗时不同。
+- score_kind 为 bm25/tfidf/cosine/rrf，基础排序同分按内部 docid 升序。启用固定 hybrid CE 时，RRF 候选前缀按 CE 分数降序、外部 doc_id 升序重排，保留原 RRF 分数和前缀之外的顺序。此时可用 `rank` 恢复服务的排序。
+- CE 处理请求时响应带 `rerank={depth,scored}`，分别记录配置深度和实际评分数。学习门控跳过打分时保留 RRF 排序，`scored=0`；学习门控还回显 `features` 和 `gate_sha256`。显式约束、空候选及其他检索模式省略该字段。
 - rank 为分页后的全局排名，从 offset+1 起。高亮仍是原文字符区间；语义命中无词面重合时 highlights 可以为空。
 
 ### 失败与能力回显
@@ -195,13 +196,14 @@ engine = SearchEngine(reader, encoder=query_encoder, vectors=vector_reader,
 | SLM 需要外部模型与缓存 | 501 |
 | dense / hybrid 缺编码器/向量库，或运行失败 | 503，code=vector_unavailable |
 | adaptive 语义分支失败 | 200，明确 fallback=true；评测需单列 |
+| 固定 hybrid CE 打分失败 | 503，code=reranker_unavailable |
 | 双索引或模型版本不一致 | 启动失败，不接受请求 |
 
 `GET /index/info`：原词法 manifest + retrieval={vector_ready, config, vector_manifest}。`GET /health` 仅报告原词法服务健康，不代表向量可用。默认 CLI 不带向量参数时 vector_ready=false；提供可选的 vector URL、manifest 和依赖后才报告向量就绪。
 
 ### 在线服务身份与配置回显
 
-第 4 节的请求、响应 schema 和错误码不变；下面是 `GET /index/info` 的信息增量。客户端必须容忍
+下面是 `GET /index/info` 的信息增量。客户端必须容忍
 这些字段缺失或为 `null`，不得据此把未知值臆造为成功证据。
 
 | 字段 | 内容 | 约束 |
@@ -211,6 +213,7 @@ engine = SearchEngine(reader, encoder=query_encoder, vectors=vector_reader,
 | `query_encoder_runtime` | 可选的 `{implementation, device, dtype, inventory_sha256}` | 查询编码器实现、加载后的设备及权重 dtype。BGE 本地目录通过固定文件校验后回显规范化清单的摘要。没有本地清单证明时，摘要为 `null`。启动日志与本接口同源回显 |
 | `search_config` | `{candidate_k, rrf_c}` | 与 `config` 中同名服务级参数一致 |
 | `policy` | `{name, policy_version, requires_statistics}` | `policy_version` 必须是实际生效策略的版本，不能是用配置默认值拼出的标签；`requires_statistics` 为布尔值 |
+| `reranker` | 可选的 `{depth, candidate_source, model}`，启用实验特征或门控时可附加配置身份 | hybrid 重排能力和模型身份，包含固定版本和摘要；学习门控额外绑定 `gate_sha256` |
 | `config` | 原检索配置回显，字段不变 | 其中 `policy_version` 同样回显**实际生效**策略版本；只有该字段随注入策略变化，`candidate_k`/`rrf_c`/阈值等仍来自冻结配置 |
 | `serving` | `{schema_version:1, profile, host, port, max_body_bytes, request_timeout_s, router_factory}` | 由 HTTP server 追加；`profile` 等于 `dataset`；不暴露本地绝对路径、后端 URL 或凭据 |
 

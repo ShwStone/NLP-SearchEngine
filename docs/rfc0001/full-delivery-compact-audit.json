@@ -1,0 +1,16 @@
+{
+  "status": "verified",
+  "documents": 8096668,
+  "all_compact_files_verified": true,
+  "all_document_fields_and_order_verified": true,
+  "all_posting_semantics_verified": false,
+  "corpus_file_sha256": "bc67f3ccfe7423c039f04c7a5e7f6eae07a7f722087edf0caa7cfc694a8c45e8",
+  "corpus_contract_fingerprint": "0ae8b1174d0ee8e55f269c3c6d8e5f12d7e9c79fcb72c3966e99de18c9061019",
+  "compact_manifest_sha256": "9e2016026f14348b8c46c805da6bbf0447e9ece69d67195e985a50ac872986dc",
+  "vector_manifest_sha256": "22769be7e3cf5dc6326b9fd4ce39f1b16c63d005076411fad6d2b9843f842280",
+  "reader_sources": {
+    "offline/compact.py": "ddf5c37dfce30e4e9a4c24543a7321fa51bc1c67f33ceff14626fc984d23dc16",
+    "offline/packed_index.py": "3bf65da7a4c0b2b19c94d64cf8e703c79868c67038ccede4778ef0bbfaaeea06"
+  },
+  "scope": "all compact file integrity and all source document fields/order"
+}

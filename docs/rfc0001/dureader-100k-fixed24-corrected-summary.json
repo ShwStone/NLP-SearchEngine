@@ -1,0 +1,42 @@
+{
+  "queries": 1020,
+  "fixed_ce_pairs": 24,
+  "metrics": {
+    "ndcg": 0.3811639438114048,
+    "recall": 0.38592895225919793,
+    "mrr": 0.5612811235605354,
+    "map": 0.32677893704458694
+  },
+  "router_minus_fixed": {
+    "ndcg": {
+      "mean": 0.006533717078394552,
+      "ci95": [
+        -0.008486378699617898,
+        0.02180269015739869
+      ],
+      "unit": "resampled query groups"
+    },
+    "recall": {
+      "mean": 0.03811517704927755,
+      "ci95": [
+        0.020753093612298507,
+        0.05504972579278217
+      ],
+      "unit": "resampled query groups"
+    }
+  },
+  "ce_component_ms": {
+    "p50": 50.919742323458195,
+    "p95": 79.05939826741815
+  },
+  "changed_rankings_vs_reused_ce40_prefix": 10,
+  "protocol": {
+    "separately_scored": true,
+    "model_or_threshold_changed": false,
+    "predictions_sha256_before_qrels": "704bc246b8a45e8a266f9ea533eeacde7f12226ceb12a54153b7123013791c48",
+    "scores_protocol_sha256": "50f81b559764da41e53c1f578427ea9d02482607f3382e0ee5f390a2fb4507e8",
+    "policy_summary_sha256": "27485f0092506cb12a2364397079ab3cd3600a3fbe068ace97f7df97d82df6c3",
+    "qrels_sha256": "e75a68b89fa8a1ed1879e6703cffc1d6514ba295c82667dc4ce574e24b318f30",
+    "e2e_http_latency_pending": true
+  }
+}

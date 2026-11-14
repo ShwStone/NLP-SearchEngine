@@ -40,7 +40,8 @@ def _milliseconds(value):
 def _timings(value):
     if not isinstance(value, dict):
         return None
-    return {name: _milliseconds(value.get(name)) for name in TIMING_STAGES}
+    stages = TIMING_STAGES + (("rerank",) if "rerank" in value else ())
+    return {name: _milliseconds(value.get(name)) for name in stages}
 
 
 def _utc_now() -> str:
@@ -73,7 +74,7 @@ class SearchLogger:
                executed_mode=None, reason=None, vector_attempted=None,
                vector_used=None, fallback=None, policy_version=None,
                dataset=None, corpus_sha256=None, took_ms=None, timings_ms=None,
-               serialization_ms=None, http_elapsed_ms=None) -> None:
+               serialization_ms=None, http_elapsed_ms=None, rerank=None) -> None:
         self.emit({
             "event": "search",
             "time": _utc_now(),
@@ -92,4 +93,5 @@ class SearchLogger:
             "timings_ms": _timings(timings_ms),
             "serialization_ms": _milliseconds(serialization_ms),
             "http_elapsed_ms": _milliseconds(http_elapsed_ms),
+            **({"rerank": rerank} if rerank is not None else {}),
         })

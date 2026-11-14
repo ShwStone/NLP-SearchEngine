@@ -1,0 +1,26 @@
+{
+  "status": "verified",
+  "scope": "sampled numeric reencoding, first point of every shard",
+  "sample_size": 81,
+  "shards": 81,
+  "all_vectors_verified": false,
+  "embedding": {
+    "model_id": "BAAI/bge-small-zh-v1.5",
+    "revision": "7999e1d3359715c523056ef9478215996d62a620",
+    "dimension": 512,
+    "max_tokens": 512,
+    "normalize": true,
+    "distance": "cosine",
+    "document_template": "title\ntext",
+    "query_prefix": "为这个句子生成表示以用于检索相关文章：",
+    "document_prefix": ""
+  },
+  "max_absolute_error": 2.1606683731079102e-7,
+  "minimum_cosine": 0.9999998807907104,
+  "absolute_error_tolerance": 0.0001,
+  "minimum_cosine_threshold": 0.99999,
+  "statistics_sha256": "2ac6e1ee45d16795091103d54c3172db4e15ad4884ef9955c965c6cc47dfbeeb",
+  "vector_manifest_sha256": "22769be7e3cf5dc6326b9fd4ce39f1b16c63d005076411fad6d2b9843f842280",
+  "model_inventory_sha256": "bd839c7eb57bd6a63a4c50be96e702ad4b727a7b710f335de04e29b6165645b1",
+  "query_or_qrels_read": false
+}

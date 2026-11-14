@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "policy": "quality-guard-40",
+  "decision_features": [
+    "n_terms",
+    "vocab_coverage",
+    "relative_gap",
+    "candidate_hits"
+  ],
+  "threshold": 0.15146,
+  "actions": {
+    "heavy": "CE-40",
+    "cheap": "fixed-CE-33"
+  },
+  "cost_gate": {
+    "max_mean_ce_pairs": 36.49
+  },
+  "holdout_sha256": {
+    "queries": "883173d206af11095f496e95f2c158d570f13a89c2b7e0a6fb75c55dc0130ad5",
+    "qrels": "e32323a42dab45c07fa49b6e43954f397584ccd87d104bb0df4d2bbc9f19abca"
+  },
+  "training_model_sha256": "2c6bb8e23543f0abff256edb6b03f6090559b137f938713660585e9bbc4d2ee2",
+  "recapture": {
+    "documents": 8096668,
+    "delivery_manifest_sha256": "5b840b64b443ea50f68aa8f262328a376bb0581181bd20c8876edba5379724f8",
+    "compact_manifest_sha256": "9e2016026f14348b8c46c805da6bbf0447e9ece69d67195e985a50ac872986dc",
+    "vector_manifest_sha256": "22769be7e3cf5dc6326b9fd4ce39f1b16c63d005076411fad6d2b9843f842280",
+    "corpus_fingerprint": "0ae8b1174d0ee8e55f269c3c6d8e5f12d7e9c79fcb72c3966e99de18c9061019",
+    "snapshot_sha256": "2df5c889386db365e4d72d089f90bfb736c8a6a24d5bede4a10f727d9f0976e0",
+    "query_inventory_sha256": "2e4c00a7b975888fe4c36f36d3f113c877e7d8c9941229f40be7077025eff338",
+    "cross_encoder_inventory_sha256": "00437b04e96b71f1c09a612c05a2051c0c41d87a4081968cd86262b2fe3a2be4"
+  },
+  "http_requests_sha256": "804b07acf61312fe2bcc8f1f1a8030770a5b87308f3d5ca45a5cdde46d40f029",
+  "http_audit_sha256": "ee970fb18c25f1f4883d0014e8f038d405a2032dab15fa5487a8e12ec37e58ee",
+  "qrels_read_after_requests": true,
+  "fallback": "fixed-CE-33",
+  "status": "historical_summary_pending_raw_readback"
+}
