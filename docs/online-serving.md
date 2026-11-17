@@ -84,7 +84,7 @@ python3 -m venv .venv-serving
 | `index` | 是 | 词法产物目录（普通或 compact A1 产物） |
 | `vector` | 否 | 省略即纯词法 profile：dense/hybrid 返回 503，adaptive 显式回退。块内 `url`、`manifest` 必填；`hnsw_ef`、`timeout_s` 可选，示例固定为 256/30.0，实际生效值看 `/index/info` 的 `search` 回显。省略 `hnsw_ef` 时服务不传 Qdrant `SearchParams`，回显为 `null`（不代填 256），所以验收脚本要求向量 profile 显式给出 `--expect-hnsw-ef` |
 | `embedding` | 否 | 整个块可省略：只给 `vector` 时用仓库通用 pinned 编码器（需本地已有对应 revision），等价于只省略 `model_path`；反过来 `embedding` 不能脱离 `vector` 单独出现。`device` 只在给出 `model_path` 时有意义（默认 `cpu`） |
-| `retrieval` | 否 | `candidate_k` 默认 200、`rrf_c` 默认 60.0；非 lexical 必须 `offset+k <= candidate_k` |
+| `retrieval` | 否 | `candidate_k` 默认 200、`rrf_c` 默认 60.0；非 lexical 必须 `offset+k <= candidate_k`。可选 `lexical_cache_bytes` 设置 packed 倒排块缓存，省略时使用读取器默认 64 MiB；8M fast 示例使用 512 MiB |
 | `serve` | 否 | `host` 默认 `127.0.0.1`，`port` 默认 8000，`max_body_bytes` 默认 65536，`request_timeout_s` 默认 10.0 |
 | `policy` | 否 | `factory` 默认 `rule`；其他值必须是受信本地 `module:factory` 导入路径，工厂收到配置后返回带 `policy_version` 的 Router 对象 |
 
@@ -113,7 +113,7 @@ python3 -m online.server --index /path/to/compact --port 8000
 ```
 
 `--config` 与所有旧的 `--index`、`--vector-*`、`--bge-model-path`、`--encoder-device`、
-`--candidate-k`、`--rrf-c`、`--hnsw-ef`、`--host`、`--port` 以及路由/`--router-factory` 等
+`--candidate-k`、`--rrf-c`、`--lexical-cache-bytes`、`--hnsw-ef`、`--host`、`--port` 以及路由/`--router-factory` 等
 flag **互斥**，没有任何覆盖优先级：同一个字段只有一处来源。无 `--config` 时旧的
 `--vector-*` 接线照旧，另外可用 `--router-factory`、`--vector-timeout-s`、
 `--max-body-bytes`、`--request-timeout-s`，默认值与上表一致。

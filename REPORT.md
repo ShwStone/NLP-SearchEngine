@@ -6,7 +6,7 @@
 
 团队提案将 100,001 篇作为初步规模设想。正式规模流程使用下文核验的官方版本。仓库保留 tiny fixture 和可复现代码，源语料、模型和生成索引留在版本库外。
 
-团队提供了公开演示入口。 [中文搜索引擎](https://search.shwstone.cn/) 2026-11-06 的只读检查中，站点 `/index/info` 返回 tiny 数据集、10 篇文档且向量未就绪；下文的离线全量验收不代表该站点已部署 8M 索引。
+团队提供了 [多数据集中文搜索网站](https://search.shwstone.cn/)。2026-11-17 的部署支持自爬 20k、DuReader 100k 子集与 8,096,668 篇全集切换，前端位于阿里云，检索服务与数据留在本机，通过 SSH 反向隧道访问。20k 与 8M 支持四种模式，100k 提供词法检索。部署与实测细节见 [多数据集部署](docs/MULTI_DATASET_SERVING.md) 和 [8M 在线调优](docs/PERFORMANCE_TUNING.md)。
 
 已从 RocketQA 官方下载脚本指向的公开 CDN 获取并核验 baseline archive，含 8,096,668 个 passage、2,000 个 dev 查询和 9,839 条去重 qrels（原始答案段落链接 9,863 条）。公开 archive 只有 dev 标注。本次已完成固定 BGE revision 的全量 GPU 编码、Qdrant 1.16.0 全量 HNSW 快照和两次独立恢复。全量词法合并及正常 `DiskIndex` 读取已通过原生验收，覆盖 8,096,668 篇、8,578,589 个词项；冻结的 808 条内部 holdout 四模式评测和配对区间已通过独立复算，完整结果见第 8 节。 [资源核验](evaluation/RESOURCES.md)
 
@@ -27,14 +27,14 @@
 - `contracts/retrieval.py` 固定模型 revision、维度、归一化、前缀、截断和 cosine 约束。
 - `online/embeddings.py` 提供懒加载的 Sentence-Transformers 编码器，缺少可选依赖时返回清晰的可用性错误。
 - `offline/vector_build.py` 的 Qdrant writer 会创建新 collection、批量 upsert、核对点数并下载带 SHA256 的快照。
-- `online/vector_index.py` 的 Qdrant reader 校验 collection 中持久化的完整构建身份、真实维度／距离和精确点数，并在命中时核对外部 doc_id 和 cosine 分数。Qdrant 与客户端均要求 1.16+；旧的无元数据 collection 必须重建。
+- `online/vector_index.py` 的 Qdrant reader 校验 collection 中持久化的完整构建身份、真实维度／距离和精确点数。在线候选阶段核对内部 docid、重复项与 cosine 分数，最终展示页复用文档读取核对外部 doc_id。Qdrant 与客户端均要求 1.16+；旧的无元数据 collection 必须重建。
 - CLI 可通过 `--vector-url` 与 `--vector-manifest` 启用同版本向量后端；不提供这两个参数时保持零依赖词法服务。
 
 ### HTTP 与界面
 
 - `POST /search` 返回 API v2.0 的解析树、结果、高亮、routing 和阶段耗时。
 - `GET /health` 与 `GET /index/info` 提供健康状态、索引 manifest 和向量能力。
-- `web/` 是原生 HTML/CSS/JavaScript 界面，支持查询、模式、Top-K、结果高亮、路由和耗时展示。服务端限制静态路径在 web 根目录内，拒绝路径穿越和符号链接逃逸。
+- `web/` 是原生 HTML/CSS/JavaScript 界面，支持数据源切换、查询、模式、分页、分享链接、结果高亮、路由和耗时展示。`online/gateway.py` 将数据集请求转发到对应本机服务。服务端限制静态路径在 web 根目录内，拒绝路径穿越和符号链接逃逸。
 
 ### 评测器
 
@@ -228,3 +228,9 @@ BM25 另与固定 `rank-bm25==0.2.2` 做了独立工程核对。在相同分词�
 同一开发集随后用两套策略服务交错完成 2,040 次真实 HTTP 请求，均返回 200，未发生回退。冻结训练阈值比规则少调用向量 33 次（715 对 748）。学习版减规则的 nDCG@10 为 −0.00331，95% 配对区间 [−0.00719, +0.00056]。Recall@10 差为 −0.00519，95% 区间 [−0.01039, −0.00011]。平均 HTTP 延迟差为 −0.93 ms，95% 区间 [−16.75, +14.43] ms，p95 为 519.22 对 476.69 ms。此次本机 CPU 单并发的开发集结果支持保留默认规则。协议、四项质量区间和错误分析见 [Router 真实 HTTP 对照](docs/contributions/rfc0001-router-budget.md#冻结训练阈值的真实-http-对照)。
 
 新闻 20k 的离线回放将两种 Router 都限制为 32 次向量调用。线性收益 Router 的 nDCG@10 比规则低 0.00391，95% 配对区间为 [−0.02599, +0.01594]，其余三项区间也均跨过零。另一次真实 HTTP 验收使用冻结的训练阈值，触发 31 次向量调用，逐条复现该阈值对应的决策和排名。该回顾性试验沿用辅助标注，不能据此宣称学习型 Router 改善质量。详见 [同预算对照及复现步骤](docs/contributions/rfc0001-router-budget.md)。自爬集另有 8,281 对盲审任务，1,656 对安排独立交叉复核，待人工评分和裁决后复算。
+
+## 10. 多数据集网站与 8M 在线调优
+
+公开网站已切换为多数据集版本。阿里云 Nginx 提供静态前端、HTTPS 和限流，本机三个检索进程分别服务 20k、100k 和 8M，轻量网关通过 SSH 反向隧道接收数据集请求。各进程使用独立索引身份，100k compact 索引由冻结语料重新构建。
+
+8M 词法热路径采用 postings 门限、NumPy 稀疏并集、Numba 解码、512 MiB 有界缓存和大并集单次累加。向量链路使用 `ef=64`，外部 ID 只核对最终展示页，Qdrant 与 Torch 工作线程均调为 8。64 条同组 BM25 查询中，服务端 p50 从 685 ms 降到 43 ms，p95 从 2369 ms 降到 167.7 ms，Top-10 ID、顺序与六位小数分数全部一致。最终热轮 Dense 在 32 条完整 HTTP 查询上的 p50 为 15 ms。HNSW 参数的质量折衷、冷热口径、并发数据和逐查询收据见 [8M 在线调优记录](docs/PERFORMANCE_TUNING.md)。

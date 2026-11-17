@@ -112,6 +112,7 @@ class ServingConfigLoaderTests(unittest.TestCase):
                          (base / "../models/bge-small-zh-v1.5-7999e1d3").resolve())
         self.assertEqual(config.embedding.device, "cpu")
         self.assertEqual(config.retrieval_config(), RetrievalConfig(candidate_k=200, rrf_c=60.0))
+        self.assertIsNone(config.retrieval.lexical_cache_bytes)
         self.assertEqual(config.serving_info(), {
             "schema_version": 1,
             "profile": "rfc4-clean-news-20k",
@@ -324,6 +325,7 @@ class ServingCliTests(unittest.TestCase):
             ("--vector-manifest", str(self.manifest_path)),
             ("--hnsw-ef", "256"), ("--bge-model-path", "model"),
             ("--encoder-device", "cpu"), ("--router-factory", "rule"),
+            ("--lexical-cache-bytes", "536870912"),
             ("--vector-timeout-s", "30.0"), ("--max-body-bytes", "65536"),
             ("--request-timeout-s", "10.0"),
         ]
@@ -420,6 +422,15 @@ class ServingCliTests(unittest.TestCase):
             handler = mocks["ThreadingHTTPServer"].call_args.args[1]
             self.assertEqual(handler.timeout, 2.0)
 
+    def test_profile_forwards_explicit_packed_cache_budget(self):
+        self.profile["retrieval"]["lexical_cache_bytes"] = 536870912
+        self.write_profile(self.profile)
+        with self.cli() as mocks, patch("adapters.embedding.BGEEncoder"):
+            server.main(["--config", str(self.config_path)])
+            mocks["DiskIndex"].assert_called_once_with(
+                str((self.config_path.parent / "../index").resolve()),
+                cache_bytes=536870912)
+
     def test_legacy_defaults_keep_legacy_index_path(self):
         with self.cli() as mocks:
             server.main(["--index", "fixtures/tiny_index"])
@@ -441,7 +452,7 @@ class ServingCliTests(unittest.TestCase):
     def test_invalid_legacy_values_fail_before_loading(self):
         cases = [
             ["--port", "70000"], ["--max-body-bytes", "0"],
-            ["--request-timeout-s", "nan"],
+            ["--lexical-cache-bytes", "-1"], ["--request-timeout-s", "nan"],
             ["--vector-url", "http://127.0.0.1:6333",
              "--vector-manifest", str(self.manifest_path), "--vector-timeout-s", "0"],
             ["--router-factory", ""],

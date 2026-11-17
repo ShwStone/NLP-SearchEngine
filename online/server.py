@@ -52,6 +52,7 @@ _LEGACY_FLAGS = {
     "port": "--port",
     "candidate_k": "--candidate-k",
     "rrf_c": "--rrf-c",
+    "lexical_cache_bytes": "--lexical-cache-bytes",
     "vector_url": "--vector-url",
     "vector_manifest": "--vector-manifest",
     "hnsw_ef": "--hnsw-ef",
@@ -373,6 +374,8 @@ def _parser() -> argparse.ArgumentParser:
     ap.add_argument("--port", type=int, help="监听端口；默认 8000")
     ap.add_argument("--candidate-k", type=int, help="每路候选池；默认 200")
     ap.add_argument("--rrf-c", type=float, help="RRF 常数；默认 60.0")
+    ap.add_argument("--lexical-cache-bytes", type=int,
+                    help="packed posting cache budget in bytes; default 67108864")
     ap.add_argument("--vector-url", help="Qdrant URL; requires --vector-manifest")
     ap.add_argument("--vector-manifest", help="published vector_manifest.json")
     ap.add_argument("--hnsw-ef", type=int,
@@ -414,6 +417,8 @@ def _legacy_settings(ap: argparse.ArgumentParser, args) -> dict:
             ap.error("--hnsw-ef requires --vector-url and --vector-manifest")
         if type(args.hnsw_ef) is not int or args.hnsw_ef <= 0:
             ap.error("--hnsw-ef must be a positive integer")
+    if args.lexical_cache_bytes is not None and args.lexical_cache_bytes < 0:
+        ap.error("--lexical-cache-bytes must be a nonnegative integer")
     vector_timeout = (DEFAULT_VECTOR_TIMEOUT_S if args.vector_timeout_s is None
                       else args.vector_timeout_s)
     if args.vector_timeout_s is not None:
@@ -453,6 +458,7 @@ def _legacy_settings(ap: argparse.ArgumentParser, args) -> dict:
         "port": port,
         "candidate_k": candidate_k,
         "rrf_c": rrf_c,
+        "lexical_cache_bytes": args.lexical_cache_bytes,
         "vector_timeout_s": vector_timeout,
         "forward_vector_timeout": args.vector_timeout_s is not None,
         "max_body_bytes": max_body_bytes,
@@ -461,9 +467,10 @@ def _legacy_settings(ap: argparse.ArgumentParser, args) -> dict:
     }
 
 
-def _load_reader(ap: argparse.ArgumentParser, path) -> DiskIndex:
+def _load_reader(ap: argparse.ArgumentParser, path, cache_bytes=None) -> DiskIndex:
     try:
-        return DiskIndex(str(path))
+        options = {} if cache_bytes is None else {"cache_bytes": cache_bytes}
+        return DiskIndex(str(path), **options)
     except Exception as error:
         ap.error(f"词法索引加载失败: {error}")
 
@@ -530,6 +537,7 @@ def main(argv=None):
                             else DEFAULT_VECTOR_TIMEOUT_S)
         forward_vector_timeout = True
         expected_dataset = config.dataset
+        lexical_cache_bytes = config.retrieval.lexical_cache_bytes
     else:
         settings = _legacy_settings(ap, args)
         host = settings["host"]
@@ -543,6 +551,7 @@ def main(argv=None):
         vector_timeout_s = settings["vector_timeout_s"]
         forward_vector_timeout = settings["forward_vector_timeout"]
         expected_dataset = None
+        lexical_cache_bytes = settings["lexical_cache_bytes"]
 
     retrieval_config = RetrievalConfig(candidate_k=candidate_k, rrf_c=rrf_c)
     encoder = vectors = None
@@ -553,7 +562,7 @@ def main(argv=None):
 
     if config is not None:
         # Dataset identity is checked before any model/backend construction or bind.
-        reader = _load_reader(ap, index_path)
+        reader = _load_reader(ap, index_path, lexical_cache_bytes)
         manifest = reader.manifest()
         actual_dataset = manifest.get("dataset") if isinstance(manifest, dict) else None
         if actual_dataset != expected_dataset:
@@ -597,7 +606,7 @@ def main(argv=None):
                                if args.bge_model_path is not None else None),
                 "device": args.encoder_device,
             }
-        reader = _load_reader(ap, index_path)
+        reader = _load_reader(ap, index_path, lexical_cache_bytes)
 
     try:
         router = load_router(router_factory, retrieval_config)
@@ -608,6 +617,10 @@ def main(argv=None):
     except Exception as error:
         ap.error(f"检索引擎初始化失败: {error}")
 
+    # Optional packed decoder compilation happens before the socket is public.
+    warmup = getattr(reader, "warmup", None)
+    if callable(warmup):
+        warmup()
     manifest = reader.manifest()
     actual_dataset = manifest.get("dataset") if isinstance(manifest, dict) else None
     info = engine.info()
@@ -651,6 +664,7 @@ def main(argv=None):
         "vector_identity": info.get("vector_identity"),
         "search_config": info.get("search_config"),
         "policy": info.get("policy"),
+        **({"index_runtime": info["index_runtime"]} if "index_runtime" in info else {}),
         **({"query_encoder_runtime": info["query_encoder_runtime"]}
            if "query_encoder_runtime" in info else {}),
     })

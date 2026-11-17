@@ -62,7 +62,9 @@ def test_light_document_and_identity_paths_preserve_four_modes():
             assert semantic(engine.search(request)) == expected
             assert len(fast.rendered) == len(expected["results"])
             if mode in ("dense", "hybrid"):
-                assert fast.identities
+                # External IDs are checked through the already-rendered final
+                # documents; no separate read occurs for every ANN candidate.
+                assert fast.identities == []
 
 
 def test_bounded_topk_matches_full_sort_with_ties_and_pagination():

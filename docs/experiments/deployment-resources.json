@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-17T04:30:47.203664+00:00",
+  "scope": "single deployment-time resource sample; not a controlled peak-memory benchmark",
+  "processes": {
+    "official-final-v3": {
+      "pid": 419141,
+      "rss_bytes": 806473728,
+      "command": "/data/shwstone/Workspace/NLP-pr8-review-venv/bin/python -B -u -m online.server --config /data/shwstone/Workspace/NLP-search-site-runtime/config/official8m.json"
+    },
+    "news20k-v2": {
+      "pid": 416943,
+      "rss_bytes": 436240384,
+      "command": "/data/shwstone/Workspace/NLP-pr8-review-venv/bin/python -B -u -m online.server --config /data/shwstone/Workspace/NLP-search-site-runtime/config/news20k.json"
+    },
+    "mini100k-v2": {
+      "pid": 416944,
+      "rss_bytes": 133500928,
+      "command": "/data/shwstone/Workspace/NLP-pr8-review-venv/bin/python -B -u -m online.server --config /data/shwstone/Workspace/NLP-search-site-runtime/config/mini100k.json"
+    },
+    "gateway-v2": {
+      "pid": 417052,
+      "rss_bytes": 30789632,
+      "command": "/data/shwstone/Workspace/NLP-pr8-review-venv/bin/python -B -u -m online.gateway --config /data/shwstone/Workspace/NLP-search-site-runtime/config/datasets.json"
+    },
+    "qdrant-official-tuned": {
+      "pid": 418595,
+      "rss_bytes": 18081574912,
+      "command": "/data/shwstone/Workspace/NLP-pr8-runtime-20261108/bin/qdrant --disable-telemetry --config-path /data/shwstone/Workspace/NLP-search-site-runtime/config/qdrant-official-tuned.yaml"
+    }
+  },
+  "memory_bytes": {
+    "MemTotal": 67316826112,
+    "MemAvailable": 30592221184,
+    "SwapTotal": 34359734272,
+    "SwapFree": 27072479232
+  },
+  "official_index_runtime": {
+    "storage_format": "compact-packed-v1",
+    "decoder": "numba-0.60",
+    "cache": {
+      "hits": 0,
+      "misses": 0,
+      "coalesced": 0,
+      "loads": 0,
+      "evictions": 0,
+      "oversized": 0,
+      "cached_bytes": 0,
+      "budget_bytes": 536870912,
+      "terms": 0,
+      "pending": 0
+    }
+  },
+  "official_search": {
+    "hnsw_ef": 64,
+    "exact": false,
+    "timeout_s": 30.0
+  },
+  "official_collection": "real_bge_official8096668",
+  "official_n_docs": 8096668
+}

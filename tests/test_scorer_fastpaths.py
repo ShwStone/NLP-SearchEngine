@@ -11,7 +11,8 @@ from offline.build import build
 from offline.compact import CompactIndex, compile_index
 from offline.packed_index import PackedIndex
 from online.memory_index import MemoryIndex
-from online.scorers import _candidate_docs, bm25, tfidf
+import online.scorers as scorer_module
+from online.scorers import _candidate_docs, bm25, tfidf, topk
 
 
 CORPUS = [
@@ -149,6 +150,58 @@ class ScorerFastpathTests(unittest.TestCase):
                         for options in ({}, {"match_all": True}, {"candidate_docs": {0, 3}}):
                             self.assert_exact(scorer(legacy, TERMS, term_weights=WEIGHTS, **options),
                                               scorer(fast, TERMS, term_weights=WEIGHTS, **options))
+
+    def test_numpy_topk_preserves_exact_scores_ties_and_duplicate_terms(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            corpus = root / "corpus.jsonl"
+            corpus.write_text("".join(json.dumps(row) + "\n" for row in CORPUS), encoding="utf-8")
+            build(corpus, root / "lexical", "numpy-topk")
+            compile_index(root / "lexical", root / "compact")
+            with PackedIndex(root / "compact", cache_bytes=0) as reader:
+                for terms in (TERMS, ["common"], ["common", "common"], ["absent"], []):
+                    for weights in (None, WEIGHTS, {"common": 0.0}):
+                        expected_scores = bm25(reader, terms, term_weights=weights)
+                        expected_order = sorted(expected_scores, key=lambda d: (-expected_scores[d], d))
+                        for limit in (1, 2, 3, 4, 20):
+                            with self.subTest(terms=terms, weights=weights, limit=limit):
+                                actual = topk("bm25", reader, terms, limit, term_weights=weights)
+                                expected = [(docid, expected_scores[docid])
+                                            for docid in expected_order[:limit]]
+                                self.assertEqual([docid for docid, _ in actual],
+                                                 [docid for docid, _ in expected])
+                                for (_, left), (_, right) in zip(actual, expected):
+                                    self.assertAlmostEqual(left, right, delta=1e-12)
+
+    def test_sparse_numpy_topk_is_bit_exact_above_the_postings_gate(self):
+        rows = [{"doc_id": str(i), "title": "", "text": "common common shared"}
+                for i in range(300)]
+        rows[42] = {"doc_id": "42", "title": "", "text": "common"}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            corpus = root / "corpus.jsonl"
+            corpus.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            build(corpus, root / "lexical", "numpy-sparse-topk")
+            compile_index(root / "lexical", root / "compact")
+            with PackedIndex(root / "compact") as reader:
+                for terms in (["common"], ["common", "common"], ["common", "shared"]):
+                    for weights in (None, {"common": 0.0}, {"common": -0.5}):
+                        expected_scores = bm25(reader, terms, term_weights=weights)
+                        expected = sorted(expected_scores.items(),
+                                          key=lambda row: (-row[1], row[0]))[:10]
+                        with patch("online.scorers._rank_docids",
+                                   wraps=scorer_module._rank_docids) as rank:
+                            actual = topk("bm25", reader, terms, 10, term_weights=weights)
+                        self.assertTrue(rank.called, "postings gate did not enter numpy ranking")
+                        self.assertEqual([(d, float(v).hex()) for d, v in actual],
+                                         [(d, float(v).hex()) for d, v in expected])
+                expected_scores = bm25(reader, ["common", "shared"])
+                expected = sorted(expected_scores.items(), key=lambda row: (-row[1], row[0]))[:10]
+                with patch.object(scorer_module, "DENSE_MIN_POSTINGS", 0), \
+                        patch.object(scorer_module, "DENSE_POSTINGS_PER_DOC", 1):
+                    actual = topk("bm25", reader, ["common", "shared"], 10)
+                self.assertEqual([(d, float(v).hex()) for d, v in actual],
+                                 [(d, float(v).hex()) for d, v in expected])
 
 
 if __name__ == "__main__":

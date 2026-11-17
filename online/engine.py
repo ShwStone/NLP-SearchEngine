@@ -66,6 +66,8 @@ class SearchEngine:
         # the untouched frozen retrieval configuration.
         config_echo = {**asdict(self.config),
                        "policy_version": self.policy["policy_version"]}
+        runtime_info = getattr(self.reader, "runtime_info", None)
+        index_runtime = runtime_info() if callable(runtime_info) else None
         return {
             "vector_ready": self.vectors is not None,
             "config": config_echo,
@@ -84,6 +86,7 @@ class SearchEngine:
             "search_config": {"candidate_k": self.config.candidate_k,
                               "rrf_c": self.config.rrf_c},
             "policy": dict(self.policy),
+            **({"index_runtime": index_runtime} if index_runtime is not None else {}),
         }
 
     def _decide(self, features: QueryFeatures) -> RouteDecision:
@@ -108,7 +111,7 @@ class SearchEngine:
         return QueryFeatures(explicit, len(unique_terms), coverage, len(ranked), gap,
                              statistics)
 
-    def _vector_search(self, query: str, timings: dict) -> list[tuple[int, float]]:
+    def _vector_search(self, query: str, timings: dict) -> tuple[list[tuple[int, float]], dict[int, str]]:
         if self.encoder is None or self.vectors is None:
             raise RetrievalUnavailable("未配置编码器与向量库")
         start = time.perf_counter()
@@ -124,17 +127,13 @@ class SearchEngine:
             hits = self.vectors.search(vector, self.config.candidate_k)
             if len(hits) > self.config.candidate_k or len({h.docid for h in hits}) != len(hits):
                 raise ValueError("向量结果数量超限或 docid 重复")
-            external_id = getattr(self.reader, "external_doc_id", None)
             for hit in hits:
                 if type(hit.docid) is not int or not 0 <= hit.docid < self.reader.n_docs:
                     raise ValueError("向量结果包含未知 docid")
-                doc_id = (external_id(hit.docid) if callable(external_id)
-                          else self.reader.doc(hit.docid).doc_id)
-                if doc_id != hit.doc_id:
-                    raise ValueError("向量结果外部 doc_id 与倒排索引不一致")
                 if not math.isfinite(hit.score) or not -1.0001 <= hit.score <= 1.0001:
                     raise ValueError("向量结果不是合法 cosine 分数")
-            return sorted(((h.docid, h.score) for h in hits), key=lambda row: (-row[1], row[0]))
+            ranked = sorted(((h.docid, h.score) for h in hits), key=lambda row: (-row[1], row[0]))
+            return ranked, {hit.docid: hit.doc_id for hit in hits}
         except ValueError as error:
             raise RetrievalUnavailable(f"向量后端违反契约: {error}") from error
         finally:
@@ -164,16 +163,20 @@ class SearchEngine:
         ranked = []
         if req.mode != "dense":
             start = time.perf_counter()
-            scores = scorers.SCORERS[req.scorer](self.reader, scoring_terms,
-                                                 candidate_docs=candidate_docs,
-                                                 term_weights=term_weights)
+            limit = req.offset + req.k if req.mode == "lexical" else self.config.candidate_k
             if candidate_docs:
                 # A NOT-only query, or the negative branch of an OR, has no
                 # positive BM25 contribution. Keep those hard-filtered docs
                 # with deterministic zero scores instead of dropping them.
+                scores = scorers.SCORERS[req.scorer](self.reader, scoring_terms,
+                                                     candidate_docs=candidate_docs,
+                                                     term_weights=term_weights)
                 scores = {docid: scores.get(docid, 0.0) for docid in candidate_docs}
-            limit = req.offset + req.k if req.mode == "lexical" else self.config.candidate_k
-            ranked = nsmallest(limit, scores.items(), key=lambda row: (-row[1], row[0]))
+                ranked = nsmallest(limit, scores.items(), key=lambda row: (-row[1], row[0]))
+            else:
+                ranked = scorers.topk(req.scorer, self.reader, scoring_terms, limit,
+                                      candidate_docs=candidate_docs,
+                                      term_weights=term_weights, selector=nsmallest)
             timings["lexical"] = (time.perf_counter() - start) * 1000
         if req.mode != "lexical":
             ranked = ranked[:self.config.candidate_k]
@@ -190,13 +193,15 @@ class SearchEngine:
                 use_vector, reason = decision.use_vector, decision.reason
             timings["router"] = (time.perf_counter() - start) * 1000
 
+        lexical_ranked = ranked
+        vector_doc_ids = {}
         executed = "lexical"
         score_kind = req.scorer
         fallback = False
         vector_used = False
         if use_vector:
             try:
-                dense_ranked = self._vector_search(req.query, timings)
+                dense_ranked, vector_doc_ids = self._vector_search(req.query, timings)
                 if candidate_docs is not None:
                     dense_ranked = [(docid, score) for docid, score in dense_ranked
                                     if docid in candidate_docs]
@@ -217,11 +222,36 @@ class SearchEngine:
                     executed, score_kind = "hybrid", "rrf"
 
         results = []
+        documents = {}
         document_text = getattr(self.reader, "document_text", None)
-        for rank, (docid, score) in enumerate(ranked[req.offset:req.offset + req.k], req.offset + 1):
-            # Rendering re-analyzes the original text; it does not consume the
-            # stored token-offset table required by the conformance doc() API.
-            doc = document_text(docid) if callable(document_text) else self.reader.doc(docid)
+
+        def load_document(docid):
+            if docid not in documents:
+                # Rendering re-analyzes the original text without materializing
+                # the stored token-offset table required by the doc() API.
+                documents[docid] = (document_text(docid) if callable(document_text)
+                                    else self.reader.doc(docid))
+            return documents[docid]
+
+        page = ranked[req.offset:req.offset + req.k]
+        if vector_used:
+            try:
+                # Candidate validation is O(hits). External-ID reads belong only
+                # to the small final page, rather than all 200 ANN candidates.
+                for docid, _ in page:
+                    if docid in vector_doc_ids and load_document(docid).doc_id != vector_doc_ids[docid]:
+                        raise RetrievalUnavailable("向量结果外部 doc_id 与倒排索引不一致")
+            except RetrievalUnavailable:
+                if req.mode != "adaptive":
+                    raise
+                fallback, reason = True, "vector_unavailable"
+                vector_used = False
+                executed, score_kind = "lexical", req.scorer
+                ranked = lexical_ranked
+                page = ranked[req.offset:req.offset + req.k]
+
+        for rank, (docid, score) in enumerate(page, req.offset + 1):
+            doc = load_document(docid)
             results.append(ResultItem(
                 doc_id=doc.doc_id, rank=rank, score=score, title=doc.title,
                 snippet=doc.text[:SNIPPET_LEN], highlights=build_highlights(doc, set(terms)),

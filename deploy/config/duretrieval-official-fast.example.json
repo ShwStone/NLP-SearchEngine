@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "dataset": "dureader-official-dev-full-8096668",
+  "index": "../artifacts/official/compact",
+  "vector": {
+    "url": "http://127.0.0.1:6333",
+    "manifest": "../artifacts/official/vector/vector_manifest.json",
+    "hnsw_ef": 64,
+    "timeout_s": 30.0
+  },
+  "embedding": {
+    "model_path": "../models/bge-small-zh-v1.5-7999e1d3",
+    "device": "cpu"
+  },
+  "retrieval": {
+    "candidate_k": 200,
+    "rrf_c": 60.0,
+    "lexical_cache_bytes": 536870912
+  },
+  "serve": {
+    "host": "127.0.0.1",
+    "port": 8000,
+    "max_body_bytes": 65536,
+    "request_timeout_s": 10.0
+  },
+  "policy": {
+    "factory": "rule"
+  }
+}

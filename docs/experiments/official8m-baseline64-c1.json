@@ -1,0 +1,3992 @@
+{
+  "schema_version": 1,
+  "label": "official8m-baseline64-c1",
+  "created_at": "2026-11-17T04:12:38.422333+00:00",
+  "scope": "HTTP latency only; no relevance claim",
+  "git_head": "fa8577f90899b0ae358d6a0172e3fd6413fcdbe6",
+  "environment": {
+    "python": "3.10.14",
+    "platform": "Linux-7.1.13-2-MANJARO-x86_64-with-glibc2.44",
+    "logical_cpus": 32
+  },
+  "config": {
+    "endpoint": "http://127.0.0.1:18082/search",
+    "query_count": 64,
+    "modes": [
+      "lexical"
+    ],
+    "k": 10,
+    "warmup_per_mode": 1,
+    "concurrency": 1,
+    "timeout_s": 120.0
+  },
+  "wall_seconds_including_warmup": 56.71296912385151,
+  "summary": {
+    "lexical": {
+      "client_ms": {
+        "count": 64,
+        "mean": 874.9309692357201,
+        "min": 49.37606304883957,
+        "p50": 699.6914229821414,
+        "p95": 2441.3552373414855,
+        "max": 3793.6866600066423
+      },
+      "server_ms": {
+        "count": 64,
+        "mean": 853.875,
+        "min": 48.0,
+        "p50": 685.0,
+        "p95": 2368.9999999999995,
+        "max": 3720.0
+      },
+      "stages_ms": {
+        "lexical": {
+          "count": 64,
+          "mean": 843.085703125,
+          "min": 46.773,
+          "p50": 673.7845,
+          "p95": 2368.1322999999998,
+          "max": 3666.055
+        },
+        "router": {
+          "count": 64,
+          "mean": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "encode": {
+          "count": 64,
+          "mean": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "vector": {
+          "count": 64,
+          "mean": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        },
+        "fusion": {
+          "count": 64,
+          "mean": 0.0,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "max": 0.0
+        }
+      },
+      "successful": 64,
+      "failed": 0
+    }
+  },
+  "warmups": [
+    {
+      "qid": "edb58f525bd14724d6f490722fa8a657",
+      "query": "国家法定节假日共多少天",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 703.6421592347324,
+      "server_ms": 687,
+      "timings_ms": {
+        "lexical": 685.522,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "f794a6dc6c26ba7a64d14ddfea5954ff",
+          "score": 89.410994
+        },
+        {
+          "doc_id": "4f775c84db9f41aaf5965d9754644383",
+          "score": 87.806696
+        },
+        {
+          "doc_id": "00b9031d9f5eb4e239137fb17fe9b7da",
+          "score": 86.427271
+        },
+        {
+          "doc_id": "f75a7b10cb98424b93bc049d90e8c0a9",
+          "score": 83.17621
+        },
+        {
+          "doc_id": "a0ac26837aef3497f4fe08b6243b8eed",
+          "score": 81.761648
+        },
+        {
+          "doc_id": "bddad4da7996c302db99d5f26e7fbaad",
+          "score": 81.319309
+        },
+        {
+          "doc_id": "8bbe8d5d60e676139315ec292c54dd43",
+          "score": 80.939685
+        },
+        {
+          "doc_id": "ab44e6f6b44cf492c6ea3cce978b4468",
+          "score": 80.377719
+        },
+        {
+          "doc_id": "5c41eba22fc81ff8208a28aa663579df",
+          "score": 80.174022
+        },
+        {
+          "doc_id": "03933af660f828167b2c73fc6f74556d",
+          "score": 79.444945
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:warmup:lexical:0:edb58f525bd14724d6f490722fa8a657"
+    }
+  ],
+  "measurements": [
+    {
+      "qid": "edb58f525bd14724d6f490722fa8a657",
+      "query": "国家法定节假日共多少天",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 457.3470689356327,
+      "server_ms": 440,
+      "timings_ms": {
+        "lexical": 438.994,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "f794a6dc6c26ba7a64d14ddfea5954ff",
+          "score": 89.410994
+        },
+        {
+          "doc_id": "4f775c84db9f41aaf5965d9754644383",
+          "score": 87.806696
+        },
+        {
+          "doc_id": "00b9031d9f5eb4e239137fb17fe9b7da",
+          "score": 86.427271
+        },
+        {
+          "doc_id": "f75a7b10cb98424b93bc049d90e8c0a9",
+          "score": 83.17621
+        },
+        {
+          "doc_id": "a0ac26837aef3497f4fe08b6243b8eed",
+          "score": 81.761648
+        },
+        {
+          "doc_id": "bddad4da7996c302db99d5f26e7fbaad",
+          "score": 81.319309
+        },
+        {
+          "doc_id": "8bbe8d5d60e676139315ec292c54dd43",
+          "score": 80.939685
+        },
+        {
+          "doc_id": "ab44e6f6b44cf492c6ea3cce978b4468",
+          "score": 80.377719
+        },
+        {
+          "doc_id": "5c41eba22fc81ff8208a28aa663579df",
+          "score": 80.174022
+        },
+        {
+          "doc_id": "03933af660f828167b2c73fc6f74556d",
+          "score": 79.444945
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:0:edb58f525bd14724d6f490722fa8a657"
+    },
+    {
+      "qid": "a451acd1e9836b04b16664e9f0c290e5",
+      "query": "如何查看好友申请",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1176.2964599765837,
+      "server_ms": 1146,
+      "timings_ms": {
+        "lexical": 1145.357,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "609a57230a8f0a64048f114fa8479e41",
+          "score": 69.792071
+        },
+        {
+          "doc_id": "ef3d34ea63b3de9db612bd7b7ffd143a",
+          "score": 67.589262
+        },
+        {
+          "doc_id": "6b9777840bb537a433add0b9f553fd42",
+          "score": 67.126632
+        },
+        {
+          "doc_id": "71c8004cc562f2a75181b2d3d370a45a",
+          "score": 66.792186
+        },
+        {
+          "doc_id": "2c839510f35d5495251c6b3c057bd300",
+          "score": 60.408729
+        },
+        {
+          "doc_id": "7f3160a5b3a826758d6afee450e33e56",
+          "score": 60.139145
+        },
+        {
+          "doc_id": "1e40a78cecfe503c2551e7eeaa3a6aae",
+          "score": 53.934312
+        },
+        {
+          "doc_id": "c491ce94ef8ec8a26aa7cc24def69c41",
+          "score": 51.365514
+        },
+        {
+          "doc_id": "74aee8ea9d581e54155a7a141d3f2bd0",
+          "score": 47.74889
+        },
+        {
+          "doc_id": "64a8bf47c2c7bdb3f045a57d67719f44",
+          "score": 46.997231
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:1:a451acd1e9836b04b16664e9f0c290e5"
+    },
+    {
+      "qid": "48a8338aefaff17573048a088a08de70",
+      "query": "哪个网站有湖南卫视直播",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 529.2672808282077,
+      "server_ms": 518,
+      "timings_ms": {
+        "lexical": 507.498,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "fdd3a11625d1ad1b8469bc30071afebe",
+          "score": 79.262788
+        },
+        {
+          "doc_id": "31a96bd83ada9510b0ecb6ffe4088925",
+          "score": 76.025124
+        },
+        {
+          "doc_id": "ea34867a12e825cdc0b900ddfec84387",
+          "score": 75.51238
+        },
+        {
+          "doc_id": "a297032590bd5defa66acc602ef951b5",
+          "score": 71.66246
+        },
+        {
+          "doc_id": "294d25f4dbd4df17642256a31044f717",
+          "score": 70.87411
+        },
+        {
+          "doc_id": "676debf5b03c9b9a3f9216c15926c966",
+          "score": 68.712072
+        },
+        {
+          "doc_id": "b40bb7acf1c2418b70aa6d0239223f16",
+          "score": 68.436946
+        },
+        {
+          "doc_id": "93847a2f5ea63e5ec2cabfff449dbbd2",
+          "score": 65.03848
+        },
+        {
+          "doc_id": "7a4238810b79fe52f9645b335938dc09",
+          "score": 64.650307
+        },
+        {
+          "doc_id": "ddc67410adca9a06a605fc9338d081ee",
+          "score": 64.499547
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:2:48a8338aefaff17573048a088a08de70"
+    },
+    {
+      "qid": "7871706c5cb1a1d6912ff8222434ccbd",
+      "query": "功和功率的区别",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 372.6838221773505,
+      "server_ms": 368,
+      "timings_ms": {
+        "lexical": 363.813,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "1f010a6aee6d64117df5864db945db09",
+          "score": 38.901943
+        },
+        {
+          "doc_id": "afdc04f853ae1f73cefaeb5edc3759b5",
+          "score": 37.984336
+        },
+        {
+          "doc_id": "b789c3a0a9086bc2957257475a025923",
+          "score": 32.919647
+        },
+        {
+          "doc_id": "f423c674f3144500af5932b4f7c5e0b0",
+          "score": 32.801167
+        },
+        {
+          "doc_id": "7c54b49e6a07a3ebb8b52165d2e1b4d6",
+          "score": 32.670951
+        },
+        {
+          "doc_id": "d7f8c2f90c4a1573e27f62a88fe24ab2",
+          "score": 32.608182
+        },
+        {
+          "doc_id": "421da0b53048a598c11ebc84b26a2799",
+          "score": 32.229944
+        },
+        {
+          "doc_id": "0e201dcba0d86c8ae3a8519747e4df79",
+          "score": 30.948382
+        },
+        {
+          "doc_id": "ed3ed0fac321680577f74760ba19c24b",
+          "score": 30.724433
+        },
+        {
+          "doc_id": "3c9e54abcdc215479bbdab6864bc3c71",
+          "score": 30.626787
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:3:7871706c5cb1a1d6912ff8222434ccbd"
+    },
+    {
+      "qid": "2b22b972c4e30776b9160fc83ee05367",
+      "query": "徐州旅行社哪家好",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 113.05103218182921,
+      "server_ms": 111,
+      "timings_ms": {
+        "lexical": 109.226,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "41bc6d107a57aa7776c5c12dbac1f4ab",
+          "score": 96.201967
+        },
+        {
+          "doc_id": "d88859f9d21ac975997539b32a2c6d31",
+          "score": 70.448361
+        },
+        {
+          "doc_id": "a1b7915d45bbee7acbce64223b773cd8",
+          "score": 69.948792
+        },
+        {
+          "doc_id": "c38b8b9b881d71046b7077d9fa0de55c",
+          "score": 66.05792
+        },
+        {
+          "doc_id": "8d61ad3285ebf954a009ff878e2b3111",
+          "score": 65.590741
+        },
+        {
+          "doc_id": "8dcfa8e69a97d1c6f2dc06c80446dd27",
+          "score": 65.122721
+        },
+        {
+          "doc_id": "582d15457ad21efe1b9abb2d9423f363",
+          "score": 62.194223
+        },
+        {
+          "doc_id": "c45c42f48dee2ca7b1047103d6560938",
+          "score": 61.02152
+        },
+        {
+          "doc_id": "4a79e0b2c2f7cfb8553cbeac34ff4298",
+          "score": 60.744274
+        },
+        {
+          "doc_id": "0931fe87c302b5a1e4599b26c6f1da18",
+          "score": 59.747343
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:4:2b22b972c4e30776b9160fc83ee05367"
+    },
+    {
+      "qid": "979f5cfe8a8cc82ef302b98e2de59648",
+      "query": "为什么要平衡摩擦力",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1476.1307225562632,
+      "server_ms": 1443,
+      "timings_ms": {
+        "lexical": 1416.626,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "18dd4b0dbcd77f303a2f584c235618b9",
+          "score": 74.756982
+        },
+        {
+          "doc_id": "e41f3c815131014413b2737357bb5ecc",
+          "score": 71.549458
+        },
+        {
+          "doc_id": "c0e88406c2b6ec23e6b1d72bc69fdff3",
+          "score": 66.328722
+        },
+        {
+          "doc_id": "4c46b1bc156bde5aae0cbec960d2b315",
+          "score": 64.94813
+        },
+        {
+          "doc_id": "3196a5353100b59894be0cba78f68f33",
+          "score": 59.579546
+        },
+        {
+          "doc_id": "97d914137437577f6b73847283a8fdb0",
+          "score": 58.076843
+        },
+        {
+          "doc_id": "5e0e72abaad67cd7802da4584a347d6a",
+          "score": 55.50435
+        },
+        {
+          "doc_id": "0a1ac345cd6f35db5531381536a5079f",
+          "score": 53.538153
+        },
+        {
+          "doc_id": "397943aa8e3e422bfccd21e10767f5ac",
+          "score": 51.431173
+        },
+        {
+          "doc_id": "c470b52719219174452b97d95ee5989c",
+          "score": 50.831655
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:5:979f5cfe8a8cc82ef302b98e2de59648"
+    },
+    {
+      "qid": "93052ecb6ad07eb3b6f27a704004226c",
+      "query": "覆铜面板是什么",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1123.0905000120401,
+      "server_ms": 1087,
+      "timings_ms": {
+        "lexical": 1059.045,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "0c16dc4c82e2a2206babc2864cf9b45a",
+          "score": 38.895272
+        },
+        {
+          "doc_id": "3cf15bb419f3c922c8d347816127a4b1",
+          "score": 37.02106
+        },
+        {
+          "doc_id": "69c3ec844cd417e51e4a1f1abd7af72b",
+          "score": 34.442165
+        },
+        {
+          "doc_id": "1b8dd2034a570b26dda2cb25a7943751",
+          "score": 31.651172
+        },
+        {
+          "doc_id": "952beb302ca0cb8ada661621875116ea",
+          "score": 28.882031
+        },
+        {
+          "doc_id": "3899217434a7c6355787c3d3c708b6bb",
+          "score": 27.65799
+        },
+        {
+          "doc_id": "4956878a70937f953373c098a88d003a",
+          "score": 27.521527
+        },
+        {
+          "doc_id": "8d72c56c8dc5bce205243615eb4b6346",
+          "score": 27.506008
+        },
+        {
+          "doc_id": "cf533ac03a234ea0bbdf0fb8efedf14f",
+          "score": 27.196761
+        },
+        {
+          "doc_id": "4b8d1a92c051cf62b9838160daa31b05",
+          "score": 27.071703
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:6:93052ecb6ad07eb3b6f27a704004226c"
+    },
+    {
+      "qid": "14c34a53aa3d9327ac30184c651ee4df",
+      "query": "怎么屏蔽qq新闻弹窗",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1184.6933430060744,
+      "server_ms": 1160,
+      "timings_ms": {
+        "lexical": 1138.838,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "d429d2a3ccf0465deec1bfb0d21c2062",
+          "score": 64.241417
+        },
+        {
+          "doc_id": "de1ed72088c59f9eb5b1bb447e99d4a9",
+          "score": 58.401171
+        },
+        {
+          "doc_id": "31cd7c34a425f4e3a0601eaf4c27d069",
+          "score": 57.305764
+        },
+        {
+          "doc_id": "140e0b0697d3c08b72ef2252c3af5f05",
+          "score": 56.411142
+        },
+        {
+          "doc_id": "b049bc8f365a43b15210f4367a7b715c",
+          "score": 56.066112
+        },
+        {
+          "doc_id": "f3b10d780685d8e111db79b1359e69ee",
+          "score": 55.291061
+        },
+        {
+          "doc_id": "0bdde12f43ee94a663f1370f4c4c2875",
+          "score": 55.19707
+        },
+        {
+          "doc_id": "9ac6726a916688ba882549e3e524c350",
+          "score": 55.103429
+        },
+        {
+          "doc_id": "24089b06606113ce413e124e2a6406bc",
+          "score": 54.385831
+        },
+        {
+          "doc_id": "dfa74998336b5bef01921041e4a90601",
+          "score": 53.767446
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:7:14c34a53aa3d9327ac30184c651ee4df"
+    },
+    {
+      "qid": "a835a0d06cf0e5e7becca9a992a79b70",
+      "query": "我国古代第一个有伟大成就的爱国诗人是( )",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 3326.226401142776,
+      "server_ms": 3247,
+      "timings_ms": {
+        "lexical": 3185.971,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "a82eeb89dedc76de2cee033d67a48a09",
+          "score": 141.559758
+        },
+        {
+          "doc_id": "d0b3952ba66a5af3af51e3842911a942",
+          "score": 140.882459
+        },
+        {
+          "doc_id": "ea2a663871f8b13ed79e87ba392a65b2",
+          "score": 118.613069
+        },
+        {
+          "doc_id": "93ff81737f23aec62f0a0ca050adee5b",
+          "score": 104.057371
+        },
+        {
+          "doc_id": "52366b4c88939d96009900502193f63b",
+          "score": 81.331493
+        },
+        {
+          "doc_id": "716951211751048b7c5caf22e5097484",
+          "score": 72.231602
+        },
+        {
+          "doc_id": "8969e0c09dffba9736d71e3dbc4a95b7",
+          "score": 70.217014
+        },
+        {
+          "doc_id": "fc399503eb211ddfcb71d696a1eeac74",
+          "score": 69.406442
+        },
+        {
+          "doc_id": "c62d47ee26fb14088c9517b9594bc941",
+          "score": 68.335142
+        },
+        {
+          "doc_id": "f92a2c9f6d538fe97630aab54380114c",
+          "score": 68.306004
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:8:a835a0d06cf0e5e7becca9a992a79b70"
+    },
+    {
+      "qid": "ba62cc123e5631fc2e8705241c20cd61",
+      "query": "宝鸡装修房子多钱",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 141.55620569363236,
+      "server_ms": 139,
+      "timings_ms": {
+        "lexical": 136.585,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "ce5079e36c0afd1b6f7d2da4a56cf97b",
+          "score": 56.868385
+        },
+        {
+          "doc_id": "e7a5b1bcc4feae2131bb18e09e6d0ff5",
+          "score": 51.996283
+        },
+        {
+          "doc_id": "6713f67a7c663bce63e892f3e594181d",
+          "score": 48.328658
+        },
+        {
+          "doc_id": "eb76011666074520e19da71b28e881de",
+          "score": 46.09402
+        },
+        {
+          "doc_id": "2656573dcf0d39bfa8e76c8bc4350987",
+          "score": 46.086708
+        },
+        {
+          "doc_id": "0ed98995acb89f20769148087cf7510d",
+          "score": 43.00387
+        },
+        {
+          "doc_id": "1a6f813bf9df2d825b372cde388fabeb",
+          "score": 42.683749
+        },
+        {
+          "doc_id": "27b1d7ae8f3f9ea3a1817cafe0eb79aa",
+          "score": 42.171233
+        },
+        {
+          "doc_id": "b399952228ebc441df53034a969b6fab",
+          "score": 41.598618
+        },
+        {
+          "doc_id": "c9fe5ce531970b9aaa397ae332823d87",
+          "score": 41.433076
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:9:ba62cc123e5631fc2e8705241c20cd61"
+    },
+    {
+      "qid": "983f04bed5035f0d8993ebf6b9ed7bbb",
+      "query": "艾滋病潜伏期能治吗",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 49.37606304883957,
+      "server_ms": 48,
+      "timings_ms": {
+        "lexical": 46.773,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "3d4802ec3883e1e60ec2acada46d2ffb",
+          "score": 78.815141
+        },
+        {
+          "doc_id": "92de6e80ab9d0a9302c7c100d7ca75b7",
+          "score": 75.142913
+        },
+        {
+          "doc_id": "316979f82adee7311f88cae20a04adb0",
+          "score": 74.889996
+        },
+        {
+          "doc_id": "639028d4b8401ae6ec373a0dc0d4277b",
+          "score": 74.610614
+        },
+        {
+          "doc_id": "910804085df4c7e1ec47f341e13d9974",
+          "score": 73.819111
+        },
+        {
+          "doc_id": "1ec04412c6ee7c6b5eff4c8627f0e721",
+          "score": 73.593725
+        },
+        {
+          "doc_id": "35d79a90f3228a212e8e6779bcdeaa2d",
+          "score": 72.914633
+        },
+        {
+          "doc_id": "b826e216e308ca1cd7c4d134aa500ebf",
+          "score": 72.113665
+        },
+        {
+          "doc_id": "ceb008ea588994011344bd50af01db31",
+          "score": 71.902857
+        },
+        {
+          "doc_id": "b8c7386f4768b18bc1c9324273c44f5c",
+          "score": 71.884248
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:10:983f04bed5035f0d8993ebf6b9ed7bbb"
+    },
+    {
+      "qid": "2b68efa248d341064a71a1b7e75235aa",
+      "query": "淘宝的验证码看不清楚",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 597.4919991567731,
+      "server_ms": 587,
+      "timings_ms": {
+        "lexical": 576.441,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "3974246d23795aa98d4d976a9daff8d4",
+          "score": 54.386206
+        },
+        {
+          "doc_id": "7c99a83a9b15dd85b0961e1eeaca8209",
+          "score": 53.438437
+        },
+        {
+          "doc_id": "4434791fac91a478037a0bea369dd1d7",
+          "score": 53.29165
+        },
+        {
+          "doc_id": "4f486a76888743d201e6fba56c250cf3",
+          "score": 52.486458
+        },
+        {
+          "doc_id": "999bd4132ce15aefdb34304cf72dacbf",
+          "score": 52.223447
+        },
+        {
+          "doc_id": "e3c14daf3acf6b158c91dbea8ba821d0",
+          "score": 51.889338
+        },
+        {
+          "doc_id": "88f0527a83de0109a87766960773b7b8",
+          "score": 51.573108
+        },
+        {
+          "doc_id": "cdd5cf2d5404e32491268fd0401db733",
+          "score": 51.327767
+        },
+        {
+          "doc_id": "bad812cfd366aecfb4a932a2212cc91d",
+          "score": 50.500122
+        },
+        {
+          "doc_id": "e8f903d07a78d87c38611d32dd4b5f6b",
+          "score": 50.38084
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:11:2b68efa248d341064a71a1b7e75235aa"
+    },
+    {
+      "qid": "e043a94041c66f30fc72a85327f888b4",
+      "query": "中青旅遨游网可靠吗",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 73.55704484507442,
+      "server_ms": 71,
+      "timings_ms": {
+        "lexical": 69.791,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "f90a8eada44e2ba6719beb51998e512e",
+          "score": 77.604597
+        },
+        {
+          "doc_id": "a9215fcd5def7fb1f42755b3ad99699d",
+          "score": 72.116203
+        },
+        {
+          "doc_id": "ae29fea415f2702a560d6d2d1bcf633a",
+          "score": 72.093391
+        },
+        {
+          "doc_id": "298499de8fc06f0c13b6970b9c89a7ce",
+          "score": 71.770406
+        },
+        {
+          "doc_id": "e6968a6e233aadb2572b9eb60d3d8247",
+          "score": 71.760638
+        },
+        {
+          "doc_id": "9c18143863c8cdd3bf05d863a12fc4d5",
+          "score": 69.19424
+        },
+        {
+          "doc_id": "3e0449753a0de36747b276b442420654",
+          "score": 69.146042
+        },
+        {
+          "doc_id": "048ee788bf01ed410f83bbe3a1677835",
+          "score": 69.095312
+        },
+        {
+          "doc_id": "cfad3425a1c0d595a56acf8ab860fd1b",
+          "score": 68.852715
+        },
+        {
+          "doc_id": "3de84030fd9828567c09888748d78673",
+          "score": 68.403902
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:12:e043a94041c66f30fc72a85327f888b4"
+    },
+    {
+      "qid": "0a427cb6c8f3d4596620ae8aa788f521",
+      "query": "子宫瘢痕向内凹陷形成一腔隙可以怀孕吗?",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 3793.6866600066423,
+      "server_ms": 3720,
+      "timings_ms": {
+        "lexical": 3666.055,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "d745c84f2c53101a1eba269a7a309747",
+          "score": 79.701008
+        },
+        {
+          "doc_id": "e392cd4afeb838d3ce50c7e46e22ae80",
+          "score": 73.509362
+        },
+        {
+          "doc_id": "e49996749ed41a58b4a19b499328b31b",
+          "score": 65.910432
+        },
+        {
+          "doc_id": "514d4270fcc0d1964cf19c496bdaf59b",
+          "score": 64.30257
+        },
+        {
+          "doc_id": "6e69cd5c370f0296cb681c93031c1cdb",
+          "score": 62.260285
+        },
+        {
+          "doc_id": "8bb80b324611379eac3e83ffb5000870",
+          "score": 60.170145
+        },
+        {
+          "doc_id": "e1e5c342e22eedbb764f0116b276aa8f",
+          "score": 58.003537
+        },
+        {
+          "doc_id": "ffb2da65084bb4963e2053462a815f99",
+          "score": 57.517491
+        },
+        {
+          "doc_id": "71845c83f5ea7d6d68759ed84088b881",
+          "score": 57.010858
+        },
+        {
+          "doc_id": "8270ed47733b3272d10d622fa6f7648a",
+          "score": 56.512177
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:13:0a427cb6c8f3d4596620ae8aa788f521"
+    },
+    {
+      "qid": "e906e3e9179e1ef28cde478e85ed90f2",
+      "query": "长虹电视机连接电脑",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 963.735715020448,
+      "server_ms": 941,
+      "timings_ms": {
+        "lexical": 907.274,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "840a6b629bea5c12c867fca74bd92bbd",
+          "score": 62.851475
+        },
+        {
+          "doc_id": "1b8abc959cb8de87bbc65cbf943cea09",
+          "score": 61.593155
+        },
+        {
+          "doc_id": "46ac5b1aeca7302a83f8a3561954243a",
+          "score": 61.098029
+        },
+        {
+          "doc_id": "890f7a424366d7d9b008badc8f2dba16",
+          "score": 60.137015
+        },
+        {
+          "doc_id": "81a1e3f8e39167a47b072744a94dfe89",
+          "score": 58.832775
+        },
+        {
+          "doc_id": "88c665ca2b114702da8c121091bf42f7",
+          "score": 56.53803
+        },
+        {
+          "doc_id": "30cb7c8aebda1e73fb6906db729517c5",
+          "score": 55.238791
+        },
+        {
+          "doc_id": "0a1776fb15b3f60d30e44d3a3f671105",
+          "score": 54.590995
+        },
+        {
+          "doc_id": "27e3e55e23a57045ed305be2cfba4457",
+          "score": 53.932318
+        },
+        {
+          "doc_id": "3a8a00623214bf23c0e947036c747804",
+          "score": 53.862728
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:14:e906e3e9179e1ef28cde478e85ed90f2"
+    },
+    {
+      "qid": "21e1e2aec388380f4f73b90af0d906f7",
+      "query": "cad设计签名怎么弄上去的",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1474.6539308689535,
+      "server_ms": 1439,
+      "timings_ms": {
+        "lexical": 1438.383,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "b7e9ad9963c953b3a30a636e52aca476",
+          "score": 54.055832
+        },
+        {
+          "doc_id": "49849a4fffa46b4bdc15d9d3d14dd9b6",
+          "score": 47.668736
+        },
+        {
+          "doc_id": "ccd7f2ff4fdfa86ac34c02f65c451999",
+          "score": 40.310003
+        },
+        {
+          "doc_id": "4eb00d65f4cbb943627d9bdf451bd759",
+          "score": 39.891963
+        },
+        {
+          "doc_id": "2bdd6b473fa03e991446b80d7bf1acad",
+          "score": 37.694074
+        },
+        {
+          "doc_id": "0e0c6d470da11fdb196fa3325ac76ade",
+          "score": 35.545509
+        },
+        {
+          "doc_id": "47d6651aa88d1e8614d47c9717719a8d",
+          "score": 35.202441
+        },
+        {
+          "doc_id": "dbef14d9beb4e699b4f68733ccbfb21e",
+          "score": 34.999933
+        },
+        {
+          "doc_id": "3bdf82c33b5f901779b51597d9587757",
+          "score": 34.600092
+        },
+        {
+          "doc_id": "dc48d4c2517272d58b180576e71ed22b",
+          "score": 34.380277
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:15:21e1e2aec388380f4f73b90af0d906f7"
+    },
+    {
+      "qid": "ffe49854b8be8810c373aa54d0ac592a",
+      "query": "商洛学院怎么样",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 794.1723209805787,
+      "server_ms": 769,
+      "timings_ms": {
+        "lexical": 768.115,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "f436256f3a2dc46d113c40c1c859c272",
+          "score": 75.006234
+        },
+        {
+          "doc_id": "cba7995009b908681388a233d18358e8",
+          "score": 60.425801
+        },
+        {
+          "doc_id": "f679aa9310441c71f6058ceefd63bd70",
+          "score": 56.095256
+        },
+        {
+          "doc_id": "671846f4a419b0002cbc4705c4138f53",
+          "score": 56.087069
+        },
+        {
+          "doc_id": "4e2b49b529582eb4ef0e5623e2efc978",
+          "score": 55.729286
+        },
+        {
+          "doc_id": "0aabed5c047769ce30ace85c7316d421",
+          "score": 55.541293
+        },
+        {
+          "doc_id": "b416b6d81a6d42977e7a5e92bd1ec7de",
+          "score": 54.994236
+        },
+        {
+          "doc_id": "45cde5cabe0771e241648588cc121de9",
+          "score": 54.24272
+        },
+        {
+          "doc_id": "fd909cd64d60e705b1a5c00cf3f9c9d0",
+          "score": 52.931786
+        },
+        {
+          "doc_id": "d6eec6a189fc1543adc75578b227d82e",
+          "score": 50.535147
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:16:ffe49854b8be8810c373aa54d0ac592a"
+    },
+    {
+      "qid": "e3b81da6fc91675e281ce359c545cd83",
+      "query": "如何改善头发毛躁",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 605.1907301880419,
+      "server_ms": 593,
+      "timings_ms": {
+        "lexical": 581.256,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "632238ced947aa85a92df56da34292f4",
+          "score": 70.818684
+        },
+        {
+          "doc_id": "73bc029bea6ee5bcce5f51b3173f94fd",
+          "score": 62.637013
+        },
+        {
+          "doc_id": "0ce9a0f0404e7628f927c5e2ce69f2ce",
+          "score": 60.75902
+        },
+        {
+          "doc_id": "361c85c183cb61c8e7d8fb075f6b6eaf",
+          "score": 59.083637
+        },
+        {
+          "doc_id": "15ad6be0eabd5f38f38a3e9e0496bc35",
+          "score": 58.140402
+        },
+        {
+          "doc_id": "81681d3a2c4a824954241f327d435fc7",
+          "score": 56.313123
+        },
+        {
+          "doc_id": "0b4188a19d812e699846c1cea4e341b2",
+          "score": 56.283935
+        },
+        {
+          "doc_id": "d20a212d06ea1f57457e051f0a263338",
+          "score": 55.470844
+        },
+        {
+          "doc_id": "cf9f7179beb6fb840669eb591914e27e",
+          "score": 54.56038
+        },
+        {
+          "doc_id": "354263fd1f564b4c3ff1522c106d9afe",
+          "score": 53.635112
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:17:e3b81da6fc91675e281ce359c545cd83"
+    },
+    {
+      "qid": "00a969b83d0bda551c8ba5ef9ad9d3e8",
+      "query": "eve回电是什么",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1414.986312855035,
+      "server_ms": 1379,
+      "timings_ms": {
+        "lexical": 1350.804,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "18d5851ab62a93238ac1a79c08915ba8",
+          "score": 31.778273
+        },
+        {
+          "doc_id": "b9658cf44d4b2db70c8e72b5f72349a1",
+          "score": 30.006149
+        },
+        {
+          "doc_id": "0a222fcdc2a6c97c156338d19803c07d",
+          "score": 25.629315
+        },
+        {
+          "doc_id": "345b48be09a604f2ca2ba182356c8a58",
+          "score": 25.563009
+        },
+        {
+          "doc_id": "6b5caa939b11367b37119ab37fa08a81",
+          "score": 25.095426
+        },
+        {
+          "doc_id": "79c29b3073df5e6ed710a3a75a2aab99",
+          "score": 24.260228
+        },
+        {
+          "doc_id": "c1b58c72576b11e79ac34806ebbe3af3",
+          "score": 24.236627
+        },
+        {
+          "doc_id": "6dae870444811760624eb406eca0a228",
+          "score": 23.411211
+        },
+        {
+          "doc_id": "52982d26cdd652ed28550c34eeeb85e3",
+          "score": 23.286746
+        },
+        {
+          "doc_id": "0a278fccc9a0504b35fa277d949b0a37",
+          "score": 23.262536
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:18:00a969b83d0bda551c8ba5ef9ad9d3e8"
+    },
+    {
+      "qid": "caea5c95483711de85c135cf734fb411",
+      "query": "怎么把cad文件变小",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1352.9470353387296,
+      "server_ms": 1321,
+      "timings_ms": {
+        "lexical": 1294.455,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "eac02d5837215c02d687c7c5fcdb1bf2",
+          "score": 43.594667
+        },
+        {
+          "doc_id": "2757ffa4e5de7f3a7549f375d88e724b",
+          "score": 43.368381
+        },
+        {
+          "doc_id": "df353ce03369225eb57848ad465ae3ca",
+          "score": 40.034511
+        },
+        {
+          "doc_id": "bb25616431f7baf2919f33e028c71659",
+          "score": 35.93009
+        },
+        {
+          "doc_id": "24cdf16a62b0901f13af07b029a9a20d",
+          "score": 35.567913
+        },
+        {
+          "doc_id": "408b5f824973b80b228cac2daa5ef017",
+          "score": 35.162158
+        },
+        {
+          "doc_id": "a908f6732bb0869d73372418854128d9",
+          "score": 34.624172
+        },
+        {
+          "doc_id": "d555bd1fd6872170809d796b01ce3edb",
+          "score": 34.254326
+        },
+        {
+          "doc_id": "aac244bd572b8fc14b5618055a804e60",
+          "score": 33.929211
+        },
+        {
+          "doc_id": "5c211200428968b978a4688b2607da73",
+          "score": 32.572746
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:19:caea5c95483711de85c135cf734fb411"
+    },
+    {
+      "qid": "006806b2416cf439b8131aabd17a3f89",
+      "query": "foxmail 网络错误",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 490.6331500969827,
+      "server_ms": 480,
+      "timings_ms": {
+        "lexical": 469.512,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "a3859fced8c24dc21828b9b416185fae",
+          "score": 38.333598
+        },
+        {
+          "doc_id": "30e019beff4ad75b59e2675a3af06df1",
+          "score": 36.645628
+        },
+        {
+          "doc_id": "93d2b7fa06cee03c84818f0bc0aa3a68",
+          "score": 35.79237
+        },
+        {
+          "doc_id": "9d8f40063f8524517b3fb0f94e47c452",
+          "score": 34.23302
+        },
+        {
+          "doc_id": "71052148627d010e45cf71effa212d57",
+          "score": 32.589769
+        },
+        {
+          "doc_id": "ce66ba0edb5f4dbd67deaa2d7f4c647d",
+          "score": 32.381759
+        },
+        {
+          "doc_id": "c6dc37f30d5e80548cf50c660ffce4b1",
+          "score": 32.094087
+        },
+        {
+          "doc_id": "a1d552e88288c04baaf3346871422484",
+          "score": 31.957434
+        },
+        {
+          "doc_id": "ac9e8c971059d91b6a1ac93ecf529665",
+          "score": 31.955495
+        },
+        {
+          "doc_id": "888d6cdaa6a02d83e6faf787778c9e44",
+          "score": 31.934836
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:20:006806b2416cf439b8131aabd17a3f89"
+    },
+    {
+      "qid": "c4582a3e1803a2c7908f3a8233ab9a6e",
+      "query": "m8a1用什么炮",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1145.8234330639243,
+      "server_ms": 1118,
+      "timings_ms": {
+        "lexical": 1116.675,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "99be6cd75053d6903d53c5f6f1a8a821",
+          "score": 24.893017
+        },
+        {
+          "doc_id": "ba30879a630f83cfd663fa5db2248e03",
+          "score": 24.640109
+        },
+        {
+          "doc_id": "605949b18d1b7fa71e6428ff2b9539c8",
+          "score": 23.899808
+        },
+        {
+          "doc_id": "4bd51bda3e71fffc87f8c4e1db96a1b4",
+          "score": 22.248317
+        },
+        {
+          "doc_id": "1fc02843df8fcdb783826b306460531c",
+          "score": 21.941852
+        },
+        {
+          "doc_id": "a07e1daddd3987e19bed4b7943babc3e",
+          "score": 20.916336
+        },
+        {
+          "doc_id": "62eef07ec5576171d61cb4e88e21d5ad",
+          "score": 20.887922
+        },
+        {
+          "doc_id": "3814176d163700dab58d4dc81cf01c04",
+          "score": 20.808051
+        },
+        {
+          "doc_id": "a319c09cf35cdcea148ddf425978acd4",
+          "score": 20.751964
+        },
+        {
+          "doc_id": "503b3c5516bf593f5c5bcb588ba5686e",
+          "score": 20.676678
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:21:c4582a3e1803a2c7908f3a8233ab9a6e"
+    },
+    {
+      "qid": "4298ce94f4d9f593b2858cc49d2e390d",
+      "query": "电脑鼠标乱点",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 575.1347611658275,
+      "server_ms": 562,
+      "timings_ms": {
+        "lexical": 550.257,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "7c2f804efef03297b156a3cbabab64dd",
+          "score": 48.51967
+        },
+        {
+          "doc_id": "8c8b3a2e996de2e3bb021778e0ee7e6d",
+          "score": 47.63944
+        },
+        {
+          "doc_id": "a3c71af74ed7365c43cf2bc52c845fb5",
+          "score": 47.356783
+        },
+        {
+          "doc_id": "d38fd5de768fef56a6e81f0fea24bdd2",
+          "score": 46.625465
+        },
+        {
+          "doc_id": "86c82990d94c52e94b83f7d44792cd75",
+          "score": 45.838457
+        },
+        {
+          "doc_id": "6536a702fbc5cbab91cd6843bd146274",
+          "score": 44.067682
+        },
+        {
+          "doc_id": "6af74664c7ac9610da54b3d31178f2e0",
+          "score": 43.941618
+        },
+        {
+          "doc_id": "7d15ada723e0e83f35f0ff0a4cf02fc4",
+          "score": 43.765617
+        },
+        {
+          "doc_id": "418aa522fbaa4e7f7050b33451bbde75",
+          "score": 42.401759
+        },
+        {
+          "doc_id": "ad8e566df770280cc322e71b6794e770",
+          "score": 42.222206
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:22:4298ce94f4d9f593b2858cc49d2e390d"
+    },
+    {
+      "qid": "52ee98a48afb029595125b44eee460af",
+      "query": "维生素c功效",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 538.7314991094172,
+      "server_ms": 531,
+      "timings_ms": {
+        "lexical": 522.873,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "c7946aa87ea3ef78446a6e0a1af04aed",
+          "score": 31.557739
+        },
+        {
+          "doc_id": "b6943070abca2d47b801f610009e8da5",
+          "score": 30.864923
+        },
+        {
+          "doc_id": "7c05a21a97a329c17ad3c137e24cf509",
+          "score": 30.635358
+        },
+        {
+          "doc_id": "e8536215e8bd9364864ea4702e7a3459",
+          "score": 30.502675
+        },
+        {
+          "doc_id": "97bb5cd4bf43015eda2639d292e14ec3",
+          "score": 30.480883
+        },
+        {
+          "doc_id": "f9be6c1440700b9e2b9cde0a4ba35f81",
+          "score": 30.351108
+        },
+        {
+          "doc_id": "8275e8656355b7500279ead60425eaca",
+          "score": 30.148291
+        },
+        {
+          "doc_id": "d1bcb7a9ac262246ef1ffc6d45360dee",
+          "score": 30.049168
+        },
+        {
+          "doc_id": "092d335921f60c436339fe091e7bf25b",
+          "score": 30.024256
+        },
+        {
+          "doc_id": "46f24b19a891259ba2a6745f42116c12",
+          "score": 29.833835
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:23:52ee98a48afb029595125b44eee460af"
+    },
+    {
+      "qid": "637acacc200f29504f57e23ab48fda92",
+      "query": "ps如何去掉衣服褶皱",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 674.835195299238,
+      "server_ms": 660,
+      "timings_ms": {
+        "lexical": 645.727,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "2721d43f079bea2beac5e30da521a301",
+          "score": 56.402966
+        },
+        {
+          "doc_id": "fd00e06d2c82c5a8a6fbdb6c23aca5a3",
+          "score": 48.782575
+        },
+        {
+          "doc_id": "2fe6ad87ff10e41e53fc57f00a90ce64",
+          "score": 47.637511
+        },
+        {
+          "doc_id": "dc6fb3e31ba8823cc282a1ceda2ad1c9",
+          "score": 47.505
+        },
+        {
+          "doc_id": "70fff3970b728e903c2c84e7dd41c936",
+          "score": 47.427924
+        },
+        {
+          "doc_id": "96bb1b2c7d6270e889457100bde9f87e",
+          "score": 47.095427
+        },
+        {
+          "doc_id": "e39b088b7a52d858618c09a6764c2d7a",
+          "score": 45.377949
+        },
+        {
+          "doc_id": "5d2c4131deecf623d2200b5ba355bb06",
+          "score": 45.010344
+        },
+        {
+          "doc_id": "e66a8bc112269a770f29c4dade9fbb17",
+          "score": 44.323935
+        },
+        {
+          "doc_id": "17eff6334343f046a73b7afbd4e7168e",
+          "score": 43.888552
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:24:637acacc200f29504f57e23ab48fda92"
+    },
+    {
+      "qid": "ee9bc854c0d829ebb9049551691f2b69",
+      "query": "私立大学和公立大学的区别",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 715.6930537894368,
+      "server_ms": 702,
+      "timings_ms": {
+        "lexical": 680.864,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "c9684f681f4095e86d9be2f51b94c536",
+          "score": 116.107186
+        },
+        {
+          "doc_id": "0ad2c7dd2828df3d578977174a39dbca",
+          "score": 107.686343
+        },
+        {
+          "doc_id": "de44180be27c2067b9821360c3e0f719",
+          "score": 104.444316
+        },
+        {
+          "doc_id": "534673c8538f43538ce191d0c9977893",
+          "score": 101.656745
+        },
+        {
+          "doc_id": "5069c0743b931f9b047ef63f20ef7d82",
+          "score": 98.720901
+        },
+        {
+          "doc_id": "99058b5bc8be42e8a9c19122cfce609d",
+          "score": 94.50508
+        },
+        {
+          "doc_id": "c02b7a0f26261bf547622da6482af5bd",
+          "score": 93.631782
+        },
+        {
+          "doc_id": "050fcffc47be5e078a658f3a8325b4e7",
+          "score": 90.226675
+        },
+        {
+          "doc_id": "f3a29519739b572494242f898a389f9b",
+          "score": 89.014497
+        },
+        {
+          "doc_id": "00524910f98d41e9d2e880ac3c2759ce",
+          "score": 87.630211
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:25:ee9bc854c0d829ebb9049551691f2b69"
+    },
+    {
+      "qid": "2afc54e99c6f44a3446d82cc01a9ef4f",
+      "query": "360wifi一直显示密码错误",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1106.0101380571723,
+      "server_ms": 1078,
+      "timings_ms": {
+        "lexical": 1077.123,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "f7b0666f18384871c7cbc01ee4c83fb8",
+          "score": 60.826729
+        },
+        {
+          "doc_id": "6356a527f89f033369a9f02e1df938c6",
+          "score": 58.689036
+        },
+        {
+          "doc_id": "f97173f1e892e117bfeecf9d469ac021",
+          "score": 56.650817
+        },
+        {
+          "doc_id": "36cc3b2d2e726e9874ef8c783047fc6d",
+          "score": 56.633546
+        },
+        {
+          "doc_id": "70a1c0c87f5551e78c5a51fa46878d8a",
+          "score": 56.520119
+        },
+        {
+          "doc_id": "e965d47e55a413b9817d3cf96fdb5c62",
+          "score": 56.520119
+        },
+        {
+          "doc_id": "eeea824a9d3d37ac6790dc9c60d9935c",
+          "score": 50.200794
+        },
+        {
+          "doc_id": "feb226f6bad7f5453d3ab30ba6ba54eb",
+          "score": 49.673039
+        },
+        {
+          "doc_id": "e89cc7f90cbaa0771857d8f07b35f50b",
+          "score": 49.431592
+        },
+        {
+          "doc_id": "e0e4be889616054b9c744aa62e4a44b7",
+          "score": 49.420243
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:26:2afc54e99c6f44a3446d82cc01a9ef4f"
+    },
+    {
+      "qid": "f4163f6fe10d12e66bdac7d520eb8ef9",
+      "query": "怎么改键盘按键",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1009.1955838724971,
+      "server_ms": 983,
+      "timings_ms": {
+        "lexical": 981.7,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "6ac0aef8e1f3de59eb64d8b561061c1c",
+          "score": 61.218552
+        },
+        {
+          "doc_id": "14f9aad086ad8654aeed77e6c5c33e60",
+          "score": 58.221749
+        },
+        {
+          "doc_id": "72089b7aa2c274a9c94bc646f7edebfd",
+          "score": 54.330351
+        },
+        {
+          "doc_id": "84e1f5145fa50ac5254f7a03fc2c7483",
+          "score": 53.647528
+        },
+        {
+          "doc_id": "eba8c3e794ac100a4e1fe9bf996b1353",
+          "score": 52.625243
+        },
+        {
+          "doc_id": "acdbe9a4235e6afb92015c29211a9091",
+          "score": 50.934997
+        },
+        {
+          "doc_id": "0ed2d000c96c8a1e2822851290f29b41",
+          "score": 50.874312
+        },
+        {
+          "doc_id": "1d3a0112637963ccbdaf1eab9aba3b1f",
+          "score": 50.043398
+        },
+        {
+          "doc_id": "730e5bb49a3a88ae81c29a76e9c02861",
+          "score": 49.225581
+        },
+        {
+          "doc_id": "28855771f4b1db12f5343c486841f255",
+          "score": 46.829842
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:27:f4163f6fe10d12e66bdac7d520eb8ef9"
+    },
+    {
+      "qid": "99ce8eed7ad0cb7431f92a7ed8762352",
+      "query": "子宫内膜息肉术后多久来月经",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 286.41676902770996,
+      "server_ms": 281,
+      "timings_ms": {
+        "lexical": 280.53,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "a5df051e52b0ecf99e7bc8fe050870d6",
+          "score": 104.464589
+        },
+        {
+          "doc_id": "322e413535937d20ae991fdbf886781b",
+          "score": 104.067959
+        },
+        {
+          "doc_id": "1594d075f74b5ff267feca0a9234288e",
+          "score": 99.348251
+        },
+        {
+          "doc_id": "0de0b52af2e5d5b40187ec41f99cb55b",
+          "score": 94.941378
+        },
+        {
+          "doc_id": "e34f216c80f73eadda1b1b64e0bb9483",
+          "score": 94.102439
+        },
+        {
+          "doc_id": "14787e0ac11aa27679284ded1262e2f4",
+          "score": 93.696246
+        },
+        {
+          "doc_id": "6f54c674f73eda1280958176163b7f8c",
+          "score": 92.599776
+        },
+        {
+          "doc_id": "0c99401ac5841f452654bf268d79d5f4",
+          "score": 91.914361
+        },
+        {
+          "doc_id": "3ca4119c56073453fcff9b7792485c8f",
+          "score": 90.99535
+        },
+        {
+          "doc_id": "e3c5cde499d51fce89cfd7821cd824c0",
+          "score": 88.783468
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:28:99ce8eed7ad0cb7431f92a7ed8762352"
+    },
+    {
+      "qid": "a57aabcbd425a61fdb50d8a26b45e003",
+      "query": "达克宁栓3粒装用几个疗程",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 2381.041929125786,
+      "server_ms": 2318,
+      "timings_ms": {
+        "lexical": 2316.437,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "35d4da159bdf239176f71f0be3bc6e46",
+          "score": 116.667157
+        },
+        {
+          "doc_id": "d0cce56d8e850a60b6c247fbc7a66237",
+          "score": 113.348191
+        },
+        {
+          "doc_id": "35864c532e3262a3e44489777599a392",
+          "score": 79.435104
+        },
+        {
+          "doc_id": "ec6dafb141dc43c72d253804646f4e7e",
+          "score": 77.845833
+        },
+        {
+          "doc_id": "52e16c48c1f6bded8590d776ba5b2abd",
+          "score": 77.555027
+        },
+        {
+          "doc_id": "2db3f2c6301cc139288e1f404d16be7b",
+          "score": 77.368169
+        },
+        {
+          "doc_id": "23f73dd1a0b056013128dccfb7cfabd7",
+          "score": 73.678904
+        },
+        {
+          "doc_id": "9dd2579b31275d88b8133d104b538e30",
+          "score": 71.430835
+        },
+        {
+          "doc_id": "4a42a3511235aa46aa95e675bb2d9b2c",
+          "score": 66.878853
+        },
+        {
+          "doc_id": "0d235352ef9a7d541ba71d6e120f94fb",
+          "score": 66.716469
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:29:a57aabcbd425a61fdb50d8a26b45e003"
+    },
+    {
+      "qid": "174297b8157536c9e3632b49e250855c",
+      "query": "星龙不吃陷阱吗",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 58.24021203443408,
+      "server_ms": 55,
+      "timings_ms": {
+        "lexical": 53.988,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "ba47f03adff39ce59b07475b3b4ac533",
+          "score": 47.789206
+        },
+        {
+          "doc_id": "cdcd985fc5eda6a06ae9c4058a6647eb",
+          "score": 39.642181
+        },
+        {
+          "doc_id": "b35bda27428d7f61e45b75c41b078397",
+          "score": 39.582017
+        },
+        {
+          "doc_id": "91e29f876254fa8a7fa9afd3e834655a",
+          "score": 32.54875
+        },
+        {
+          "doc_id": "fdcf901bfb6d1bb8298188924fcb0c42",
+          "score": 32.14541
+        },
+        {
+          "doc_id": "09b1b26fe8ea7020debb82abc15f38a3",
+          "score": 30.843233
+        },
+        {
+          "doc_id": "15e8c24f810d82f667b573b365229ad9",
+          "score": 30.297781
+        },
+        {
+          "doc_id": "987c61d73d524795f0cd211f4d4b5f42",
+          "score": 29.383845
+        },
+        {
+          "doc_id": "7a0afe838ec777551e77a8e3e1eba227",
+          "score": 29.130237
+        },
+        {
+          "doc_id": "ba9c34e82265a0bcb56beecfae207831",
+          "score": 28.680739
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:30:174297b8157536c9e3632b49e250855c"
+    },
+    {
+      "qid": "8e58be6b668017e4225459e1da61d7d1",
+      "query": "永恒之柱 如何升级",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 683.6897921748459,
+      "server_ms": 668,
+      "timings_ms": {
+        "lexical": 666.705,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "703b4a7c87daefa1501386943e33d6e7",
+          "score": 49.635165
+        },
+        {
+          "doc_id": "8bbf7872761bde026dd3fa7e6c2f874c",
+          "score": 49.208868
+        },
+        {
+          "doc_id": "024e42ad516fb4e1b6a3513b22a384dc",
+          "score": 48.171956
+        },
+        {
+          "doc_id": "75962cad38c0ccdf6ad4fe5ce8c7f9fb",
+          "score": 45.277855
+        },
+        {
+          "doc_id": "6c82bb67098404ca07293c7fcf796b8c",
+          "score": 45.077775
+        },
+        {
+          "doc_id": "11519791c2ad764b2ff8a34a104e93cf",
+          "score": 44.461793
+        },
+        {
+          "doc_id": "3274a372e954c467ff9cb3fb3067937c",
+          "score": 44.337134
+        },
+        {
+          "doc_id": "02c8e372d8ed3e8222de99fa82aee054",
+          "score": 44.214728
+        },
+        {
+          "doc_id": "46f53c9f3c460647e04ba22466ed5bfc",
+          "score": 43.771292
+        },
+        {
+          "doc_id": "b16d159ffce7cd2c45a378ce87628e7b",
+          "score": 43.68583
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:31:8e58be6b668017e4225459e1da61d7d1"
+    },
+    {
+      "qid": "fef4160c42ecb4eaacfd186f523f743f",
+      "query": "不敢去招聘会",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 71.84616290032864,
+      "server_ms": 70,
+      "timings_ms": {
+        "lexical": 68.67,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "4231aaceffcbdb2a828746674a94601a",
+          "score": 39.989683
+        },
+        {
+          "doc_id": "e3321d98f6bbe30e2f1e5e88aee31d30",
+          "score": 39.516522
+        },
+        {
+          "doc_id": "f3f34fd04f7361b306b91b47ff5ebabf",
+          "score": 38.106487
+        },
+        {
+          "doc_id": "9f71f45d65cd0e4c8c778a0ef7d5734e",
+          "score": 35.846567
+        },
+        {
+          "doc_id": "b73c113dee68573e3d37d6b358ded304",
+          "score": 34.863974
+        },
+        {
+          "doc_id": "4923b97f1440ef77b2dcf9de313edb05",
+          "score": 34.214912
+        },
+        {
+          "doc_id": "74f65be4568989847b889f5a66cb3e66",
+          "score": 33.219633
+        },
+        {
+          "doc_id": "6fd0ba605d81e4ca8398b432c3b3f757",
+          "score": 33.150977
+        },
+        {
+          "doc_id": "b2a75a72d46ef25fc6aff1a0e7342216",
+          "score": 33.112673
+        },
+        {
+          "doc_id": "5b488e054968e2cba7612bcbb47caebe",
+          "score": 32.847586
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:32:fef4160c42ecb4eaacfd186f523f743f"
+    },
+    {
+      "qid": "f1ac27241724bdd03a248c1775cd31b2",
+      "query": "外星人x51怎么拆",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 877.4535283446312,
+      "server_ms": 856,
+      "timings_ms": {
+        "lexical": 839.52,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "591ec8608a58d326136ef26d891ca208",
+          "score": 46.037602
+        },
+        {
+          "doc_id": "67bda756a83112e9c9ba7470f5442510",
+          "score": 45.814775
+        },
+        {
+          "doc_id": "02d06d7d396ce8cdd56df301cc9630fd",
+          "score": 44.124557
+        },
+        {
+          "doc_id": "41a70872c8c20b97aeb307ab55fb4578",
+          "score": 43.535695
+        },
+        {
+          "doc_id": "b591a2e133228e7fd7eb6dbb78f6d282",
+          "score": 41.133649
+        },
+        {
+          "doc_id": "7425cd587b1e6a183988cbbd812331d0",
+          "score": 40.45416
+        },
+        {
+          "doc_id": "3021796f3ea8f52bce024245a5ce9c55",
+          "score": 40.406216
+        },
+        {
+          "doc_id": "e239dad4d2c0ee9d588163abf0e41c26",
+          "score": 39.451249
+        },
+        {
+          "doc_id": "c271d96f8ff2679cc815d87e26d9e710",
+          "score": 38.801549
+        },
+        {
+          "doc_id": "d15020757ce3493948d627f22505ecd9",
+          "score": 37.270955
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:33:f1ac27241724bdd03a248c1775cd31b2"
+    },
+    {
+      "qid": "365420bb95d8e62a3c0385f05635c0bc",
+      "query": "windows media player不见了",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 223.36474433541298,
+      "server_ms": 220,
+      "timings_ms": {
+        "lexical": 217.015,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "a8b5a8ed7d78eafede6b19a2d9ee4974",
+          "score": 48.558099
+        },
+        {
+          "doc_id": "6ae403ccecb1d433ef16eaeb6fe984cc",
+          "score": 45.852697
+        },
+        {
+          "doc_id": "3c5e6af73b9528c899d6855367eb44af",
+          "score": 44.932051
+        },
+        {
+          "doc_id": "9c213501bfef69a10087debb09620133",
+          "score": 42.188409
+        },
+        {
+          "doc_id": "c716d04907bdfa1b43f9800779dff1c0",
+          "score": 38.729342
+        },
+        {
+          "doc_id": "1113eb1c2a907746ad56d23e55a67e08",
+          "score": 37.048274
+        },
+        {
+          "doc_id": "01970060d9c22c11b016a50d93549ba7",
+          "score": 36.614113
+        },
+        {
+          "doc_id": "0bff106e3b7523aa2348fd8773c6fcbb",
+          "score": 36.393309
+        },
+        {
+          "doc_id": "33ef76b7645d7f6485cef9d4fa1084b7",
+          "score": 36.370005
+        },
+        {
+          "doc_id": "3cdff791bd201e8a904dcd4ac2e36c05",
+          "score": 36.16774
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:34:365420bb95d8e62a3c0385f05635c0bc"
+    },
+    {
+      "qid": "ffb9a159d733c290cdf4f87fa0870be0",
+      "query": "消灾吉祥神咒意思",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 192.30114808306098,
+      "server_ms": 189,
+      "timings_ms": {
+        "lexical": 186.141,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "126ac1f971561323ec741e1f282ba505",
+          "score": 94.944342
+        },
+        {
+          "doc_id": "dd646ccf5ed912ef9e13c0a632fc50c7",
+          "score": 94.776107
+        },
+        {
+          "doc_id": "35fe190b851b633c5a23986df68dea4a",
+          "score": 92.101448
+        },
+        {
+          "doc_id": "5f6617d0ebebef44af4bcb24b433a9b0",
+          "score": 91.216986
+        },
+        {
+          "doc_id": "6e14d219102f65938245ce41ed1cccce",
+          "score": 90.862384
+        },
+        {
+          "doc_id": "32cd4eb35a145f98a2cc22a17d863f3e",
+          "score": 90.281662
+        },
+        {
+          "doc_id": "fbad88f0c4e7040aa3573698d73617f9",
+          "score": 90.199396
+        },
+        {
+          "doc_id": "3a34e2d9eeb5e79fa3b0ea3f0cf61212",
+          "score": 89.992468
+        },
+        {
+          "doc_id": "0e578de74f66c685b396806614183cf0",
+          "score": 89.628733
+        },
+        {
+          "doc_id": "b29b493c6f6fab84a54e2196d8cf8f3b",
+          "score": 89.472196
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:35:ffb9a159d733c290cdf4f87fa0870be0"
+    },
+    {
+      "qid": "cae8df93bcf88f9d08fe8c93dcfe1278",
+      "query": "东坡家事后接档什么",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1183.7845393456519,
+      "server_ms": 1159,
+      "timings_ms": {
+        "lexical": 1118.093,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "c506d158962151e2e3742cf886c0b242",
+          "score": 54.157177
+        },
+        {
+          "doc_id": "2cb0b07fa026caf36058eca4234c3d12",
+          "score": 52.561043
+        },
+        {
+          "doc_id": "5318895383f5127495d87c0b7b2a0894",
+          "score": 46.192417
+        },
+        {
+          "doc_id": "5b008277e90ea707152c8052a4aa6490",
+          "score": 45.74236
+        },
+        {
+          "doc_id": "a76ba86c6b474593f224d69d8fe836b1",
+          "score": 44.608148
+        },
+        {
+          "doc_id": "1c8469f949e95df2225c9de811fad9f0",
+          "score": 43.262247
+        },
+        {
+          "doc_id": "654d98c941091a735ba17d729a886d24",
+          "score": 42.572722
+        },
+        {
+          "doc_id": "2231315229ef04189446029b49d1031a",
+          "score": 39.58394
+        },
+        {
+          "doc_id": "aa7e913e680629f7d64488ac2d2a1a6c",
+          "score": 38.954223
+        },
+        {
+          "doc_id": "65cd90043c6a2519b9960045e61dc42b",
+          "score": 38.734106
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:36:cae8df93bcf88f9d08fe8c93dcfe1278"
+    },
+    {
+      "qid": "c68892a8b397b94812f72881eb42a491",
+      "query": "如何进猫",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 439.6778759546578,
+      "server_ms": 429,
+      "timings_ms": {
+        "lexical": 427.733,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "2dadb2c9aa2c3ac23767d1f244257dce",
+          "score": 19.975249
+        },
+        {
+          "doc_id": "0ae885c4817e8337d897616d74e5d272",
+          "score": 18.898712
+        },
+        {
+          "doc_id": "deb6452d07faf79a55ab965a5feefc29",
+          "score": 18.45511
+        },
+        {
+          "doc_id": "2f09f07efeae7f01e7e6a8c5a9b91447",
+          "score": 18.180889
+        },
+        {
+          "doc_id": "f8a352d5b9d66576c651d35d63095a08",
+          "score": 18.038948
+        },
+        {
+          "doc_id": "09bcd8895b8acd34f9ac29f0656f80fe",
+          "score": 17.882056
+        },
+        {
+          "doc_id": "31b316e606c5280194fecff28e6a7172",
+          "score": 17.872828
+        },
+        {
+          "doc_id": "cacdce201a7000c3172ed53cd1cc556b",
+          "score": 17.81446
+        },
+        {
+          "doc_id": "085648ac00ace9f5e57ce9b6c6d85913",
+          "score": 17.728451
+        },
+        {
+          "doc_id": "c2e8bf0b1ec2e492d1c325ad69e48306",
+          "score": 17.698577
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:37:c68892a8b397b94812f72881eb42a491"
+    },
+    {
+      "qid": "cab1fcc9e58548f814a58e941c058a9a",
+      "query": "excel表格右边没有边框",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1743.487135041505,
+      "server_ms": 1707,
+      "timings_ms": {
+        "lexical": 1678.75,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "063589b6e55f6b7300d4ee74dc9f4c8d",
+          "score": 65.935977
+        },
+        {
+          "doc_id": "1cf1e5841c29c8035603606456b6cdc2",
+          "score": 61.279808
+        },
+        {
+          "doc_id": "72dcad7d679cf5dc973ccde425bfb93d",
+          "score": 53.622478
+        },
+        {
+          "doc_id": "dbb8fa5b7637d4d46441731d701feb35",
+          "score": 50.811857
+        },
+        {
+          "doc_id": "9718ba7eb560318c5c0f8dbe87a22d59",
+          "score": 50.30772
+        },
+        {
+          "doc_id": "43d1f76a3f1351f690e807aac53b305a",
+          "score": 49.678924
+        },
+        {
+          "doc_id": "eb4e1369d239f7ae563ec542d95e4200",
+          "score": 49.417843
+        },
+        {
+          "doc_id": "a820c2282a88755a1eb035e4bb553282",
+          "score": 49.314227
+        },
+        {
+          "doc_id": "5ba1c17e01856ecddefe8c1bd0b466fc",
+          "score": 48.522387
+        },
+        {
+          "doc_id": "b8b3dcf06944e4a53e9a2f38f30e9d12",
+          "score": 48.123248
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:38:cab1fcc9e58548f814a58e941c058a9a"
+    },
+    {
+      "qid": "402ab4e9912b1973d8c9d2ec4c53cd0b",
+      "query": "电暖桌哪个牌子好",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 169.91235874593258,
+      "server_ms": 167,
+      "timings_ms": {
+        "lexical": 164.386,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "78179c7092dd908d56fd9423d3e37f5b",
+          "score": 100.452277
+        },
+        {
+          "doc_id": "10b55e97f7bc750dcbc32389adbbcfde",
+          "score": 75.379786
+        },
+        {
+          "doc_id": "fa1e41a02580f7ff324982d7f7e52c2b",
+          "score": 72.131275
+        },
+        {
+          "doc_id": "4e3815da4c9265047e567e089c97a81b",
+          "score": 60.070698
+        },
+        {
+          "doc_id": "86e230a7116a33378800542786a4a9fa",
+          "score": 57.319906
+        },
+        {
+          "doc_id": "4041503e0986cb20bba6766bfaf53152",
+          "score": 53.384541
+        },
+        {
+          "doc_id": "6d56c352640921d2c90bbe571c62046b",
+          "score": 51.329857
+        },
+        {
+          "doc_id": "5b88354c10ffd3ba5fc8e86188fdf3c7",
+          "score": 49.931643
+        },
+        {
+          "doc_id": "6282279cd47d69a9157e5dfe55b907be",
+          "score": 49.503759
+        },
+        {
+          "doc_id": "43b74ad5ca11d2bc9061d3482a209e32",
+          "score": 46.217814
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:39:402ab4e9912b1973d8c9d2ec4c53cd0b"
+    },
+    {
+      "qid": "9ad3758e233c0687ddf5acbfe2b66bcf",
+      "query": "长尾词怎么做",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 938.431209884584,
+      "server_ms": 917,
+      "timings_ms": {
+        "lexical": 880.844,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "8e03890e6cf2427ea68e8a332e7a95f8",
+          "score": 36.004011
+        },
+        {
+          "doc_id": "b437f52423aff4c23ef1be0b0ed78e5a",
+          "score": 35.610436
+        },
+        {
+          "doc_id": "c90ab8df680fe639325eeacd097772dd",
+          "score": 35.362977
+        },
+        {
+          "doc_id": "9e5ef8f4c16943c0e933aba8b0004244",
+          "score": 34.786604
+        },
+        {
+          "doc_id": "02bd4a3cc9c320c2e30f01ea604e8ff1",
+          "score": 34.559281
+        },
+        {
+          "doc_id": "ce322888ba7dc7b9f57cf8dfb00dbab7",
+          "score": 34.425482
+        },
+        {
+          "doc_id": "d32025078eac76bee2f9b5869da42793",
+          "score": 34.390775
+        },
+        {
+          "doc_id": "92da9988e16d962b5101f5749144299c",
+          "score": 34.376597
+        },
+        {
+          "doc_id": "752a3c933f856482bd57f21a1346f434",
+          "score": 34.288088
+        },
+        {
+          "doc_id": "c9f0e5aae4c9512cf1e592b947386605",
+          "score": 34.140404
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:40:9ad3758e233c0687ddf5acbfe2b66bcf"
+    },
+    {
+      "qid": "469d486146633e004e518700c407c7dd",
+      "query": "对人仁慈而怜爱叫什么",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1206.5235348418355,
+      "server_ms": 1177,
+      "timings_ms": {
+        "lexical": 1175.735,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "748aeb99e10ab6ce1f42589f2e766c7d",
+          "score": 151.519325
+        },
+        {
+          "doc_id": "e3b3f7e0db352abba1e395f9a1ac3ae6",
+          "score": 150.688974
+        },
+        {
+          "doc_id": "c1ecbaf25a68d4e3779f1c720a4dc9cb",
+          "score": 149.657606
+        },
+        {
+          "doc_id": "d60536bf1d164d6e097f18f8eaac4e27",
+          "score": 135.811273
+        },
+        {
+          "doc_id": "a898edbccd0cf83355822af97feedb8b",
+          "score": 122.082742
+        },
+        {
+          "doc_id": "b3bba3f16194e63420a94f8645086a28",
+          "score": 113.468559
+        },
+        {
+          "doc_id": "3fb6257d6438975130486aa42ea4ba26",
+          "score": 112.236535
+        },
+        {
+          "doc_id": "50ebaa98babf309be26bf4625e3f54b2",
+          "score": 104.817021
+        },
+        {
+          "doc_id": "11a4944eb56855ce9519ba4163e7a3d6",
+          "score": 71.757681
+        },
+        {
+          "doc_id": "da3e69cc0564762858dd537b11f7fd1c",
+          "score": 67.659364
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:41:469d486146633e004e518700c407c7dd"
+    },
+    {
+      "qid": "c1a563dac2a61a7bd925016837f9f545",
+      "query": "2015云游道人什么时候出来",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 2451.998762320727,
+      "server_ms": 2378,
+      "timings_ms": {
+        "lexical": 2377.255,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "7bdc93b852dd928b41497cc7486e94f8",
+          "score": 87.425191
+        },
+        {
+          "doc_id": "3a8820da1541933de11aa504a1e971b0",
+          "score": 84.030776
+        },
+        {
+          "doc_id": "fa8025fc277c4759931c5171862424f2",
+          "score": 68.137258
+        },
+        {
+          "doc_id": "c9da9433ba428ff6080aed91d311f4b6",
+          "score": 56.564352
+        },
+        {
+          "doc_id": "119e7359b3039e367b1f58a9b696bb20",
+          "score": 54.156321
+        },
+        {
+          "doc_id": "052a8bd0049404d2247a98ed36c9470d",
+          "score": 53.895727
+        },
+        {
+          "doc_id": "4cfb4ae7aa05e198a5f730e2c928e58b",
+          "score": 53.59227
+        },
+        {
+          "doc_id": "74f3aac3017a2932828836f9891841cb",
+          "score": 53.491665
+        },
+        {
+          "doc_id": "3b178723c2859b57599eb0ccc7b5f76b",
+          "score": 52.939228
+        },
+        {
+          "doc_id": "b8bd7f8fe608ea48bb1803964a3f5195",
+          "score": 52.608084
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:42:c1a563dac2a61a7bd925016837f9f545"
+    },
+    {
+      "qid": "c26fa1c327e399e6d2982dfca1afab45",
+      "query": "做壁柜用什么板材好",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1169.5068161934614,
+      "server_ms": 1139,
+      "timings_ms": {
+        "lexical": 1138.142,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "2dd820bcc27c90006f6cf551b8dfc2fd",
+          "score": 77.245203
+        },
+        {
+          "doc_id": "7410f3b98d95a33b4bbd048f99469dfa",
+          "score": 74.381431
+        },
+        {
+          "doc_id": "88dd88f34fd16c26cfac38880b62b871",
+          "score": 72.268463
+        },
+        {
+          "doc_id": "1d82e7a60a8afb08f35d93cd1de4e1b9",
+          "score": 70.538433
+        },
+        {
+          "doc_id": "f159d73bc5363e7cb0d3ade931afad60",
+          "score": 69.486192
+        },
+        {
+          "doc_id": "0852e02488c5dec20f5bb0e8eb8e0f6d",
+          "score": 67.641661
+        },
+        {
+          "doc_id": "77bac6b24b2afddd57a2126f9db4782e",
+          "score": 67.20707
+        },
+        {
+          "doc_id": "3a12ea5e4d1daaf59e58df00f97d1913",
+          "score": 53.580588
+        },
+        {
+          "doc_id": "6c2418da24f7cfb2a91600bcc32e9ab8",
+          "score": 51.650347
+        },
+        {
+          "doc_id": "d6f5fc67db0e2c5b257114596cdca1ba",
+          "score": 50.45796
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:43:c26fa1c327e399e6d2982dfca1afab45"
+    },
+    {
+      "qid": "9759a3760a0b057d7703ab247cc8e4e0",
+      "query": "淘宝企业店铺可信度",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 473.7218450754881,
+      "server_ms": 465,
+      "timings_ms": {
+        "lexical": 456.329,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "6df726c974ea644c0765dfdc35ba6816",
+          "score": 84.585456
+        },
+        {
+          "doc_id": "93c84477cf627ab419609d512e96fdca",
+          "score": 80.770953
+        },
+        {
+          "doc_id": "25c3a5a036a8788d27196f744dcce749",
+          "score": 78.786666
+        },
+        {
+          "doc_id": "3f19a05520a01aeab36332ea0ed819ec",
+          "score": 73.959654
+        },
+        {
+          "doc_id": "77e05f89977d264c06090d63f0bbd3f8",
+          "score": 73.387117
+        },
+        {
+          "doc_id": "f7635f547de1e227670df90abcb26bd5",
+          "score": 72.243471
+        },
+        {
+          "doc_id": "cc6e6d618e0eab582c23632deee3684f",
+          "score": 71.94925
+        },
+        {
+          "doc_id": "b301601cec17f65d874ea3b8f49a28c7",
+          "score": 71.510706
+        },
+        {
+          "doc_id": "5110bcaa401b010d8beea41e103990f8",
+          "score": 71.32974
+        },
+        {
+          "doc_id": "7289b6c4fb60ba97f49203e50572e3eb",
+          "score": 70.80795
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:44:9759a3760a0b057d7703ab247cc8e4e0"
+    },
+    {
+      "qid": "ed99d9bcce8d8f97dc58c8360b7b20c3",
+      "query": "iwatch连接蓝牙耳机",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 269.7367421351373,
+      "server_ms": 264,
+      "timings_ms": {
+        "lexical": 263.175,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "4036d9f1568a8843fd90025188288f29",
+          "score": 61.308015
+        },
+        {
+          "doc_id": "9028f8096c4121f205a0a94e53ba970c",
+          "score": 60.737486
+        },
+        {
+          "doc_id": "ce67171de66ea879c6b05f718f017785",
+          "score": 60.596653
+        },
+        {
+          "doc_id": "51237fd867e360a9ce1e83488b29d8d7",
+          "score": 59.721251
+        },
+        {
+          "doc_id": "b7d3d7c4466f50b580b475c812ee4752",
+          "score": 59.625731
+        },
+        {
+          "doc_id": "001f393bc009bb39fbfb2dc122a1784e",
+          "score": 59.616333
+        },
+        {
+          "doc_id": "798cfda815b99a1395c85c06c09abd01",
+          "score": 59.481098
+        },
+        {
+          "doc_id": "06e7c533e3b8f97aa99a96f55f0dca95",
+          "score": 59.45379
+        },
+        {
+          "doc_id": "8613346b227d9ab8d79502cd515596bd",
+          "score": 59.290511
+        },
+        {
+          "doc_id": "a63d685030817c02cd4147798c9454dd",
+          "score": 59.20422
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:45:ed99d9bcce8d8f97dc58c8360b7b20c3"
+    },
+    {
+      "qid": "f3ee13e53c778bdac191c1295a0d6554",
+      "query": "gpt升高的原因",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1111.2726340070367,
+      "server_ms": 1083,
+      "timings_ms": {
+        "lexical": 1061.879,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "0d64db3d135a4ad115684f289cf74172",
+          "score": 33.026208
+        },
+        {
+          "doc_id": "5e77cff6c647a52c8bec5821853d2e5d",
+          "score": 32.025037
+        },
+        {
+          "doc_id": "2426a6a1e576eef7df03e9bd318da17d",
+          "score": 31.881787
+        },
+        {
+          "doc_id": "1aff6c7a7ea7c6f09b9b82f2019d9cd5",
+          "score": 31.185922
+        },
+        {
+          "doc_id": "af52ea4aceb193658a25f6867444b5c5",
+          "score": 30.120381
+        },
+        {
+          "doc_id": "37d6cb0e46b48818732bba91bf73468c",
+          "score": 30.062848
+        },
+        {
+          "doc_id": "387c162b58567f98b4d7458c8403b930",
+          "score": 29.535231
+        },
+        {
+          "doc_id": "f6a584a0e61ac6a094b44e9f4be1a06f",
+          "score": 29.413533
+        },
+        {
+          "doc_id": "8b66951552bf42d63814b099cf686af6",
+          "score": 29.111031
+        },
+        {
+          "doc_id": "40938c15df0e2ec685ea6cc9b597cbe5",
+          "score": 28.991083
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:46:f3ee13e53c778bdac191c1295a0d6554"
+    },
+    {
+      "qid": "0571474cc8ae3e213321ac42e33edd82",
+      "query": "c盘是硬盘吗",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 318.2337237522006,
+      "server_ms": 311,
+      "timings_ms": {
+        "lexical": 309.777,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "8427503c6f8b906a3fb2ac23508fc385",
+          "score": 49.093103
+        },
+        {
+          "doc_id": "f3be9997b48f1b7a23b6f6a29823de3a",
+          "score": 42.837874
+        },
+        {
+          "doc_id": "23544d330d7a42f6131d5946fa74fbbc",
+          "score": 42.378253
+        },
+        {
+          "doc_id": "0b61d701a8a780c1fc97a1e133ec9d84",
+          "score": 41.436902
+        },
+        {
+          "doc_id": "24396507a3148829809e6c02ddbd0d58",
+          "score": 38.408215
+        },
+        {
+          "doc_id": "6024edf77e49b45e0ef6c75e587d0015",
+          "score": 36.017337
+        },
+        {
+          "doc_id": "d3d8e7b96be37d1e4499776efe761d96",
+          "score": 35.616154
+        },
+        {
+          "doc_id": "cc85d2b09407790fd470448c1faef5df",
+          "score": 34.302718
+        },
+        {
+          "doc_id": "be7761df13bd88b79b59f970983a2cf5",
+          "score": 33.213856
+        },
+        {
+          "doc_id": "13ba2cce6351f3e4f165c081ca00aad1",
+          "score": 33.213856
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:47:0571474cc8ae3e213321ac42e33edd82"
+    },
+    {
+      "qid": "5178b90868669ce7daa5f06cd106ee5c",
+      "query": "exo的老大是谁",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 143.3538729324937,
+      "server_ms": 141,
+      "timings_ms": {
+        "lexical": 139.416,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "d9f24eaea57997c3932bb430efde9dc6",
+          "score": 35.038412
+        },
+        {
+          "doc_id": "621d6c244cf26f179e20194a712bc50a",
+          "score": 33.517298
+        },
+        {
+          "doc_id": "d9eef6f5879396a17abf56dc5467cc61",
+          "score": 32.703831
+        },
+        {
+          "doc_id": "92e8548c03e416c7919d1664a1d89786",
+          "score": 31.188571
+        },
+        {
+          "doc_id": "cdd8fb75ef50fad982a5052966eb6c90",
+          "score": 30.718977
+        },
+        {
+          "doc_id": "3e694acc559ebf413635c54e62462021",
+          "score": 30.078043
+        },
+        {
+          "doc_id": "ee0ab11a9972ec9e186f251be22e3327",
+          "score": 30.078043
+        },
+        {
+          "doc_id": "873ab3d6dbb254b339db6b70d0eebd3d",
+          "score": 29.637016
+        },
+        {
+          "doc_id": "9679e210772c1039fc63832e262b4bc6",
+          "score": 28.972047
+        },
+        {
+          "doc_id": "7d100588f151da75904e788285d771a0",
+          "score": 26.675547
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:48:5178b90868669ce7daa5f06cd106ee5c"
+    },
+    {
+      "qid": "9976e209df175729a74d18ab05bf0402",
+      "query": "辅酶q10的服用方法",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1275.936422869563,
+      "server_ms": 1244,
+      "timings_ms": {
+        "lexical": 1217.645,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "fa715aff676f8e65b66d0810cd82fa15",
+          "score": 58.516686
+        },
+        {
+          "doc_id": "86eda662fc0f2850f3a12597ddbd2833",
+          "score": 54.639864
+        },
+        {
+          "doc_id": "42a0da386945f61b5f6b2a4c654f11a7",
+          "score": 54.216773
+        },
+        {
+          "doc_id": "dd836eae283ede72cf19647d52d0d5e0",
+          "score": 53.81513
+        },
+        {
+          "doc_id": "77976dd7d7d2eda25b40106f5e0addf1",
+          "score": 52.222578
+        },
+        {
+          "doc_id": "c7eefdc9654e9acaabb82c07a5075b9c",
+          "score": 51.209624
+        },
+        {
+          "doc_id": "69c25d6ace7daf3338c970e5215746b0",
+          "score": 51.148473
+        },
+        {
+          "doc_id": "74a58d604528636f8f6e9eedf39f32c3",
+          "score": 51.033147
+        },
+        {
+          "doc_id": "34937418add043553b368ff165be3d68",
+          "score": 50.952512
+        },
+        {
+          "doc_id": "2000bbd3ed614b8e3a7ca849794b62a3",
+          "score": 50.271837
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:49:9976e209df175729a74d18ab05bf0402"
+    },
+    {
+      "qid": "ab7bbe421b2a5431c6c28286b89e0acb",
+      "query": "加格达奇宾馆有哪些",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 280.5217723362148,
+      "server_ms": 278,
+      "timings_ms": {
+        "lexical": 275.298,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "f0eb32e019d03fd821510ba0ca3ac9bf",
+          "score": 71.126786
+        },
+        {
+          "doc_id": "40163f5095e41189da961d70eb83a5c5",
+          "score": 70.904903
+        },
+        {
+          "doc_id": "2c4c4450a681e7bfbf0c651428009d48",
+          "score": 70.406694
+        },
+        {
+          "doc_id": "6164c4bd7f8c8e570b7db1e19cbadf74",
+          "score": 67.040536
+        },
+        {
+          "doc_id": "7cf9ec8495896104910fc9c2dfb0b6bc",
+          "score": 66.948019
+        },
+        {
+          "doc_id": "596a54726f8bdc224ede16bb21dcf582",
+          "score": 66.939604
+        },
+        {
+          "doc_id": "e56f59e7c1bf07f1b21a8aba2f9ab813",
+          "score": 66.864784
+        },
+        {
+          "doc_id": "b5e06d1c9a4068336720612dbec0525f",
+          "score": 66.3558
+        },
+        {
+          "doc_id": "fa098802ace461f36148d1121e6a2a52",
+          "score": 64.272671
+        },
+        {
+          "doc_id": "5dc190778226beb58267be85da656987",
+          "score": 62.585851
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:50:ab7bbe421b2a5431c6c28286b89e0acb"
+    },
+    {
+      "qid": "2832d65fe16d3a96592e8772ccd6d0aa",
+      "query": "神秘博士clara是谁",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 103.63085102289915,
+      "server_ms": 101,
+      "timings_ms": {
+        "lexical": 100.555,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "89c24ba2b8d250ee476b116ea02fe5a8",
+          "score": 57.674151
+        },
+        {
+          "doc_id": "d03ef45ac18fbeb50dd3518b80730f6c",
+          "score": 50.494855
+        },
+        {
+          "doc_id": "1b8b5bef3de16f0304a4bfb136c88957",
+          "score": 49.219137
+        },
+        {
+          "doc_id": "6f51319d423888b27f316e81fd98c59e",
+          "score": 47.585225
+        },
+        {
+          "doc_id": "fbffd9ba476e7e8d920c1f1d10410436",
+          "score": 46.176981
+        },
+        {
+          "doc_id": "50d5564091b1c48a71bd8726a2b53049",
+          "score": 45.855905
+        },
+        {
+          "doc_id": "0ced22a93ef19d5af7e034b937e10942",
+          "score": 43.151181
+        },
+        {
+          "doc_id": "c3866d2475fffc5757906e4093ddf02a",
+          "score": 42.760707
+        },
+        {
+          "doc_id": "7e9ec020f3f3837a5f8f6eccf3474673",
+          "score": 42.699445
+        },
+        {
+          "doc_id": "652ad797d921473eeee09a1c9416fc95",
+          "score": 42.624506
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:51:2832d65fe16d3a96592e8772ccd6d0aa"
+    },
+    {
+      "qid": "9670a5eebfc0b36eed0e1e7daf934207",
+      "query": "oppo手机内存其他是什么",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 2875.720241572708,
+      "server_ms": 2802,
+      "timings_ms": {
+        "lexical": 2800.943,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "c4edbd432b2d042139ea0a2b53505bec",
+          "score": 44.727452
+        },
+        {
+          "doc_id": "c3dc7dc023a9f304f65586fadeb0b6d0",
+          "score": 40.540142
+        },
+        {
+          "doc_id": "50d88a7de48c03f9347ff0697567fabb",
+          "score": 40.069533
+        },
+        {
+          "doc_id": "a167bbea31d2b48e94149ada7ca33157",
+          "score": 39.002923
+        },
+        {
+          "doc_id": "98383b1c1d16836cde6fe75299f4a973",
+          "score": 38.658753
+        },
+        {
+          "doc_id": "f4c170b6e2bb6898719a4e7f5f1b4d5c",
+          "score": 37.350144
+        },
+        {
+          "doc_id": "c4b0763ebc127d8991c622b6a81b932f",
+          "score": 37.310228
+        },
+        {
+          "doc_id": "28a83086cd787877c899acc7ade12b6f",
+          "score": 36.913058
+        },
+        {
+          "doc_id": "6e32b5a90361f4c2eb0d5d2d0276e2c3",
+          "score": 36.641168
+        },
+        {
+          "doc_id": "a36a2af329bfd935a2bcd9cbd2e295e9",
+          "score": 36.489926
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:52:9670a5eebfc0b36eed0e1e7daf934207"
+    },
+    {
+      "qid": "7a1242c3a7f9fdcbc80dc4230cad2d0b",
+      "query": "温泉蛋怎么做",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 927.1572669968009,
+      "server_ms": 905,
+      "timings_ms": {
+        "lexical": 886.867,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "71f36d8b124300f4c1c9b62ec0de2043",
+          "score": 56.614534
+        },
+        {
+          "doc_id": "4801b2dbf9c534b05b35983dc114d86e",
+          "score": 47.658707
+        },
+        {
+          "doc_id": "bc4c7743a83ed573c019cf3772c66215",
+          "score": 43.612387
+        },
+        {
+          "doc_id": "34b474b1489b784789305e14a13c36a4",
+          "score": 40.244356
+        },
+        {
+          "doc_id": "ab7528b2e5d9679b37ae31f02791800d",
+          "score": 37.464574
+        },
+        {
+          "doc_id": "1b9e9b0de9faf21a3c7126a574f901ea",
+          "score": 35.528083
+        },
+        {
+          "doc_id": "9d5e978bd11182ecfa43bc5e5d99ed31",
+          "score": 33.940182
+        },
+        {
+          "doc_id": "63883201af00fe7f43e90a3b1b52b6a2",
+          "score": 33.476689
+        },
+        {
+          "doc_id": "5d099dc2ee3582002770dcc902cf1edd",
+          "score": 33.474591
+        },
+        {
+          "doc_id": "44fc1186d17c6d3c73539815e2453065",
+          "score": 33.466281
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:53:7a1242c3a7f9fdcbc80dc4230cad2d0b"
+    },
+    {
+      "qid": "307ccd3bd89878631871ebfe67e7252c",
+      "query": "曝光补偿是什么意思",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1748.0452107265592,
+      "server_ms": 1703,
+      "timings_ms": {
+        "lexical": 1668.015,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "80838a67293338e1eb5f643a6ff76fbe",
+          "score": 58.530645
+        },
+        {
+          "doc_id": "fce19d248e0971a26c310d0fd89ee564",
+          "score": 56.820773
+        },
+        {
+          "doc_id": "ef59b9c8be698f2f9f63dfd9d631ca3f",
+          "score": 56.729711
+        },
+        {
+          "doc_id": "ddf780b033a2d15668b7308f2e3e7e18",
+          "score": 55.749893
+        },
+        {
+          "doc_id": "3d98a237d48a739c93e416ddc59eb572",
+          "score": 53.198399
+        },
+        {
+          "doc_id": "d299fad597365450f806acef25a4c71c",
+          "score": 52.587057
+        },
+        {
+          "doc_id": "9fcc8a4b55cd819b905bdfd5599d3ad8",
+          "score": 51.493484
+        },
+        {
+          "doc_id": "0d0736a695c334bbc8b51f80d7d3c70e",
+          "score": 51.169344
+        },
+        {
+          "doc_id": "bc8b07c03577558c6d9ee76a374e31e4",
+          "score": 50.75377
+        },
+        {
+          "doc_id": "a523e42f2e913fe1bdead73a284d8313",
+          "score": 50.24665
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:54:307ccd3bd89878631871ebfe67e7252c"
+    },
+    {
+      "qid": "eaf35cc603a45483ff11b4869eefdd14",
+      "query": "wps如何加脚注",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 451.97234535589814,
+      "server_ms": 439,
+      "timings_ms": {
+        "lexical": 438.411,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "e87722f8708a43e7bd38b4778598cb6a",
+          "score": 59.335834
+        },
+        {
+          "doc_id": "9412d9626182c176e9cc3a40993eeab5",
+          "score": 55.293659
+        },
+        {
+          "doc_id": "7d4376521174ddc932b81e52e1c8adde",
+          "score": 51.787948
+        },
+        {
+          "doc_id": "a4402c75390dbb1904763473796b9907",
+          "score": 49.550445
+        },
+        {
+          "doc_id": "73f40981e332fde7ea28aad28f94a65c",
+          "score": 44.792545
+        },
+        {
+          "doc_id": "016f71d2769345bb3e8b7193dcafe87e",
+          "score": 44.159343
+        },
+        {
+          "doc_id": "2a6a0fdbf0e3e503b2043a5f02c6a80c",
+          "score": 44.065952
+        },
+        {
+          "doc_id": "ab6e9816317e464884a017d42e0fc032",
+          "score": 43.097373
+        },
+        {
+          "doc_id": "c40caeb8303757f4485afc192c6b1ece",
+          "score": 40.295774
+        },
+        {
+          "doc_id": "7d62edcb620b1a46e6b3bdba25c544eb",
+          "score": 40.277757
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:55:eaf35cc603a45483ff11b4869eefdd14"
+    },
+    {
+      "qid": "ae4cc079c8f7333295b5a25e69cc3fe8",
+      "query": "均瑶集团是上市公司吗",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 796.5224287472665,
+      "server_ms": 775,
+      "timings_ms": {
+        "lexical": 773.643,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "5960495c7ace46c59864861fc4871310",
+          "score": 74.547477
+        },
+        {
+          "doc_id": "10620731be47e9b869f70f273c44a846",
+          "score": 74.275095
+        },
+        {
+          "doc_id": "d0cc965865a7710a1f159147f592caa6",
+          "score": 70.799098
+        },
+        {
+          "doc_id": "74f7e708db363c969d5f11445fb3d715",
+          "score": 69.375693
+        },
+        {
+          "doc_id": "03598ae7739d2dea225668996af024e3",
+          "score": 69.282544
+        },
+        {
+          "doc_id": "57fad4bb3d427ca5438d31255104e7d9",
+          "score": 67.912715
+        },
+        {
+          "doc_id": "bef75f0c151ef42fb7d71a2b91650322",
+          "score": 67.807306
+        },
+        {
+          "doc_id": "28c39c25accfd6561da408ca1c361f88",
+          "score": 67.598383
+        },
+        {
+          "doc_id": "a076062c25c3363a085c1c3ecc276456",
+          "score": 67.313301
+        },
+        {
+          "doc_id": "451656bf566c32004426c608b6db4304",
+          "score": 67.039562
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:56:ae4cc079c8f7333295b5a25e69cc3fe8"
+    },
+    {
+      "qid": "7663c2730e852c510edbccf555cfbba4",
+      "query": "杨幂是素食主义者吗",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 82.02832890674472,
+      "server_ms": 80,
+      "timings_ms": {
+        "lexical": 79.359,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "bed363c48cbfada420374255f714b1c0",
+          "score": 66.161139
+        },
+        {
+          "doc_id": "be355665c800451240ce67cb44bd1b0b",
+          "score": 63.414401
+        },
+        {
+          "doc_id": "4b705770a6e2c3bfecb2ff52c5bbaf6d",
+          "score": 55.642643
+        },
+        {
+          "doc_id": "ab88e59e3e0d4db57f632c92f76dac2d",
+          "score": 55.333308
+        },
+        {
+          "doc_id": "0ac21a8721ca4e6b45c73b8dc0ea40fb",
+          "score": 54.832931
+        },
+        {
+          "doc_id": "7c372173f2eddfd14e2ae6fb67a3f579",
+          "score": 54.621013
+        },
+        {
+          "doc_id": "b4de36c3bca3507a76c530e2d63c98d3",
+          "score": 53.176881
+        },
+        {
+          "doc_id": "372ef17783b846a5609922963f44e21b",
+          "score": 52.153439
+        },
+        {
+          "doc_id": "421e46a9d7adf146575db35df1cb93cd",
+          "score": 51.808339
+        },
+        {
+          "doc_id": "395e2301b47c548b30706cb016509007",
+          "score": 51.779196
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:57:7663c2730e852c510edbccf555cfbba4"
+    },
+    {
+      "qid": "ee4c26048bca132f7e96733250f50acb",
+      "query": "犀牛如何分割曲面",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 312.63355864211917,
+      "server_ms": 304,
+      "timings_ms": {
+        "lexical": 293.155,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "e196c1704720ee1e311e0c2ceaec0b6b",
+          "score": 45.62424
+        },
+        {
+          "doc_id": "554f4678076d6ccd4be98ce36f9bbc38",
+          "score": 43.605244
+        },
+        {
+          "doc_id": "b86afc4c5faa6f38a7d32b37471855e6",
+          "score": 41.298498
+        },
+        {
+          "doc_id": "f506e286eeeb47951bca2b6c3207d216",
+          "score": 37.980102
+        },
+        {
+          "doc_id": "a6d7d488933de6eca5d1146daba37473",
+          "score": 35.201027
+        },
+        {
+          "doc_id": "c2bca116fef7906e592b6263b26ccea1",
+          "score": 34.189557
+        },
+        {
+          "doc_id": "f9f436efe31489339c2c9eb62401c226",
+          "score": 31.901163
+        },
+        {
+          "doc_id": "ecce75d78a39d8b49f6e524dd7db02b2",
+          "score": 31.607034
+        },
+        {
+          "doc_id": "ed291362f304f0d7a8271b70c2f12167",
+          "score": 31.552178
+        },
+        {
+          "doc_id": "70ed233ee155269348ef9df0224afd88",
+          "score": 31.339187
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:58:ee4c26048bca132f7e96733250f50acb"
+    },
+    {
+      "qid": "4bb6008274dd185802a1c1b94bb060d8",
+      "query": "微信不提示升级",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 808.3512247540057,
+      "server_ms": 785,
+      "timings_ms": {
+        "lexical": 784.487,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "a8eef1feb0d7430fd7bfe256e1c72d51",
+          "score": 34.420112
+        },
+        {
+          "doc_id": "001d9ad7d48596365532aa8fca0a44d9",
+          "score": 33.463698
+        },
+        {
+          "doc_id": "038bfb502cbae708d27723feab81f911",
+          "score": 33.125682
+        },
+        {
+          "doc_id": "c9ffddd0c70dedccad852352a15ed572",
+          "score": 32.202782
+        },
+        {
+          "doc_id": "b89d6717686b7e94c38a6fc267a795c2",
+          "score": 31.555213
+        },
+        {
+          "doc_id": "29532b5d0b83bb131eb27daf5e12fc3c",
+          "score": 31.48461
+        },
+        {
+          "doc_id": "741e10541d5a35a6139977fef749e065",
+          "score": 30.155989
+        },
+        {
+          "doc_id": "2c136de7df8dc918738b8a758715fbfe",
+          "score": 30.021918
+        },
+        {
+          "doc_id": "ab7f94a3cfb4970c4b39f33722c399be",
+          "score": 29.191869
+        },
+        {
+          "doc_id": "2aad3fa56264aa86fcccbceefc9d90ef",
+          "score": 29.175671
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:59:4bb6008274dd185802a1c1b94bb060d8"
+    },
+    {
+      "qid": "a8b879034ddab34570df6710c0eb55b2",
+      "query": "彩票都是骗人的吗",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 1402.6703829877079,
+      "server_ms": 1363,
+      "timings_ms": {
+        "lexical": 1362.424,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "d653463428c4e735b7e52a832e128e2c",
+          "score": 62.300595
+        },
+        {
+          "doc_id": "3108076e459ec31ebb662e3a92646f3e",
+          "score": 50.231216
+        },
+        {
+          "doc_id": "16cf3a01d8cd929421ff8ff507e414a3",
+          "score": 48.612542
+        },
+        {
+          "doc_id": "87761e97910290dab57fcc7320741ff3",
+          "score": 46.492791
+        },
+        {
+          "doc_id": "2a9752227347056ab842ab12fdc3b498",
+          "score": 42.046097
+        },
+        {
+          "doc_id": "c064f009819389cdb55cb94e5f605282",
+          "score": 41.908133
+        },
+        {
+          "doc_id": "0c5147845f69d3c30847d96fe3adcf77",
+          "score": 41.862546
+        },
+        {
+          "doc_id": "ba0216380a2399ab98e40992b462e6f0",
+          "score": 41.232978
+        },
+        {
+          "doc_id": "71b4728d6b698d46658beadb647885fc",
+          "score": 40.83499
+        },
+        {
+          "doc_id": "0557c0f97f0cb25055b406f4c8e89b2c",
+          "score": 40.812795
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:60:a8b879034ddab34570df6710c0eb55b2"
+    },
+    {
+      "qid": "4bfbb1e85e4090fc987a56852e93ba49",
+      "query": "泰拉瑞亚叶绿套和乌龟套哪个好",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 215.50251822918653,
+      "server_ms": 213,
+      "timings_ms": {
+        "lexical": 211.908,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "1cdb412217871e646f402c84ea39af1b",
+          "score": 94.276583
+        },
+        {
+          "doc_id": "5ef1a698483e761b223b1f0e4317f319",
+          "score": 93.299927
+        },
+        {
+          "doc_id": "b727ffb28e0595d03e03142f673b914d",
+          "score": 90.492096
+        },
+        {
+          "doc_id": "82ea0ebb827d0683043321bb42279c0e",
+          "score": 83.649897
+        },
+        {
+          "doc_id": "caf11c981e2c9c0be9a20407fe8a81ec",
+          "score": 82.279532
+        },
+        {
+          "doc_id": "6583bac992d6cafc1ab80969f97773f1",
+          "score": 81.8672
+        },
+        {
+          "doc_id": "c61c01089af9bdbef37bcbfff000d259",
+          "score": 79.489032
+        },
+        {
+          "doc_id": "53638afaaef5506b26463f4c41c2fb2f",
+          "score": 75.882488
+        },
+        {
+          "doc_id": "a41941ff0946d4d407b25fb80f9c1c3e",
+          "score": 74.511662
+        },
+        {
+          "doc_id": "a8c9196ef0ebb87db8bc7652a1358599",
+          "score": 71.561367
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:61:4bfbb1e85e4090fc987a56852e93ba49"
+    },
+    {
+      "qid": "367b83d87eb708e0513857d38a0af540",
+      "query": "图片另存到桌面看不到",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 772.6405151188374,
+      "server_ms": 755,
+      "timings_ms": {
+        "lexical": 738.34,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "940fb6db9017cc35893664b734e5354e",
+          "score": 64.454451
+        },
+        {
+          "doc_id": "543331973e1a44a4287ead5b865d5e1a",
+          "score": 60.45366
+        },
+        {
+          "doc_id": "a2c0af654c615297248fd7a2720cbf80",
+          "score": 58.617369
+        },
+        {
+          "doc_id": "aa7091da51478a399c0828138433e26a",
+          "score": 56.860357
+        },
+        {
+          "doc_id": "4357a471388b45ca5fcf6d11643febc6",
+          "score": 54.499618
+        },
+        {
+          "doc_id": "c0b6e20b8c74fd6fe8115e3f32752d9c",
+          "score": 50.652379
+        },
+        {
+          "doc_id": "51bd96dbc1f46892d01168281e6aa27e",
+          "score": 50.428277
+        },
+        {
+          "doc_id": "a3148901ff93d1deb1d861e66482ec81",
+          "score": 49.925416
+        },
+        {
+          "doc_id": "a87314aa386a545c03c8cd875b7b32e6",
+          "score": 49.919298
+        },
+        {
+          "doc_id": "8fda80219f3629bd20f3c556d476473b",
+          "score": 49.689336
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:62:367b83d87eb708e0513857d38a0af540"
+    },
+    {
+      "qid": "6622e85ad7717848ae02d10e6706edd3",
+      "query": "淘宝助理图片搬家慢",
+      "mode": "lexical",
+      "http_status": 200,
+      "ok": true,
+      "client_ms": 272.0561632886529,
+      "server_ms": 266,
+      "timings_ms": {
+        "lexical": 259.884,
+        "router": 0.0,
+        "encode": 0.0,
+        "vector": 0.0,
+        "fusion": 0.0
+      },
+      "error": null,
+      "results": [
+        {
+          "doc_id": "e330e5cdce687c15be45848b0f9eb8ba",
+          "score": 85.544637
+        },
+        {
+          "doc_id": "3eccda03801339b5316ff9800aeb5117",
+          "score": 84.426561
+        },
+        {
+          "doc_id": "217f023b7ee260d091e77818b719d380",
+          "score": 83.410392
+        },
+        {
+          "doc_id": "e2db3c3c3e5f04df29f6e048bf86a513",
+          "score": 80.060233
+        },
+        {
+          "doc_id": "091c405a7cc31580bb527970edac1040",
+          "score": 79.945667
+        },
+        {
+          "doc_id": "96483cf188478b95ad3f08bc74c0b517",
+          "score": 79.631179
+        },
+        {
+          "doc_id": "572b76e42f28e25f3b6c7699dd720a80",
+          "score": 78.871429
+        },
+        {
+          "doc_id": "336ec246f23e2be156210fe105ac70d3",
+          "score": 78.302327
+        },
+        {
+          "doc_id": "b4f65b043ec2e985896d6ef7f3c7abe7",
+          "score": 77.871638
+        },
+        {
+          "doc_id": "3a81e740b468a21435b6c84f9a96ad19",
+          "score": 77.6609
+        }
+      ],
+      "run_tag": "official8m-baseline64-c1:measured:lexical:63:6622e85ad7717848ae02d10e6706edd3"
+    }
+  ]
+}

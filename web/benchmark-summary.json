@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "cards": [
+    {
+      "label": "8M BM25 P50 加速",
+      "value": "15.9",
+      "unit": "×",
+      "detail": "64 条真实查询，服务端 685 ms 降至 43 ms，排名完全一致"
+    },
+    {
+      "label": "8M BM25 P95 加速",
+      "value": "14.1",
+      "unit": "×",
+      "detail": "尾部延迟 2369 ms 降至 167.7 ms，单客户端串行测量"
+    },
+    {
+      "label": "热态 DENSE P50",
+      "value": "15",
+      "unit": "ms",
+      "detail": "ef64，Qdrant 与 Torch 各 8 线程，完整 HTTP 服务"
+    }
+  ],
+  "rows": [
+    {"label": "原始 BM25 · 单路", "p50": "685 ms", "p95": "2369 ms", "speedup": "1×"},
+    {"label": "优化 BM25 · 单路", "p50": "43 ms", "p95": "167.7 ms", "speedup": "15.9×"},
+    {"label": "优化 Dense · 单路热态", "p50": "15 ms", "p95": "19.7 ms", "speedup": "ef64"},
+    {"label": "优化 Dense · 两路", "p50": "23.5 ms", "p95": "28.45 ms", "speedup": "并发 2"},
+    {"label": "优化 Dense · 四路", "p50": "48.5 ms", "p95": "57.45 ms", "speedup": "并发 4"}
+  ],
+  "note": "数据来自本机 NVMe 与 Ryzen 9 5950X 的 2026-11-17 实测。冷热状态与样本口径在实验文档中分别列出。"
+}

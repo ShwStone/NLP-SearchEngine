@@ -3,77 +3,164 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="BM25 与向量检索中文搜索引擎演示">
-    <title>中文搜索引擎</title>
+    <meta name="description" content="面向中文新闻与八百万篇 DuReader 语料的 BM25、向量和混合搜索引擎">
+    <title>知海 · 中文搜索引擎与检索实验室</title>
     <link rel="stylesheet" href="/static/style.css">
   </head>
   <body>
-    <main class="shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">NLP 课程大作业</p>
-          <h1>中文搜索引擎</h1>
-          <p class="subtitle">BM25 词法检索 · 自适应混合检索 · 可观测查询链路</p>
+    <a class="skip-link" href="#search">跳到搜索</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="知海首页">
+        <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true">
+          <path d="M5 8.5h17a6 6 0 0 1 6 6v13H11a6 6 0 0 1-6-6z" fill="currentColor" opacity=".16"/>
+          <path d="M8 5h17a3 3 0 0 1 3 3v19H12a4 4 0 0 1-4-4z" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M13 11h10M13 16h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="25" cy="25" r="6" fill="#f7f8f4" stroke="currentColor" stroke-width="2"/>
+          <path d="m29.5 29.5 4 4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span>知海<span class="brand-dot">.</span></span>
+        <span class="brand-lab">检索实验室</span>
+      </a>
+      <nav class="nav-links" aria-label="页面导航">
+        <a href="#search">检索</a>
+        <a href="#performance">性能</a>
+        <a href="#architecture">架构</a>
+      </nav>
+      <span id="service-state" class="service-state"><span class="status-dot"></span>正在连接</span>
+    </header>
+
+    <main>
+      <section class="hero shell">
+        <p class="eyebrow">CHINESE INFORMATION RETRIEVAL</p>
+        <h1>从两万到八百万，<br><span>让好答案浮上来。</span></h1>
+        <p class="hero-copy">同一条查询，对照三种语料规模与四种检索策略。<br>看见结果，也看见每一次召回背后的耗时。</p>
+        <div class="hero-stats" aria-label="系统能力">
+          <span><strong>3</strong> 套数据源</span>
+          <span><strong>8.1M</strong> 最大语料</span>
+          <span><strong>4</strong> 种检索模式</span>
         </div>
-        <p id="index-summary" class="index-summary" aria-live="polite">正在读取索引信息…</p>
-      </header>
+      </section>
 
-      <details id="index-identity" class="index-identity" hidden>
-        <summary>索引身份与检索配置</summary>
-        <dl id="identity-facts" class="facts identity-facts"></dl>
-      </details>
+      <section id="search" class="search-workspace shell" aria-label="搜索工作台">
+        <div class="section-heading">
+          <div>
+            <p class="section-number">01 / DATASET</p>
+            <h2>选择检索范围</h2>
+          </div>
+          <p id="dataset-description" class="dataset-description">正在读取数据源…</p>
+        </div>
+        <div id="dataset-picker" class="dataset-picker" role="group" aria-label="数据源">
+          <span class="dataset-loading">正在加载数据源</span>
+        </div>
+        <div id="example-queries" class="example-queries" aria-label="示例查询"></div>
 
-      <section class="search-panel" aria-label="搜索">
-        <form id="search-form">
+        <form id="search-form" class="search-panel">
           <label class="sr-only" for="query">搜索内容</label>
           <div class="query-row">
+            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             <input id="query" name="query" type="search" autocomplete="off"
-                   placeholder="例如：心肌梗死 症状" required>
-            <button id="submit" type="submit">搜索</button>
+                   placeholder="输入一个问题或一组关键词，按 Enter 检索" required>
+            <kbd class="keyboard-hint">/</kbd>
+            <button id="submit" type="submit"><span>检索</span><span aria-hidden="true">→</span></button>
           </div>
           <div class="controls">
             <label for="mode">检索模式
               <select id="mode" name="mode">
-                <option value="lexical">lexical · 词法</option>
-                <option value="adaptive">adaptive · 自适应</option>
-                <option value="hybrid">hybrid · 混合</option>
-                <option value="dense">dense · 语义</option>
+                <option value="lexical">词法检索 · BM25</option>
+                <option value="adaptive">自适应 · Adaptive</option>
+                <option value="hybrid">混合召回 · Hybrid</option>
+                <option value="dense">语义检索 · Dense</option>
               </select>
             </label>
-            <label for="k">返回数量
-              <input id="k" name="k" type="number" min="1" max="200" value="10">
+            <label for="k">每页结果
+              <select id="k" name="k">
+                <option value="10">10 条</option>
+                <option value="20">20 条</option>
+                <option value="50">50 条</option>
+              </select>
             </label>
-            <span class="hint">按 Enter 搜索，结果由 HTTP /search 提供</span>
+            <button id="copy-url" class="text-button" type="button">复制检索链接</button>
+            <span class="hint">支持中文自然语言、AND / OR / NOT 与引号短语</span>
           </div>
         </form>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <section id="error" class="error" role="alert" hidden></section>
+
+        <section id="observability" class="observability" hidden>
+          <div class="observation-summary">
+            <p class="panel-label">QUERY TRACE</p>
+            <h2>本次查询</h2>
+            <p id="summary" class="summary"></p>
+          </div>
+          <div>
+            <h3>路由与执行</h3>
+            <dl id="routing" class="facts"></dl>
+          </div>
+          <div>
+            <h3>服务端阶段耗时</h3>
+            <div id="timings" class="timings"></div>
+          </div>
+        </section>
+
+        <section id="results" class="results" aria-live="polite" aria-busy="false">
+          <div class="empty-state">
+            <span class="empty-index">READY</span>
+            <h2>选一个示例，或写下你的问题</h2>
+            <p>结果会保留相关词高亮、排名分数和服务端耗时。</p>
+          </div>
+        </section>
+        <nav id="pagination" class="pagination" aria-label="搜索结果分页" hidden>
+          <button id="prev-page" class="page-button" type="button">← 上一页</button>
+          <span id="page-info">第 1 页</span>
+          <button id="next-page" class="page-button" type="button">下一页 →</button>
+        </nav>
       </section>
 
-      <div id="status" class="status" role="status" aria-live="polite"></div>
-      <section id="error" class="error" role="alert" hidden></section>
+      <section class="identity-section shell">
+        <details id="index-identity" class="index-identity" hidden>
+          <summary>查看当前索引身份与检索参数<span>INDEX MANIFEST</span></summary>
+          <p id="index-summary" class="index-summary" aria-live="polite">正在读取索引信息…</p>
+          <dl id="identity-facts" class="facts identity-facts"></dl>
+        </details>
+      </section>
 
-      <section id="observability" class="observability" hidden>
-        <div>
-          <h2>本次查询</h2>
-          <p id="summary" class="summary"></p>
-        </div>
-        <div>
-          <h3>路由</h3>
-          <dl id="routing" class="facts"></dl>
-        </div>
-        <div>
-          <h3>阶段耗时</h3>
-          <div id="timings" class="timings"></div>
+      <section id="performance" class="performance-section">
+        <div class="shell">
+          <div class="section-heading performance-heading">
+            <div>
+              <p class="section-number">02 / PERFORMANCE</p>
+              <h2>把每一次加速写进数据</h2>
+            </div>
+            <p>同一批真实查询，记录客户端延迟、服务端阶段耗时与并发表现。</p>
+          </div>
+          <div id="benchmark-content" class="benchmark-content">
+            <p class="benchmark-placeholder">正在读取本机实测摘要…</p>
+          </div>
+          <p class="performance-note">完整参数、逐查询结果与实验边界随项目实验文档交付。</p>
         </div>
       </section>
 
-      <section id="results" class="results" aria-live="polite">
-        <div class="empty-state">
-          <span class="empty-icon" aria-hidden="true">⌕</span>
-          <h2>输入查询开始检索</h2>
-          <p>结果会显示标题、摘要、高亮、排序分数和路由信息。</p>
+      <section id="architecture" class="architecture-section shell">
+        <div class="section-heading">
+          <div>
+            <p class="section-number">03 / ARCHITECTURE</p>
+            <h2>轻量网站，完整检索链路</h2>
+          </div>
+          <p>前端静态部署在阿里云，数据与模型留在本机，公网无需接触数据库。</p>
+        </div>
+        <div class="architecture-grid">
+          <article><span>01</span><h3>静态前端</h3><p>原生 JavaScript、响应式布局、可分享查询链接，由 Nginx 提供 HTTPS 与限流。</p></article>
+          <article><span>02</span><h3>多数据集网关</h3><p>按数据源转发请求，统一错误语义，各索引进程相互隔离。</p></article>
+          <article><span>03</span><h3>本机检索集群</h3><p>Compact 倒排索引、NumPy 热路径、BGE 编码器与 Qdrant HNSW 协同工作。</p></article>
         </div>
       </section>
     </main>
+
+    <footer class="site-footer shell">
+      <span>知海 · NLP 课程大作业</span>
+      <span>BM25 / BGE / Qdrant / RRF</span>
+    </footer>
     <script type="module" src="/static/app.js"></script>
   </body>
 </html>
