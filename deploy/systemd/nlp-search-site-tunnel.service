@@ -5,17 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=shwstone
 Environment=HOME=/home/shwstone
-ExecStart=/usr/bin/ssh -N -T -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -R 127.0.0.1:18081:127.0.0.1:18083 Aliyun
+ExecStart=/usr/bin/ssh -N -T -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o ConnectTimeout=10 -o TCPKeepAlive=yes -R 127.0.0.1:18081:127.0.0.1:18083 Aliyun
 Restart=always
 RestartSec=5
-TimeoutStopSec=15
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=read-only
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+StartLimitIntervalSec=0
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

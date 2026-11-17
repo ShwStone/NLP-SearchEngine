@@ -98,7 +98,17 @@ deploy/start_local.sh "$RUNTIME" /path/to/serving-python
 
 脚本启动三个 `online.server`、一个 `online.gateway` 和 SSH 反向隧道。PID 与日志写入 `$RUNTIME/logs`。`START_TUNNEL=0` 可只启动本机服务。脚本不自动恢复或覆盖 Qdrant 快照。
 
-隧道模板位于 `deploy/systemd/nlp-search-site-tunnel.service`。安装系统服务前核对用户名、SSH alias 与密钥权限。远端转发只监听 `127.0.0.1:18081`，不会把本机服务暴露成新的公网端口。
+隧道模板位于 `deploy/systemd/nlp-search-site-tunnel.service`。安装用户服务前核对用户名、SSH alias 与密钥权限。远端转发只监听 `127.0.0.1:18081`，不会把本机服务暴露成新的公网端口。
+
+```bash
+install -Dm644 deploy/systemd/nlp-search-site-tunnel.service \
+  ~/.config/systemd/user/nlp-search-site-tunnel.service
+systemctl --user daemon-reload
+systemctl --user enable --now nlp-search-site-tunnel.service
+loginctl enable-linger "$USER"
+```
+
+`Restart=always` 会在 SSH 断开后每 5 秒重连，15 秒心跳用于发现失效连接。lingering 让用户服务在退出登录后继续运行。`deploy/start_local.sh` 检测到该单元后交给 systemd 管理，不会重复启动裸 SSH 进程。
 
 ## 发布前端
 

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "detected_at": "2026-11-17T17:57:43+08:00",
+  "impact": "Public /datasets and /gateway/health returned HTTP 502 while all local retrieval processes remained healthy",
+  "cause": "The unsupervised SSH remote-forward process exited after a server connection timeout",
+  "recovery": {
+    "manager": "systemd --user",
+    "unit": "nlp-search-site-tunnel.service",
+    "restart_policy": "always",
+    "restart_seconds": 5,
+    "server_alive_interval_seconds": 15,
+    "server_alive_count_max": 3,
+    "linger": true
+  },
+  "validation": {
+    "public_health_after_recovery": "ok",
+    "forced_process_exit_test": "PASS",
+    "main_pid_before": 494614,
+    "main_pid_after": 495181,
+    "restart_counter": 1,
+    "public_health_after_forced_restart": "ok",
+    "start_local_duplicate_tunnel_check": "PASS"
+  }
+}

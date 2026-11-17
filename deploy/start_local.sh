@@ -35,14 +35,19 @@ start_process official8m online.server "$RUNTIME/config/official8m.json"
 start_process gateway online.gateway "$RUNTIME/config/datasets.json"
 
 if [[ "${START_TUNNEL:-1}" == 1 ]]; then
-  pidfile="$RUNTIME/logs/tunnel.pid"
-  if [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
-    echo "tunnel already running with pid $(cat "$pidfile")"
+  if systemctl --user cat nlp-search-site-tunnel.service >/dev/null 2>&1; then
+    systemctl --user enable --now nlp-search-site-tunnel.service
+    echo "tunnel is managed by systemd --user"
   else
-    nohup ssh -N -T -o BatchMode=yes -o ExitOnForwardFailure=yes \
-      -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
-      -R 127.0.0.1:18081:127.0.0.1:18083 Aliyun >>"$RUNTIME/logs/tunnel.log" 2>&1 &
-    echo $! >"$pidfile"
-    echo "tunnel started with pid $(cat "$pidfile")"
+    pidfile="$RUNTIME/logs/tunnel.pid"
+    if [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; then
+      echo "tunnel already running with pid $(cat "$pidfile")"
+    else
+      nohup ssh -N -T -o BatchMode=yes -o ExitOnForwardFailure=yes \
+        -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o ConnectTimeout=10 \
+        -R 127.0.0.1:18081:127.0.0.1:18083 Aliyun >>"$RUNTIME/logs/tunnel.log" 2>&1 &
+      echo $! >"$pidfile"
+      echo "tunnel started with pid $(cat "$pidfile")"
+    fi
   fi
 fi
