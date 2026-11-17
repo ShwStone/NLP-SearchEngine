@@ -210,8 +210,8 @@ mark.expanded { color: #185a49; background: #d8ebe3; }
   .dataset-picker { grid-template-columns: 1fr; gap: 8px; }
   .dataset-card { padding: 14px 16px; }
   .dataset-card-top { margin-bottom: 5px; }
-  .dataset-card-meta { position: absolute; right: 17px; bottom: 15px; margin: 0; }
-  .dataset-card-description { max-width: calc(100% - 85px); }
+  .dataset-card-meta { position: static; display: block; margin-top: 6px; text-align: right; }
+  .dataset-card-description { max-width: calc(100% - 12px); }
   .search-panel { padding: 7px; }
   .query-row { flex-wrap: wrap; gap: 8px; }
   .search-icon { margin-left: 5px; }
