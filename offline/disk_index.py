@@ -22,7 +22,7 @@ from contracts.reader import Document
 
 
 class DiskIndex:
-    def __new__(cls, index_dir, verify_checksums: bool = True):
+    def __new__(cls, index_dir, verify_checksums: bool = True, *, cache_bytes=None):
         root = Path(index_dir)
         if cls is DiskIndex and (root / "compact.json").exists():
             if (root / "manifest.json").exists():
@@ -30,10 +30,11 @@ class DiskIndex:
             from .packed_index import PackedIndex
             # Compact is a production artifact: its full checksum gate cannot
             # be disabled using the legacy v1 compatibility option.
-            return PackedIndex(root)
+            options = {} if cache_bytes is None else {"cache_bytes": cache_bytes}
+            return PackedIndex(root, **options)
         return super().__new__(cls)
 
-    def __init__(self, index_dir, verify_checksums: bool = True):
+    def __init__(self, index_dir, verify_checksums: bool = True, *, cache_bytes=None):
         index_dir = Path(index_dir)
         self._manifest = load_manifest(index_dir)
         if type(self._manifest.n_docs) is not int or self._manifest.n_docs <= 0:

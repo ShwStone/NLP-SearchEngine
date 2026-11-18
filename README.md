@@ -9,6 +9,8 @@
 - [RFC-0004 离线产物交付补充](docs/contributions/rfc0004-delivery-validation.md)
 - [RFC-0004 接收机实测与合并修正](docs/contributions/rfc0004-receiver-acceptance.md)
 - [在线服务部署与验收](docs/online-serving.md)
+- [多数据集网站与本机服务部署](docs/MULTI_DATASET_SERVING.md) / [8M 在线调优记录](docs/PERFORMANCE_TUNING.md)
+- [公开演示网站](https://search.shwstone.cn)
 - [RFC-0003 在线服务验收记录](docs/contributions/rfc0003-online-acceptance.md)
 - [开题汇报 PDF](slides/proposal.pdf) / [Typst 源文件](slides/proposal.typ)
 - [实施计划与历史讨论](PLAN.md)
@@ -29,6 +31,7 @@ offline/      离线侧：BM25 与向量数据库都在这里构建
   validate.py            已发布双索引的严格哈希、指纹和快照校验器
 online/       在线侧：查询编码、BM25、Router、向量召回、RRF、高亮、HTTP
   embeddings.py         可选 Sentence-Transformers 编码器（固定 revision）
+  gateway.py            多数据集 loopback 网关与统一错误语义
   router.py             规则选择器，不读 qrels、不调用大模型
   fusion.py             RRF 排名融合
   vector_index.py       内存精确向量替身与 Qdrant 只读适配器
@@ -243,6 +246,7 @@ paired bootstrap 已完成并独立复算。Dense 四项质量最高，当前规
 另在协作版 DuReader 100k 的 1,020 条开发查询上，复验了四种在线模式、BM25S 和同源精确稠密参考。
 规则 Adaptive 减少了向量调用，质量低于固定 Hybrid；详见[报告第 9 节](REPORT.md#9-协作开发集与-router-对照)。
 数据、模型、快照、索引和生成 run 均留在 Git 外；具体结果与边界见 [报告](REPORT.md)
-和 [资源记录](evaluation/RESOURCES.md)。公开演示站点当前仍使用 tiny lexical 索引。
+和 [资源记录](evaluation/RESOURCES.md)。公开网站已部署 20k、100k 与 8M 数据源，
+前端位于阿里云，检索进程和数据留在本机。复现命令见 [多数据集部署](docs/MULTI_DATASET_SERVING.md)。
 
 RM3 已实现为确定性的本地伪相关反馈扩展；SLM 仍需要外部固定模型与离线缓存，返回 501。扩展不改变显式布尔/短语约束。内存测试通过不代表真实语义质量或 HNSW 性能已经验收。

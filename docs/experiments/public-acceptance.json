@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-17T04:34:39.556860+00:00",
+  "site": "https://search.shwstone.cn",
+  "deployed_commit": "58c2539c25fd934c4f722742d3c4b84109f99df2",
+  "status": "PASS",
+  "checks": [
+    {
+      "path": "/datasets",
+      "status": 200,
+      "client_ms": 176.06,
+      "dataset_header": null,
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": null,
+        "executed_mode": null,
+        "result_count": 0,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/news20k/info",
+      "status": 200,
+      "client_ms": 115.59,
+      "dataset_header": "news20k",
+      "body_summary": {
+        "dataset": "rfc4-clean-news-20k",
+        "n_docs": 20000,
+        "took_ms": null,
+        "executed_mode": null,
+        "result_count": 0,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/mini100k/info",
+      "status": 200,
+      "client_ms": 112.73,
+      "dataset_header": "mini100k",
+      "body_summary": {
+        "dataset": "dureader-mini100k-v1",
+        "n_docs": 100000,
+        "took_ms": null,
+        "executed_mode": null,
+        "result_count": 0,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/official8m/info",
+      "status": 200,
+      "client_ms": 117.74,
+      "dataset_header": "official8m",
+      "body_summary": {
+        "dataset": "dureader-official-dev-full-8096668",
+        "n_docs": 8096668,
+        "took_ms": null,
+        "executed_mode": null,
+        "result_count": 0,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/news20k/search",
+      "status": 200,
+      "client_ms": 400.15,
+      "dataset_header": "news20k",
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": 278,
+        "executed_mode": "lexical",
+        "result_count": 3,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/mini100k/search",
+      "status": 200,
+      "client_ms": 348.12,
+      "dataset_header": "mini100k",
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": 227,
+        "executed_mode": "lexical",
+        "result_count": 3,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/official8m/search",
+      "status": 200,
+      "client_ms": 178.66,
+      "dataset_header": "official8m",
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": 65,
+        "executed_mode": "lexical",
+        "result_count": 3,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/news20k/search",
+      "status": 200,
+      "client_ms": 743.74,
+      "dataset_header": "news20k",
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": 624,
+        "executed_mode": "dense",
+        "result_count": 3,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/official8m/search",
+      "status": 200,
+      "client_ms": 128.56,
+      "dataset_header": "official8m",
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": 16,
+        "executed_mode": "dense",
+        "result_count": 3,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/official8m/search",
+      "status": 200,
+      "client_ms": 163.22,
+      "dataset_header": "official8m",
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": 54,
+        "executed_mode": "hybrid",
+        "result_count": 3,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/official8m/search",
+      "status": 200,
+      "client_ms": 168.52,
+      "dataset_header": "official8m",
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": 54,
+        "executed_mode": "hybrid",
+        "result_count": 3,
+        "error": null
+      }
+    },
+    {
+      "path": "/datasets/mini100k/search",
+      "status": 503,
+      "client_ms": 120.78,
+      "dataset_header": "mini100k",
+      "body_summary": {
+        "dataset": null,
+        "n_docs": null,
+        "took_ms": null,
+        "executed_mode": null,
+        "result_count": 0,
+        "error": "未配置编码器与向量库"
+      }
+    }
+  ]
+}

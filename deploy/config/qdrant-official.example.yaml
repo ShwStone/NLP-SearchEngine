@@ -1,0 +1,13 @@
+log_level: INFO
+storage:
+  storage_path: /absolute/runtime/qdrant-official/storage
+  snapshots_path: /absolute/runtime/qdrant-official/snapshots
+  performance:
+    max_search_threads: 8
+service:
+  host: 127.0.0.1
+  http_port: 26333
+  grpc_port: 26334
+  max_workers: 8
+cluster:
+  enabled: false

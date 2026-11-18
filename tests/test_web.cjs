@@ -10,15 +10,23 @@ const vm = require("node:vm");
 const nodes = Object.fromEntries([
   "#search-form", "#query", "#mode", "#k", "#submit", "#status", "#error",
   "#results", "#observability", "#summary", "#routing", "#timings", "#index-summary",
-  "#index-identity", "#identity-facts",
+  "#index-identity", "#identity-facts", "#dataset-picker", "#dataset-description",
+  "#example-queries", "#pagination", "#prev-page", "#next-page", "#page-info",
+  "#copy-url", "#service-state", "#benchmark-content",
 ].map((selector) => [selector, {
   addEventListener() {}, innerHTML: "", textContent: "", hidden: false, value: "",
+  className: "", disabled: false, attributes: {},
+  setAttribute(name, value) { this.attributes[name] = value; },
+  getAttribute(name) { return this.attributes[name]; },
+  focus() {},
 }]));
+nodes["#mode"].options = ["lexical", "adaptive", "hybrid", "dense"].map((value) => ({ value, disabled: false }));
 const clipboard = { written: null };
 const context = vm.createContext({
   document: { querySelector: (selector) => nodes[selector] },
   fetch: async () => { throw new Error("No network in UI tests"); },
   navigator: { clipboard: { writeText: async (value) => { clipboard.written = value; } } },
+  URL,
 });
 vm.runInContext(
   fs.readFileSync(path.join(__dirname, "../web/app.js"), "utf8"),
@@ -307,4 +315,96 @@ test("index info is rendered on load and cleared when the request fails", async 
   assert.equal(nodes["#index-summary"].textContent, "索引信息暂不可用");
   assert.equal(nodes["#identity-facts"].innerHTML, "");
   assert.equal(nodes["#index-identity"].hidden, true);
+});
+
+const appState = vm.runInContext("state", context);
+
+function datasetCatalog() {
+  return [
+    { id: "news20k", label: "20k 自爬新闻", description: "团队新闻", n_docs: 20000,
+      modes: ["lexical", "dense", "hybrid", "adaptive"], examples: ["核电"] },
+    { id: "mini100k", label: "100k 协作子集", description: "DuReader 子集", n_docs: 100000,
+      modes: ["lexical"], examples: ["QQ 群名片"] },
+  ];
+}
+
+test("dataset selection loads the matching identity and disables unavailable modes", async () => {
+  appState.catalog = datasetCatalog();
+  appState.dataset = "";
+  const urls = [];
+  context.fetch = async (url) => {
+    urls.push(url);
+    return { ok: true, json: async () => fullIndexInfo() };
+  };
+  await context.selectDataset("mini100k");
+  assert.deepEqual(urls, ["/datasets/mini100k/info"]);
+  assert.equal(appState.dataset, "mini100k");
+  assert.match(nodes["#dataset-picker"].innerHTML, /100k 协作子集/);
+  assert.match(nodes["#example-queries"].innerHTML, /QQ 群名片/);
+  assert.equal(nodes["#mode"].options.find((option) => option.value === "dense").disabled, true);
+  assert.equal(nodes["#mode"].options.find((option) => option.value === "lexical").disabled, false);
+  assert.equal(nodes["#mode"].value, "lexical");
+});
+
+test("dataset-specific searches and pagination include dataset and offset", async () => {
+  appState.catalog = datasetCatalog();
+  await context.selectDataset("mini100k");
+  const requests = [];
+  context.fetch = async (url, options) => {
+    requests.push({ url, body: JSON.parse(options.body) });
+    return { ok: true, json: async () => ({
+      api_version: "2.0", took_ms: 3, parsed: {}, expanded: [],
+      results: Array.from({ length: 10 }, (_, index) => ({ rank: index + 1,
+        doc_id: `doc-${index}`, title: "结果", score: 1, snippet: "内容", highlights: [] })),
+      routing: { executed_mode: "lexical" }, timings_ms: {},
+    }) };
+  };
+  nodes["#query"].value = "QQ 群名片";
+  nodes["#mode"].value = "lexical";
+  nodes["#k"].value = "10";
+  await context.search({ preventDefault() {} });
+  await context.changePage(1);
+  assert.equal(requests[0].url, "/datasets/mini100k/search");
+  assert.equal(requests[0].body.offset, 0);
+  assert.equal(requests[1].body.offset, 10);
+  assert.equal(nodes["#page-info"].textContent, "第 2 页");
+  assert.equal(nodes["#prev-page"].disabled, false);
+});
+
+test("a stale response cannot overwrite a newly selected dataset", async () => {
+  appState.catalog = datasetCatalog();
+  await context.selectDataset("news20k");
+  let resolveSearch;
+  context.fetch = async () => new Promise((resolve) => { resolveSearch = resolve; });
+  nodes["#query"].value = "核电";
+  const pending = context.executeSearch(0);
+  context.fetch = async () => ({ ok: true, json: async () => fullIndexInfo() });
+  await context.selectDataset("mini100k");
+  resolveSearch({ ok: true, json: async () => ({
+    api_version: "2.0", took_ms: 1, results: [{ rank: 1, doc_id: "stale", score: 1,
+      snippet: "旧结果", highlights: [] }], routing: {}, timings_ms: {},
+  }) });
+  await pending;
+  assert.doesNotMatch(nodes["#results"].innerHTML, /stale|旧结果/);
+  assert.match(nodes["#results"].innerHTML, /100k 协作子集/);
+});
+
+test("shared links restore dataset query mode page size and offset", () => {
+  context.window = { location: { href: "https://search.example/?dataset=official8m&q=%E8%8A%82%E5%81%87%E6%97%A5&mode=dense&k=20&offset=20" } };
+  const location = context.applyLocation();
+  assert.equal(location.offset, 20);
+  assert.equal(appState.requestedOffset, 20);
+  assert.equal(nodes["#query"].value, "节假日");
+  assert.equal(nodes["#mode"].value, "dense");
+  assert.equal(nodes["#k"].value, "20");
+  delete context.window;
+});
+
+test("benchmark rendering escapes evidence labels", () => {
+  context.renderBenchmarks({
+    cards: [{ label: "<img src=x>", value: "12.3", unit: "ms", detail: "<script>bad()</script>" }],
+    rows: [{ label: "baseline", p50: "12 ms", p95: "30 ms", speedup: "1×" }],
+  });
+  assert.doesNotMatch(nodes["#benchmark-content"].innerHTML, /<img|<script>/);
+  assert.match(nodes["#benchmark-content"].innerHTML, /12\.3/);
 });

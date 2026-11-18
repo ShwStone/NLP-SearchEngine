@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "host": "127.0.0.1",
+  "port": 18083,
+  "default_dataset": "news20k",
+  "timeout_s": 45.0,
+  "max_body_bytes": 65536,
+  "datasets": [
+    {
+      "id": "news20k",
+      "label": "20k 自爬新闻",
+      "description": "团队冻结的 20,000 篇中文新闻，支持词法、语义与混合检索",
+      "upstream": "http://127.0.0.1:18180",
+      "modes": ["lexical", "adaptive", "hybrid", "dense"],
+      "examples": ["秦山核电如何生产医用同位素", "抚州采茶戏如何培养青年演员", "保险企业如何利用信息技术"],
+      "n_docs": 20000
+    },
+    {
+      "id": "mini100k",
+      "label": "100k 协作子集",
+      "description": "DuReader 固定 100,000 篇子集，提供完整 BM25 词法检索",
+      "upstream": "http://127.0.0.1:18181",
+      "modes": ["lexical"],
+      "examples": ["QQ群名片怎么设置", "电脑主板怎么进入 BIOS", "淘宝的验证码看不清楚"],
+      "n_docs": 100000
+    },
+    {
+      "id": "official8m",
+      "label": "8M 官方全集",
+      "description": "DuReader 8,096,668 篇 passage，Compact BM25 与 BGE HNSW 全量索引",
+      "upstream": "http://127.0.0.1:18086",
+      "modes": ["lexical", "adaptive", "hybrid", "dense"],
+      "examples": ["国家法定节假日共多少天", "为什么要平衡摩擦力", "徐州旅行社哪家好"],
+      "n_docs": 8096668
+    }
+  ]
+}

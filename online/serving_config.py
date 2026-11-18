@@ -25,6 +25,7 @@ DEFAULT_CANDIDATE_K = 200
 DEFAULT_RRF_C = 60.0
 DEFAULT_ROUTER_FACTORY = "rule"
 DEFAULT_DEVICE = "cpu"
+DEFAULT_LEXICAL_CACHE_BYTES = 64 * 1024 * 1024
 
 _TOP_LEVEL_KEYS = frozenset({
     "schema_version", "dataset", "index", "vector", "embedding",
@@ -32,7 +33,7 @@ _TOP_LEVEL_KEYS = frozenset({
 })
 _VECTOR_KEYS = frozenset({"url", "manifest", "hnsw_ef", "timeout_s"})
 _EMBEDDING_KEYS = frozenset({"model_path", "device"})
-_RETRIEVAL_KEYS = frozenset({"candidate_k", "rrf_c"})
+_RETRIEVAL_KEYS = frozenset({"candidate_k", "rrf_c", "lexical_cache_bytes"})
 _SERVE_KEYS = frozenset({"host", "port", "max_body_bytes", "request_timeout_s"})
 _POLICY_KEYS = frozenset({"factory"})
 
@@ -59,6 +60,7 @@ class EmbeddingConfig:
 class RetrievalSettings:
     candidate_k: int = DEFAULT_CANDIDATE_K
     rrf_c: float = DEFAULT_RRF_C
+    lexical_cache_bytes: int | None = None
 
 
 @dataclass(frozen=True)
@@ -247,6 +249,9 @@ def load_serving_config(path) -> ServingConfig:
                          if "candidate_k" in block else DEFAULT_CANDIDATE_K),
             rrf_c=(_positive_number(block["rrf_c"], "retrieval.rrf_c")
                    if "rrf_c" in block else DEFAULT_RRF_C),
+            lexical_cache_bytes=(_integer(block["lexical_cache_bytes"],
+                                          "retrieval.lexical_cache_bytes", 0)
+                                 if "lexical_cache_bytes" in block else None),
         )
     # Reuse the frozen retrieval contract for its range checks as well.
     RetrievalConfig(candidate_k=retrieval.candidate_k, rrf_c=retrieval.rrf_c)

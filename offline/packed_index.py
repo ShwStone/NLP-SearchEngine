@@ -18,6 +18,12 @@ import threading
 from .compact import CompactIndex, _pread, integers
 
 
+def _uint32_array(values):
+    result = array('I')
+    result.frombytes(values.tobytes())
+    return result
+
+
 @dataclass(frozen=True)
 class _Block:
     data: array
@@ -47,13 +53,43 @@ class PackedIndex(CompactIndex):
         self._budget=cache_bytes;self._cached_bytes=0
         self._blocks=OrderedDict();self._pending={};self._cache_lock=threading.RLock()
         self._stats=dict(hits=0,misses=0,coalesced=0,loads=0,evictions=0,oversized=0)
+        self._decoder=None
+        self._decoder_name='python'
+
+    def _get_decoder(self):
+        if self._decoder is None:
+            try:
+                from .packed_decode import decode
+            except (ImportError, OSError):
+                self._decoder=False
+            else:
+                self._decoder=decode
+                self._decoder_name='numba-0.60'
+        return self._decoder or None
+
+    def warmup(self):
+        """Compile the optional decoder before the public port starts listening."""
+        decoder=self._get_decoder()
+        if decoder is not None:
+            decoder(array('I',[0,1,0]),1,1)
+        return self.runtime_info()
+
+    def runtime_info(self):
+        return {'storage_format':self.storage_format,'decoder':self._decoder_name,
+                'cache':self.cache_info()}
 
     def _load_block(self,term):
         row=self._term(term)
         if row is None:return None
         start,size,df=row;raw=_pread(self._files['postings.bin'],size,start)
         if len(raw)!=size:raise ValueError('truncated compact posting block')
-        data=integers(raw);docids=array('I');frequencies=array('I');starts=array('I');i=0;last=-1
+        data=integers(raw)
+        decoder=self._get_decoder()
+        if decoder is not None:
+            decoded=decoder(data,df,self.n_docs)
+            docids,frequencies,starts=(_uint32_array(values) for values in decoded)
+            return _Block(data,docids,frequencies,starts)
+        docids=array('I');frequencies=array('I');starts=array('I');i=0;last=-1
         while i<len(data):
             if i+2>len(data):raise ValueError('truncated posting header')
             docid,tf=data[i],data[i+1];i+=2
@@ -98,6 +134,19 @@ class PackedIndex(CompactIndex):
         """Optional fast path for scorers; preserves docid and summation order."""
         block=self._block(term)
         return zip(block.docids,block.frequencies) if block else iter(())
+
+    def frequency_arrays(self,term):
+        """Read-only uint32 views for optional vectorized scorers.
+
+        The returned arrays belong to an immutable loaded block. The block stays
+        alive through the returned references even if the LRU later evicts it.
+        """
+        block=self._block(term)
+        return (block.docids,block.frequencies) if block else None
+
+    def document_lengths(self):
+        """Return the immutable-by-convention uint32 length vector once."""
+        return self._lengths
 
     def positions_for(self,term,docid):
         block=self._block(term)
