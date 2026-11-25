@@ -24,9 +24,8 @@ def expand_rm3(reader: IndexReader, query: str, terms: list) -> list:
     """Return deterministic RM3-style feedback terms from the first 8 hits."""
     if not terms:
         return []
-    from .scorers import bm25
-    initial = bm25(reader, terms)
-    ranked = sorted(initial.items(), key=lambda row: (-row[1], row[0]))[:8]
+    from .scorers import topk
+    ranked = topk("bm25", reader, terms, 8)
     if not ranked:
         return []
     original = set(terms)

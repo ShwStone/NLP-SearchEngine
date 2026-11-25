@@ -1,13 +1,18 @@
 const form = document.querySelector("#search-form");
 const queryInput = document.querySelector("#query");
 const modeInput = document.querySelector("#mode");
+const scorerInput = document.querySelector("#scorer");
+const expanderInput = document.querySelector("#expander");
 const kInput = document.querySelector("#k");
 const submitButton = document.querySelector("#submit");
+const compareButton = document.querySelector("#compare-btn");
 const statusBox = document.querySelector("#status");
 const errorBox = document.querySelector("#error");
 const resultBox = document.querySelector("#results");
+const comparePanel = document.querySelector("#compare-panel");
 const observability = document.querySelector("#observability");
 const summary = document.querySelector("#summary");
+const expandedTermsBox = document.querySelector("#expanded-terms");
 const routingBox = document.querySelector("#routing");
 const timingsBox = document.querySelector("#timings");
 const indexSummary = document.querySelector("#index-summary");
@@ -77,9 +82,31 @@ function hideError() {
 
 function clearObservability() {
   summary.textContent = "";
+  if (expandedTermsBox) {
+    expandedTermsBox.innerHTML = "";
+    expandedTermsBox.hidden = true;
+  }
   routingBox.innerHTML = "";
   timingsBox.innerHTML = "";
   observability.hidden = true;
+}
+
+function clearCompare() {
+  if (!comparePanel) return;
+  comparePanel.innerHTML = "";
+  comparePanel.hidden = true;
+}
+
+function syncLexicalControls() {
+  const isLexical = modeInput.value === "lexical";
+  if (scorerInput) {
+    scorerInput.disabled = !isLexical;
+    if (!isLexical) scorerInput.value = "bm25";
+  }
+  if (expanderInput) {
+    expanderInput.disabled = !isLexical;
+    if (!isLexical) expanderInput.value = "none";
+  }
 }
 
 function formatBoolean(value) {
@@ -315,6 +342,19 @@ function datasetEndpoint(kind) {
   return `/datasets/${encodeURIComponent(state.dataset)}/${kind}`;
 }
 
+function renderExpandedTerms(expanded) {
+  if (!expandedTermsBox) return;
+  if (!Array.isArray(expanded) || !expanded.length) {
+    expandedTermsBox.innerHTML = "";
+    expandedTermsBox.hidden = true;
+    return;
+  }
+  const chips = expanded.map((item) =>
+    `<span class="expanded-chip">${escapeHtml(item.term)} <em>${Number(item.w || 0).toFixed(2)}</em></span>`).join("");
+  expandedTermsBox.innerHTML = `<span class="expanded-label">扩展词 (${escapeHtml(String(expanded[0]?.src || "rm3").toUpperCase())})</span>${chips}`;
+  expandedTermsBox.hidden = false;
+}
+
 function renderResponse(data, clientMs = null) {
   const routing = data.routing || {};
   const count = Array.isArray(data.results) ? data.results.length : 0;
@@ -322,6 +362,7 @@ function renderResponse(data, clientMs = null) {
   const prefix = dataset ? `${dataset.label} · ` : "";
   const network = Number.isFinite(clientMs) ? ` · 客户端 ${clientMs.toFixed(0)} ms` : "";
   summary.textContent = `${prefix}${count} 条结果 · 服务端 ${Number(data.took_ms || 0)} ms${network} · ${data.api_version || "API"}`;
+  renderExpandedTerms(data.expanded);
   renderRouting(routing);
   renderTimings(data.timings_ms || {});
   observability.hidden = false;
@@ -372,20 +413,28 @@ async function executeSearch(offset = 0) {
   kInput.value = String(k);
   hideError();
   clearObservability();
+  clearCompare();
+  resultBox.hidden = false;
   if (state.controller) state.controller.abort();
   const serial = ++state.requestSerial;
   const requestedDataset = state.dataset;
   const controller = typeof AbortController === "function" ? new AbortController() : null;
   state.controller = controller;
   submitButton.disabled = true;
+  if (compareButton) compareButton.disabled = true;
   setStatus(`正在检索${currentDataset() ? `「${currentDataset().label}」` : "…"}`);
   renderLoading();
   const started = Date.now();
   try {
+    const payload = { query, mode: modeInput.value, k, offset };
+    if (modeInput.value === "lexical") {
+      if (scorerInput && scorerInput.value && scorerInput.value !== "bm25") payload.scorer = scorerInput.value;
+      if (expanderInput && expanderInput.value && expanderInput.value !== "none") payload.expander = expanderInput.value;
+    }
     const options = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, mode: modeInput.value, k, offset }),
+      body: JSON.stringify(payload),
     };
     if (controller) options.signal = controller.signal;
     const response = await fetch(datasetEndpoint("search"), options);
@@ -408,7 +457,122 @@ async function executeSearch(offset = 0) {
   } finally {
     if (serial === state.requestSerial) {
       submitButton.disabled = false;
+      if (compareButton) compareButton.disabled = false;
       resultBox.setAttribute("aria-busy", "false");
+      state.controller = null;
+    }
+  }
+}
+
+async function compareAllModes() {
+  if (!comparePanel) return;
+  const query = queryInput.value.trim();
+  if (!query) {
+    showError("请先输入查询内容，再执行四模式对比");
+    queryInput.focus();
+    return;
+  }
+  const dataset = currentDataset();
+  const modes = (dataset && Array.isArray(dataset.modes) && dataset.modes.length)
+    ? ["lexical", "dense", "hybrid", "adaptive"].filter((m) => dataset.modes.includes(m))
+    : ["lexical", "dense", "hybrid", "adaptive"];
+  hideError();
+  clearObservability();
+  pagination.hidden = true;
+  if (state.controller) state.controller.abort();
+  const serial = ++state.requestSerial;
+  const requestedDataset = state.dataset;
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  state.controller = controller;
+  submitButton.disabled = true;
+  if (compareButton) compareButton.disabled = true;
+  setStatus(`正在并行对比 ${modes.length} 种检索模式…`);
+  comparePanel.hidden = false;
+  comparePanel.innerHTML = '<div class="compare-loading">正在并行执行各检索模式，请稍候…</div>';
+  resultBox.hidden = true;
+  try {
+    const entries = await Promise.all(modes.map(async (mode) => {
+      const started = Date.now();
+      const options = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, mode, k: 5, offset: 0 }),
+      };
+      if (controller) options.signal = controller.signal;
+      const response = await fetch(datasetEndpoint("search"), options);
+      const data = await response.json().catch(() => null);
+      return { mode, ok: response.ok, status: response.status, data, clientMs: Date.now() - started };
+    }));
+    if (serial !== state.requestSerial || requestedDataset !== state.dataset) return;
+    const docFreq = new Map();
+    for (const entry of entries) {
+      if (entry.ok && Array.isArray(entry.data?.results)) {
+        for (const item of entry.data.results) {
+          docFreq.set(item.doc_id, (docFreq.get(item.doc_id) || 0) + 1);
+        }
+      }
+    }
+    const cards = entries.map((entry) => {
+      const label = MODE_LABELS[entry.mode] || entry.mode;
+      if (!entry.ok || !Array.isArray(entry.data?.results)) {
+        const msg = entry.data?.error || `HTTP ${entry.status}`;
+        return `<article class="compare-col"><header class="compare-col-head"><div><span class="compare-mode-tag">${escapeHtml(entry.mode.toUpperCase())}</span><h3>${escapeHtml(label)}</h3></div><span class="compare-ms">不可用</span></header><p class="compare-err">${escapeHtml(msg)}</p></article>`;
+      }
+      const routing = entry.data.routing || {};
+      const timings = entry.data.timings_ms || {};
+      const items = entry.data.results.map((item) => {
+        const unique = (docFreq.get(item.doc_id) || 0) === 1;
+        return `<li class="compare-item">
+          <div class="compare-item-top">
+            <span class="compare-rank">#${item.rank}</span>
+            <strong class="compare-title">${escapeHtml(item.title || item.doc_id)}</strong>
+            <span class="compare-score">${Number(item.score).toFixed(4)}</span>
+          </div>
+          <p class="compare-snippet">${highlightedSnippet(item.snippet, item.highlights)}</p>
+          <div class="compare-item-foot"><span>${escapeHtml(item.doc_id)}</span>${unique ? '<span class="compare-unique">独有命中</span>' : ""}</div>
+        </li>`;
+      }).join("");
+      const stageBits = [
+        timings.lexical ? `词法 ${Number(timings.lexical).toFixed(1)}` : "",
+        timings.encode ? `编码 ${Number(timings.encode).toFixed(1)}` : "",
+        timings.vector ? `向量 ${Number(timings.vector).toFixed(1)}` : "",
+      ].filter(Boolean).join(" · ");
+      return `<article class="compare-col">
+        <header class="compare-col-head">
+          <div>
+            <span class="compare-mode-tag">${escapeHtml(entry.mode.toUpperCase())}</span>
+            <h3>${escapeHtml(label)}</h3>
+          </div>
+          <span class="compare-ms">${Number(entry.data.took_ms || 0)} ms</span>
+        </header>
+        <div class="compare-meta">
+          <span>执行: <b>${escapeHtml(routing.executed_mode || entry.mode)}</b></span>
+          <span>原因: ${escapeHtml(routing.reason || "—")}</span>
+        </div>
+        ${stageBits ? `<div class="compare-stages">${escapeHtml(stageBits)} ms</div>` : ""}
+        <ol class="compare-list">${items || '<li class="compare-empty">无命中结果</li>'}</ol>
+      </article>`;
+    }).join("");
+    comparePanel.innerHTML = `
+      <div class="compare-toolbar">
+        <div>
+          <p class="panel-label">SIDE-BY-SIDE COMPARISON</p>
+          <h2>「${escapeHtml(query)}」四模式并行对比（Top-5）</h2>
+        </div>
+        <button type="button" id="close-compare" class="page-button">返回单模式视图</button>
+      </div>
+      <div class="compare-grid">${cards}</div>`;
+    setStatus(`已完成 ${entries.length} 种检索模式并行对比`, "success");
+  } catch (error) {
+    if (serial !== state.requestSerial || error?.name === "AbortError") return;
+    clearCompare();
+    resultBox.hidden = false;
+    setStatus("对比失败", "failure");
+    showError(error instanceof Error ? error.message : "对比请求失败");
+  } finally {
+    if (serial === state.requestSerial) {
+      submitButton.disabled = false;
+      if (compareButton) compareButton.disabled = false;
       state.controller = null;
     }
   }
@@ -466,6 +630,8 @@ function renderCatalog() {
   const supported = new Set(selected ? selected.modes : ["lexical"]);
   Array.from(modeInput.options).forEach((option) => { option.disabled = !supported.has(option.value); });
   if (!supported.has(modeInput.value)) modeInput.value = "lexical";
+  syncLexicalControls();
+  if (compareButton) compareButton.disabled = supported.size < 2;
 }
 
 async function selectDataset(datasetId, { initial = false, runQuery = false, offset = 0 } = {}) {
@@ -480,6 +646,8 @@ async function selectDataset(datasetId, { initial = false, runQuery = false, off
   state.info = null;
   renderCatalog();
   clearObservability();
+  clearCompare();
+  resultBox.hidden = false;
   hideError();
   pagination.hidden = true;
   resultBox.setAttribute("aria-busy", "false");
@@ -551,13 +719,22 @@ function changePage(direction) {
 function renderBenchmarks(data) {
   const cards = Array.isArray(data.cards) ? data.cards : [];
   const rows = Array.isArray(data.rows) ? data.rows : [];
+  const qualityRows = Array.isArray(data.quality_rows) ? data.quality_rows : [];
+  const qualityHtml = qualityRows.length
+    ? `<h3 class="benchmark-subtitle">多数据集检索质量与 Router 评测总览</h3>
+      <table class="benchmark-table"><thead><tr><th>评测集与方案</th><th>nDCG@10</th><th>Recall@10</th><th>MRR@10</th><th>备注</th></tr></thead>
+      <tbody>${qualityRows.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.ndcg)}</td><td>${escapeHtml(row.recall)}</td><td>${escapeHtml(row.mrr)}</td><td>${escapeHtml(row.note || "")}</td></tr>`).join("")}</tbody></table>`
+    : "";
   benchmarkContent.innerHTML = `<div class="benchmark-grid">${cards.map((card) => `
     <article class="benchmark-card"><span class="benchmark-card-label">${escapeHtml(card.label)}</span>
     <strong class="benchmark-value">${escapeHtml(card.value)}<small>${escapeHtml(card.unit || "")}</small></strong>
     <p>${escapeHtml(card.detail || "")}</p></article>`).join("")}</div>
+    ${qualityHtml}
+    <h3 class="benchmark-subtitle">8M 在线延迟优化与并发实测</h3>
     <table class="benchmark-table"><thead><tr><th>实验方案</th><th>p50</th><th>p95</th><th>相对基线</th></tr></thead>
     <tbody>${rows.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.p50)}</td><td>${escapeHtml(row.p95)}</td><td>${escapeHtml(row.speedup)}</td></tr>`).join("")}</tbody></table>`;
-  if (data.note) document.querySelector(".performance-note").textContent = data.note;
+  const noteEl = document.querySelector(".performance-note");
+  if (data.note && noteEl) noteEl.textContent = data.note;
 }
 
 async function loadBenchmarks() {
@@ -614,7 +791,18 @@ resultBox.addEventListener("click", (event) => {
 previousPage.addEventListener("click", () => changePage(-1));
 nextPage.addEventListener("click", () => changePage(1));
 copyUrlButton.addEventListener("click", copySearchUrl);
-modeInput.addEventListener("change", () => updateUrl(false));
+modeInput.addEventListener("change", () => { syncLexicalControls(); updateUrl(false); });
+if (scorerInput) scorerInput.addEventListener("change", () => updateUrl(false));
+if (expanderInput) expanderInput.addEventListener("change", () => updateUrl(false));
+if (compareButton) compareButton.addEventListener("click", compareAllModes);
+if (comparePanel) {
+  comparePanel.addEventListener("click", (event) => {
+    if (event.target?.closest?.("#close-compare")) {
+      clearCompare();
+      resultBox.hidden = false;
+    }
+  });
+}
 kInput.addEventListener("change", () => { state.offset = 0; updateUrl(false); });
 
 if (typeof window !== "undefined") {

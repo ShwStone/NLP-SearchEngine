@@ -7,10 +7,10 @@
 | 前端 ID | 数据 | 文档数 | 可用模式 | 本机端口 |
 | --- | --- | --- | --- | --- |
 | `news20k` | 团队自爬新闻 | 20,000 | lexical、dense、hybrid、adaptive | 18180 |
-| `mini100k` | DuReader 固定子集 | 100,000 | lexical | 18181 |
+| `mini100k` | DuReader 固定子集 | 100,000 | lexical、dense、hybrid、adaptive | 18181 |
 | `official8m` | DuReader 官方 passage | 8,096,668 | lexical、dense、hybrid、adaptive | 18086 |
 
-100k 服务使用新构建的 compact 词法索引，没有为该子集单独恢复向量 collection。前端会从网关目录读取能力并禁用其他模式。
+三套数据源均已配置 Compact 词法索引与固定 BGE-small-zh-v1.5 Qdrant HNSW 向量索引，支持完整四模式检索、BM25/TF-IDF 切换、RM3 伪相关反馈扩展及浏览器四模式并行对比。本机检索进程与 SSH 反向隧道均由 `systemd --user` 托管。
 
 ## 请求链路
 

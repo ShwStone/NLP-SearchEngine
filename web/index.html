@@ -72,6 +72,18 @@
                 <option value="dense">语义检索 · Dense</option>
               </select>
             </label>
+            <label for="scorer">词法打分
+              <select id="scorer" name="scorer">
+                <option value="bm25">BM25</option>
+                <option value="tfidf">TF-IDF</option>
+              </select>
+            </label>
+            <label for="expander">查询扩展
+              <select id="expander" name="expander">
+                <option value="none">关闭</option>
+                <option value="rm3">RM3 伪相关反馈</option>
+              </select>
+            </label>
             <label for="k">每页结果
               <select id="k" name="k">
                 <option value="10">10 条</option>
@@ -79,7 +91,8 @@
                 <option value="50">50 条</option>
               </select>
             </label>
-            <button id="copy-url" class="text-button" type="button">复制检索链接</button>
+            <button id="compare-btn" class="compare-button" type="button">四模式对比</button>
+            <button id="copy-url" class="text-button" type="button">复制链接</button>
             <span class="hint">支持中文自然语言、AND / OR / NOT 与引号短语</span>
           </div>
         </form>
@@ -92,6 +105,7 @@
             <p class="panel-label">QUERY TRACE</p>
             <h2>本次查询</h2>
             <p id="summary" class="summary"></p>
+            <div id="expanded-terms" class="expanded-terms" hidden></div>
           </div>
           <div>
             <h3>路由与执行</h3>
@@ -102,6 +116,8 @@
             <div id="timings" class="timings"></div>
           </div>
         </section>
+
+        <section id="compare-panel" class="compare-panel" aria-live="polite" hidden></section>
 
         <section id="results" class="results" aria-live="polite" aria-busy="false">
           <div class="empty-state">
@@ -129,10 +145,10 @@
         <div class="shell">
           <div class="section-heading performance-heading">
             <div>
-              <p class="section-number">02 / PERFORMANCE</p>
-              <h2>把每一次加速写进数据</h2>
+              <p class="section-number">02 / EXPERIMENTS & PERFORMANCE</p>
+              <h2>检索质量与八百万级性能实测</h2>
             </div>
-            <p>同一批真实查询，记录客户端延迟、服务端阶段耗时与并发表现。</p>
+            <p>跨三套语料规模的系统评测：在线 15.9× 延迟优化、多模式质量对照、SLM/RM3 消融与 CE 预算路由。</p>
           </div>
           <div id="benchmark-content" class="benchmark-content">
             <p class="benchmark-placeholder">正在读取本机实测摘要…</p>

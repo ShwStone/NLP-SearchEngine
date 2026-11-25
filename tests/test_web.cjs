@@ -8,11 +8,13 @@ const test = require("node:test");
 const vm = require("node:vm");
 
 const nodes = Object.fromEntries([
-  "#search-form", "#query", "#mode", "#k", "#submit", "#status", "#error",
-  "#results", "#observability", "#summary", "#routing", "#timings", "#index-summary",
-  "#index-identity", "#identity-facts", "#dataset-picker", "#dataset-description",
-  "#example-queries", "#pagination", "#prev-page", "#next-page", "#page-info",
-  "#copy-url", "#service-state", "#benchmark-content",
+  "#search-form", "#query", "#mode", "#scorer", "#expander", "#k", "#submit",
+  "#compare-btn", "#status", "#error", "#results", "#compare-panel",
+  "#observability", "#summary", "#expanded-terms", "#routing", "#timings",
+  "#index-summary", "#index-identity", "#identity-facts", "#dataset-picker",
+  "#dataset-description", "#example-queries", "#pagination", "#prev-page",
+  "#next-page", "#page-info", "#copy-url", "#service-state", "#benchmark-content",
+  ".performance-note",
 ].map((selector) => [selector, {
   addEventListener() {}, innerHTML: "", textContent: "", hidden: false, value: "",
   className: "", disabled: false, attributes: {},
@@ -21,6 +23,8 @@ const nodes = Object.fromEntries([
   focus() {},
 }]));
 nodes["#mode"].options = ["lexical", "adaptive", "hybrid", "dense"].map((value) => ({ value, disabled: false }));
+nodes["#scorer"].value = "bm25";
+nodes["#expander"].value = "none";
 const clipboard = { written: null };
 const context = vm.createContext({
   document: { querySelector: (selector) => nodes[selector] },
@@ -404,7 +408,39 @@ test("benchmark rendering escapes evidence labels", () => {
   context.renderBenchmarks({
     cards: [{ label: "<img src=x>", value: "12.3", unit: "ms", detail: "<script>bad()</script>" }],
     rows: [{ label: "baseline", p50: "12 ms", p95: "30 ms", speedup: "1×" }],
+    quality_rows: [{ label: "<b>news20k</b>", ndcg: "0.9168", recall: "0.8897", mrr: "0.9669", note: "BM25" }],
   });
-  assert.doesNotMatch(nodes["#benchmark-content"].innerHTML, /<img|<script>/);
+  assert.doesNotMatch(nodes["#benchmark-content"].innerHTML, /<img|<script>|<b>/);
   assert.match(nodes["#benchmark-content"].innerHTML, /12\.3/);
+  assert.match(nodes["#benchmark-content"].innerHTML, /0\.9168/);
+});
+
+test("lexical scorer and RM3 expander pass through on lexical mode and render expanded chips", async () => {
+  appState.catalog = datasetCatalog();
+  await context.selectDataset("news20k");
+  const bodies = [];
+  context.fetch = async (url, options) => {
+    bodies.push(JSON.parse(options.body));
+    return {
+      ok: true,
+      json: async () => ({
+        api_version: "2.0", took_ms: 5, parsed: {},
+        expanded: [{ term: "核能", w: 0.75, src: "rm3" }],
+        results: [{ rank: 1, doc_id: "doc-1", title: "核电", score: 10.5, snippet: "核电核能", highlights: [] }],
+        routing: { executed_mode: "lexical", reason: "forced_lexical" }, timings_ms: { lexical: 4 },
+      }),
+    };
+  };
+  nodes["#query"].value = "核电";
+  nodes["#mode"].value = "lexical";
+  nodes["#scorer"].value = "tfidf";
+  nodes["#expander"].value = "rm3";
+  nodes["#k"].value = "10";
+  await context.search({ preventDefault() {} });
+  assert.equal(bodies[0].scorer, "tfidf");
+  assert.equal(bodies[0].expander, "rm3");
+  assert.equal(nodes["#expanded-terms"].hidden, false);
+  assert.match(nodes["#expanded-terms"].innerHTML, /核能/);
+  nodes["#scorer"].value = "bm25";
+  nodes["#expander"].value = "none";
 });

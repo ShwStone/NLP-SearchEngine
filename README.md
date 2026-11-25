@@ -2,18 +2,14 @@
 
 基于 **BM25 + 向量数据库 + 两阶段 Router** 的中文自适应混合搜索引擎（NLP 大作业）。离线构建 BM25 与向量数据库，在线按需触发向量检索，用 RRF 融合排名。
 
-- [设计与分工](DESIGN.md)
-- [跨组 API 契约](contracts/RETRIEVAL.md)
-- [实验报告](REPORT.md) / [当前交付与待办](TODO.md)
+- [论文格式结题报告 PDF](paper/report.pdf)（[Typst 源码](paper/report.typ)） / [报告精简摘要](REPORT.md)
+- [公开演示网站（三数据源全四模式）](https://search.shwstone.cn)
+- [设计与分工](DESIGN.md) / [跨组 API 契约](contracts/RETRIEVAL.md)
+- [RFC-0005 净收益分解 CE 预算路由（PR #16）](docs/rfc0005-factor-router/README.md)
 - [RFC-0001 等向量预算与学习型 Router 对照](docs/contributions/rfc0001-router-budget.md)
-- [RFC-0004 离线产物交付补充](docs/contributions/rfc0004-delivery-validation.md)
-- [RFC-0004 接收机实测与合并修正](docs/contributions/rfc0004-receiver-acceptance.md)
-- [在线服务部署与验收](docs/online-serving.md)
 - [多数据集网站与本机服务部署](docs/MULTI_DATASET_SERVING.md) / [8M 在线调优记录](docs/PERFORMANCE_TUNING.md)
-- [公开演示网站](https://search.shwstone.cn)
-- [RFC-0003 在线服务验收记录](docs/contributions/rfc0003-online-acceptance.md)
+- [自爬新闻 20k 数据卡](docs/contributions/rfc0002-news20k-dataset-card.md) / [消融实验汇总 JSON](docs/experiments/ablations-summary.json)
 - [开题汇报 PDF](slides/proposal.pdf) / [Typst 源文件](slides/proposal.typ)
-- [实施计划与历史讨论](PLAN.md)
 
 ## 目录结构
 

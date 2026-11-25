@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="510" viewBox="0 0 1120 510">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 z" fill="#1d4ed8"/>
+    </marker>
+    <marker id="arrTeal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 z" fill="#0d9488"/>
+    </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 z" fill="#d97706"/>
+    </marker>
+    <filter id="sh" x="-4%" y="-6%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="1120" height="510" fill="#ffffff"/>
+
+  <!-- Band 1: Offline Dual-Index Pipeline -->
+  <rect x="14" y="14" width="1092" height="158" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <rect x="26" y="24" width="198" height="24" rx="6" fill="#dbeafe"/>
+  <text x="125" y="40" font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" font-size="12.5" font-weight="bold" fill="#1e40af" text-anchor="middle">离线层：双索引构建与校验 (offline/)</text>
+
+  <!-- Offline Boxes -->
+  <g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" text-anchor="middle" filter="url(#sh)">
+    <rect x="30" y="60" width="190" height="94" rx="9" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="125" y="84" font-size="14" font-weight="bold" fill="#0f172a">三套中文语料库</text>
+    <text x="125" y="105" font-size="11" fill="#475569">自爬新华网新闻 · 20,000 篇</text>
+    <text x="125" y="122" font-size="11" fill="#475569">DuReader Mini · 100,000 篇</text>
+    <text x="125" y="139" font-size="11" fill="#475569">DuReader 全集 · 8,096,668 篇</text>
+
+    <rect x="268" y="54" width="246" height="48" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.4"/>
+    <text x="391" y="75" font-size="13" font-weight="bold" fill="#1e3a8a">手写流式词法建库 (Compact-Packed)</text>
+    <text x="391" y="92" font-size="10.5" fill="#475569">Bigram 分词 · 10 分片合并 · 8.58M 词项 · 39 GB</text>
+
+    <rect x="268" y="112" width="246" height="48" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.4"/>
+    <text x="391" y="133" font-size="13" font-weight="bold" fill="#115e59">BGE-small-zh-v1.5 GPU 全量编码</text>
+    <text x="391" y="150" font-size="10.5" fill="#475569">512 维 FP32 CLS L2 · Qdrant 1.16 HNSW · 18 GB</text>
+
+    <rect x="570" y="62" width="225" height="90" rx="9" fill="#fffbeb" stroke="#d97706" stroke-width="1.6"/>
+    <text x="682" y="86" font-size="13.5" font-weight="bold" fill="#92400e">契约接口 A · 双索引对齐</text>
+    <text x="682" y="106" font-size="11" fill="#78350f">共享内部 docid 与有序语料指纹</text>
+    <text x="682" y="123" font-size="11" fill="#78350f">SHA-256 校验 · 固定模型版本</text>
+    <text x="682" y="140" font-size="11" fill="#78350f">A1/Compact 与 HNSW 快照原子发布</text>
+
+    <rect x="845" y="62" width="242" height="90" rx="9" fill="#ffffff" stroke="#64748b" stroke-width="1.4" stroke-dasharray="5 3"/>
+    <text x="966" y="86" font-size="13" font-weight="bold" fill="#334155">外部参考与离线评测 (evaluation/)</text>
+    <text x="966" y="106" font-size="11" fill="#475569">BM25S / FAISS IndexFlatIP 精确对照</text>
+    <text x="966" y="123" font-size="11" fill="#475569">TREC 评测 · Paired Bootstrap 95% CI</text>
+    <text x="966" y="140" font-size="11" fill="#475569">SLM (Qwen2.5-1.5B) &amp; CE 重排离线消融</text>
+  </g>
+
+  <!-- Offline Arrows -->
+  <path d="M220,90 L244,90 L244,78 L263,78" fill="none" stroke="#1d4ed8" stroke-width="1.7" marker-end="url(#arrBlue)"/>
+  <path d="M220,122 L244,122 L244,136 L263,136" fill="none" stroke="#0d9488" stroke-width="1.7" marker-end="url(#arrTeal)"/>
+  <path d="M514,78 L542,78 L542,96 L565,96" fill="none" stroke="#1d4ed8" stroke-width="1.7" marker-end="url(#arrBlue)"/>
+  <path d="M514,136 L542,136 L542,118 L565,118" fill="none" stroke="#0d9488" stroke-width="1.7" marker-end="url(#arrTeal)"/>
+  <line x1="795" y1="107" x2="840" y2="107" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+  <!-- Band 2: Online Adaptive Multi-Stage Retrieval Engine -->
+  <rect x="14" y="190" width="1092" height="186" rx="12" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+  <rect x="26" y="200" width="268" height="24" rx="6" fill="#ccfbf1"/>
+  <text x="160" y="216" font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" font-size="12.5" font-weight="bold" fill="#0f766e" text-anchor="middle">在线检索层：多阶段混合检索与自适应路由 (online/)</text>
+
+  <!-- Online Boxes -->
+  <g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" text-anchor="middle" filter="url(#sh)">
+    <rect x="30" y="242" width="150" height="114" rx="9" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+    <text x="105" y="266" font-size="13.5" font-weight="bold" fill="#0f172a">查询解析与过滤</text>
+    <text x="105" y="287" font-size="10.8" fill="#475569">自然语言 OR 并集</text>
+    <text x="105" y="305" font-size="10.8" fill="#475569">AND / NOT / 括号</text>
+    <text x="105" y="323" font-size="10.8" fill="#475569">"短语" 位置硬过滤</text>
+    <text x="105" y="342" font-size="10.5" fill="#0d9488">可选 RM3 / SLM 扩写</text>
+
+    <rect x="218" y="242" width="184" height="114" rx="9" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="310" y="266" font-size="13.5" font-weight="bold" fill="#1e3a8a">第一阶段：词法快速路</text>
+    <text x="310" y="287" font-size="10.8" fill="#475569">BM25 (k1=1.2, b=0.75) / TF-IDF</text>
+    <text x="310" y="305" font-size="10.8" fill="#475569">Numba JIT 块解码 + 512M 缓存</text>
+    <text x="310" y="323" font-size="10.8" fill="#475569">稀疏 NumPy + 大并集双阈值</text>
+    <text x="310" y="342" font-size="10.8" font-weight="bold" fill="#1d4ed8">8M p50 = 43 ms (15.9×)</text>
+
+    <rect x="440" y="242" width="190" height="114" rx="9" fill="#fffbeb" stroke="#d97706" stroke-width="1.8"/>
+    <text x="535" y="265" font-size="13.5" font-weight="bold" fill="#92400e">自适应 Router (四代演进)</text>
+    <text x="535" y="286" font-size="10.5" fill="#78350f">① rules-v1 覆盖率/分差规则</text>
+    <text x="535" y="303" font-size="10.5" fill="#78350f">② 线性收益预测 (Ridge)</text>
+    <text x="535" y="320" font-size="10.5" fill="#78350f">③ 嵌套 CE 门控 + 质量护栏</text>
+    <text x="535" y="337" font-size="10.5" font-weight="bold" fill="#b45309">④ 净收益分解 CE 预算分配</text>
+
+    <rect x="668" y="236" width="208" height="58" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+    <text x="772" y="257" font-size="13" font-weight="bold" fill="#115e59">语义召回 + (加权) RRF 融合</text>
+    <text x="772" y="274" font-size="10.5" fill="#475569">BGE 查询编码 + Qdrant HNSW (ef=64/256)</text>
+    <text x="772" y="288" font-size="10.5" fill="#0f766e">8M 热态 Dense p50 = 15 ms (8t/8t)</text>
+
+    <rect x="668" y="306" width="208" height="54" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.4"/>
+    <text x="772" y="327" font-size="12.5" font-weight="bold" fill="#5b21b6">精排研究层：Cross-Encoder 预算</text>
+    <text x="772" y="344" font-size="10.5" fill="#475569">CE-0 / CE-28 / CE-33 / CE-40 按净收益分配</text>
+    <text x="772" y="357" font-size="10" fill="#6d28d9">100k 面板 nDCG@10 = 0.4372 (+0.0130)</text>
+
+    <rect x="914" y="242" width="174" height="114" rx="9" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+    <text x="1001" y="266" font-size="13.5" font-weight="bold" fill="#0f172a">渲染、高亮与响应</text>
+    <text x="1001" y="287" font-size="10.8" fill="#475569">展示页外部 ID 惰性核验</text>
+    <text x="1001" y="305" font-size="10.8" fill="#475569">Unicode 字符偏移高亮</text>
+    <text x="1001" y="323" font-size="10.8" fill="#475569">回显 routing / timings_ms</text>
+    <text x="1001" y="342" font-size="10.8" fill="#0d9488">HTTP API v2.0 (接口 B)</text>
+  </g>
+
+  <!-- Online Arrows -->
+  <line x1="180" y1="299" x2="213" y2="299" stroke="#475569" stroke-width="1.7" marker-end="url(#arr)"/>
+  <line x1="402" y1="299" x2="435" y2="299" stroke="#475569" stroke-width="1.7" marker-end="url(#arr)"/>
+  <path d="M630,278 L650,278 L650,265 L663,265" fill="none" stroke="#0d9488" stroke-width="1.7" marker-end="url(#arrTeal)"/>
+  <path d="M630,320 L650,320 L650,333 L663,333" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <path d="M876,265 L895,265 L895,290 L909,290" fill="none" stroke="#0d9488" stroke-width="1.7" marker-end="url(#arrTeal)"/>
+  <path d="M876,333 L895,333 L895,310 L909,310" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <!-- Direct BM25 fast bypass arrow -->
+  <path d="M535,242 L535,222 L1001,222 L1001,237" fill="none" stroke="#d97706" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arrAmber)"/>
+  <text x="772" y="217" font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" font-size="10.5" font-weight="bold" fill="#b45309" text-anchor="middle">词法充分 / 显式约束 → 直接返回 BM25，跳过向量与融合</text>
+
+  <!-- Vertical link from Contract A to Online -->
+  <path d="M682,152 L682,179 L310,179 L310,237" fill="none" stroke="#d97706" stroke-width="1.8" marker-end="url(#arrAmber)"/>
+  <path d="M682,179 L772,179 L772,231" fill="none" stroke="#d97706" stroke-width="1.8" marker-end="url(#arrAmber)"/>
+
+  <!-- Band 3: Web Deployment & Gateway -->
+  <rect x="14" y="394" width="1092" height="102" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <rect x="26" y="404" width="248" height="24" rx="6" fill="#e2e8f0"/>
+  <text x="150" y="420" font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" font-size="12.5" font-weight="bold" fill="#1e293b" text-anchor="middle">部署与交互层：公网网站与多数据集网关</text>
+
+  <g font-family="Noto Sans CJK SC, Microsoft YaHei, sans-serif" text-anchor="middle" filter="url(#sh)">
+    <rect x="30" y="436" width="232" height="48" rx="8" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+    <text x="146" y="456" font-size="12.5" font-weight="bold" fill="#0f172a">知海 Web 检索实验室 (浏览器)</text>
+    <text x="146" y="473" font-size="10.5" fill="#475569">三数据源切换 · 四模式对比 · RM3/TF-IDF</text>
+
+    <rect x="306" y="436" width="240" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="426" y="456" font-size="12.5" font-weight="bold" fill="#1e3a8a">阿里云 ECS Nginx (HTTPS)</text>
+    <text x="426" y="473" font-size="10.5" fill="#475569">search.shwstone.cn · 静态托管 · 限流熔断</text>
+
+    <rect x="590" y="436" width="212" height="48" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+    <text x="696" y="456" font-size="12.5" font-weight="bold" fill="#92400e">SSH 反向隧道 (systemd)</text>
+    <text x="696" y="473" font-size="10.5" fill="#78350f">127.0.0.1:18081 ↔ 本机 18083</text>
+
+    <rect x="846" y="436" width="242" height="48" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+    <text x="967" y="456" font-size="12.5" font-weight="bold" fill="#14532d">多数据集网关 + 3 独立检索服务</text>
+    <text x="967" y="473" font-size="10.5" fill="#475569">news20k (:18180) · 100k (:18181) · 8M (:18086)</text>
+  </g>
+
+  <line x1="262" y1="460" x2="301" y2="460" stroke="#475569" stroke-width="1.7" marker-end="url(#arr)"/>
+  <line x1="546" y1="460" x2="585" y2="460" stroke="#475569" stroke-width="1.7" marker-end="url(#arr)"/>
+  <line x1="802" y1="460" x2="841" y2="460" stroke="#475569" stroke-width="1.7" marker-end="url(#arr)"/>
+  <path d="M967,436 L967,385 L1001,385 L1001,361" fill="none" stroke="#15803d" stroke-width="1.7" marker-end="url(#arr)"/>
+</svg>

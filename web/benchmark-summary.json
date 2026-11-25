@@ -5,27 +5,40 @@
       "label": "8M BM25 P50 加速",
       "value": "15.9",
       "unit": "×",
-      "detail": "64 条真实查询，服务端 685 ms 降至 43 ms，排名完全一致"
-    },
-    {
-      "label": "8M BM25 P95 加速",
-      "value": "14.1",
-      "unit": "×",
-      "detail": "尾部延迟 2369 ms 降至 167.7 ms，单客户端串行测量"
+      "detail": "64 条真实查询，服务端 685 ms 降至 43 ms，Top-10 排名与分数零差"
     },
     {
       "label": "热态 DENSE P50",
-      "value": "15",
+      "value": "15.0",
       "unit": "ms",
-      "detail": "ef64，Qdrant 与 Torch 各 8 线程，完整 HTTP 服务"
+      "detail": "8.1M 语料，ef64 + Qdrant/Torch 双 8 线程，4 路并发降延迟 8.6×"
+    },
+    {
+      "label": "SLM 查询扩写增益",
+      "value": "+13.3",
+      "unit": "%",
+      "detail": "Qwen2.5-1.5B 在 DuReader 100k 提升 BM25 +0.0178、Dense +0.0129"
+    },
+    {
+      "label": "CE 净收益路由 (PR #16)",
+      "value": "0.4372",
+      "unit": "nDCG",
+      "detail": "相同 21,676 CE pairs 预算下，超越 PR #9 96 特征基线 +0.0130"
     }
   ],
-  "rows": [
-    {"label": "原始 BM25 · 单路", "p50": "685 ms", "p95": "2369 ms", "speedup": "1×"},
-    {"label": "优化 BM25 · 单路", "p50": "43 ms", "p95": "167.7 ms", "speedup": "15.9×"},
-    {"label": "优化 Dense · 单路热态", "p50": "15 ms", "p95": "19.7 ms", "speedup": "ef64"},
-    {"label": "优化 Dense · 两路", "p50": "23.5 ms", "p95": "28.45 ms", "speedup": "并发 2"},
-    {"label": "优化 Dense · 四路", "p50": "48.5 ms", "p95": "57.45 ms", "speedup": "并发 4"}
+  "quality_rows": [
+    {"label": "自爬新闻 20k · BM25 / Adaptive (21% 向量)", "ndcg": "0.9168 / 0.9082", "recall": "0.8897 / 0.8731", "mrr": "0.9669 / 0.9756", "note": "Adaptive 超固定 Hybrid +0.0572"},
+    {"label": "自爬新闻 20k · Min-Max 融合 (α=0.25)", "ndcg": "0.9284", "recall": "0.8839", "mrr": "0.9878", "note": "同时超越纯 BM25 与纯 Dense"},
+    {"label": "DuReader 100k · BM25 / Dense / Dense+SLM", "ndcg": "0.1340 / 0.2648 / 0.2777", "recall": "0.1571 / 0.2912 / 0.3210", "mrr": "0.2173 / 0.4098 / 0.4078", "note": "Qwen2.5-1.5B 扩写统计显著 +0.0129"},
+    {"label": "DuReader 8M · BM25 / Dense / Hybrid / Adaptive", "ndcg": "0.1265 / 0.2560 / 0.2097 / 0.1876", "recall": "0.1529 / 0.2856 / 0.2448 / 0.2175", "mrr": "0.1956 / 0.3855 / 0.3211 / 0.2909", "note": "808 留出；全量 8,096,668 篇"},
+    {"label": "DuReader 100k (n=730) · 净收益分解 CE Router", "ndcg": "0.4372", "recall": "0.4594", "mrr": "0.6076", "note": "21,676 pairs (-10% vs CE-33)，超基线 +0.0130"}
   ],
-  "note": "数据来自本机 NVMe 与 Ryzen 9 5950X 的 2026-11-17 实测。冷热状态与样本口径在实验文档中分别列出。"
+  "rows": [
+    {"label": "8M 原始 BM25 · 单路 (64q)", "p50": "685 ms", "p95": "2369 ms", "speedup": "1.0×"},
+    {"label": "8M 优化 BM25 · 单路 (64q)", "p50": "43 ms", "p95": "167.7 ms", "speedup": "15.9×"},
+    {"label": "8M 优化 Dense · 单路热态 (ef64)", "p50": "15 ms", "p95": "19.7 ms", "speedup": "8t / 8t"},
+    {"label": "8M 优化 Dense · 两路并发", "p50": "23.5 ms", "p95": "28.45 ms", "speedup": "9.6×"},
+    {"label": "8M 优化 Dense · 四路并发", "p50": "48.5 ms", "p95": "57.45 ms", "speedup": "8.6×"}
+  ],
+  "note": "全部三套数据源（20k 新闻 / 100k 子集 / 8.1M 全集）均支持四模式实时检索。完整论文报告见仓库 paper/report.pdf。"
 }
