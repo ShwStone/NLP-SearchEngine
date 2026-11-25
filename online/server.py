@@ -22,7 +22,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from ipaddress import ip_address
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 from uuid import uuid4
 
 from contracts.api import ApiError, SEARCH_INSTANCE_HEADER, SearchRequest
@@ -218,7 +218,8 @@ def make_handler(engine: SearchEngine, static_root: Path | None = None, *,
             )
 
         def do_GET(self):
-            path = urlsplit(self.path).path
+            split = urlsplit(self.path)
+            path = split.path
             if self._serve_static(path):
                 return
             reader = engine.reader
@@ -234,6 +235,18 @@ def make_handler(engine: SearchEngine, static_root: Path | None = None, *,
                 retrieval = engine.info()
                 retrieval["serving"] = self._serving_info()
                 self._send(200, {**reader.manifest(), "retrieval": retrieval})
+            elif path.startswith("/doc/"):
+                raw_id = unquote(path[len("/doc/"):]).strip()
+                if not raw_id or "/" in raw_id or len(raw_id) > 256:
+                    self._send(400, {"error": "invalid doc_id"})
+                    return
+                params = parse_qs(split.query, keep_blank_values=False)
+                query = (params.get("q") or [""])[0][:512]
+                doc = engine.get_document(raw_id, query=query)
+                if doc is None:
+                    self._send(404, {"error": "document not found"})
+                    return
+                self._send(200, doc)
             else:
                 self._send(404, {"error": "unknown path"})
 

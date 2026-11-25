@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="面向中文新闻与八百万篇 DuReader 语料的 BM25、向量和混合搜索引擎">
     <title>知海 · 中文搜索引擎与检索实验室</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=2">
   </head>
   <body>
     <a class="skip-link" href="#search">跳到搜索</a>
@@ -19,101 +19,119 @@
           <path d="m29.5 29.5 4 4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
         <span>知海<span class="brand-dot">.</span></span>
-        <span class="brand-lab">检索实验室</span>
+        <span class="brand-lab">中文搜索引擎</span>
       </a>
       <nav class="nav-links" aria-label="页面导航">
         <a href="#search">检索</a>
-        <a href="#performance">性能</a>
-        <a href="#architecture">架构</a>
+        <a href="#performance">性能实测</a>
+        <a href="#architecture">系统架构</a>
       </nav>
       <span id="service-state" class="service-state"><span class="status-dot"></span>正在连接</span>
     </header>
 
     <main>
       <section class="hero shell">
-        <p class="eyebrow">CHINESE INFORMATION RETRIEVAL</p>
-        <h1>从两万到八百万，<br><span>让好答案浮上来。</span></h1>
-        <p class="hero-copy">同一条查询，对照三种语料规模与四种检索策略。<br>看见结果，也看见每一次召回背后的耗时。</p>
-        <div class="hero-stats" aria-label="系统能力">
-          <span><strong>3</strong> 套数据源</span>
-          <span><strong>8.1M</strong> 最大语料</span>
-          <span><strong>4</strong> 种检索模式</span>
+        <div class="hero-row">
+          <div>
+            <p class="eyebrow">CHINESE HYBRID SEARCH ENGINE</p>
+            <h1>从两万到八百万，<span>让好答案浮上来。</span></h1>
+            <p class="hero-copy">支持 BM25 词法、BGE 语义向量、RRF 混合召回与智能自适应路由，点击任意结果即可阅读高亮全文。</p>
+          </div>
+          <div class="hero-stats" aria-label="系统能力">
+            <span><strong>3</strong> 套数据源</span>
+            <span><strong>8.1M</strong> 最大语料</span>
+            <span><strong>4</strong> 种检索模式</span>
+          </div>
         </div>
       </section>
 
       <section id="search" class="search-workspace shell" aria-label="搜索工作台">
-        <div class="section-heading">
-          <div>
-            <p class="section-number">01 / DATASET</p>
-            <h2>选择检索范围</h2>
+        <div class="dataset-bar">
+          <div id="dataset-picker" class="dataset-picker" role="group" aria-label="数据源">
+            <span class="dataset-loading">正在加载数据源</span>
           </div>
-          <p id="dataset-description" class="dataset-description">正在读取数据源…</p>
+          <p id="dataset-description" class="dataset-description sr-only">正在读取数据源…</p>
         </div>
-        <div id="dataset-picker" class="dataset-picker" role="group" aria-label="数据源">
-          <span class="dataset-loading">正在加载数据源</span>
-        </div>
-        <div id="example-queries" class="example-queries" aria-label="示例查询"></div>
 
         <form id="search-form" class="search-panel">
           <label class="sr-only" for="query">搜索内容</label>
           <div class="query-row">
             <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             <input id="query" name="query" type="search" autocomplete="off"
-                   placeholder="输入一个问题或一组关键词，按 Enter 检索" required>
-            <kbd class="keyboard-hint">/</kbd>
-            <button id="submit" type="submit"><span>检索</span><span aria-hidden="true">→</span></button>
+                   placeholder="输入中文问题、关键词、引号短语或 AND / OR / NOT，按 Enter 检索" required>
+            <kbd class="keyboard-hint" title="按 / 键聚焦搜索框">/</kbd>
+            <button id="submit" type="submit"><span>搜索</span><span aria-hidden="true">→</span></button>
           </div>
-          <div class="controls">
-            <label for="mode">检索模式
-              <select id="mode" name="mode">
-                <option value="lexical">词法检索 · BM25</option>
-                <option value="adaptive">自适应 · Adaptive</option>
-                <option value="hybrid">混合召回 · Hybrid</option>
-                <option value="dense">语义检索 · Dense</option>
-              </select>
-            </label>
-            <label for="scorer">词法打分
-              <select id="scorer" name="scorer">
-                <option value="bm25">BM25</option>
-                <option value="tfidf">TF-IDF</option>
-              </select>
-            </label>
-            <label for="expander">查询扩展
-              <select id="expander" name="expander">
-                <option value="none">关闭</option>
-                <option value="rm3">RM3 伪相关反馈</option>
-              </select>
-            </label>
-            <label for="k">每页结果
-              <select id="k" name="k">
-                <option value="10">10 条</option>
-                <option value="20">20 条</option>
-                <option value="50">50 条</option>
-              </select>
-            </label>
-            <button id="compare-btn" class="compare-button" type="button">四模式对比</button>
-            <button id="copy-url" class="text-button" type="button">复制链接</button>
-            <span class="hint">支持中文自然语言、AND / OR / NOT 与引号短语</span>
+
+          <div class="mode-bar">
+            <div id="mode-tabs" class="mode-tabs" role="tablist" aria-label="检索模式切换">
+              <button type="button" class="mode-tab active" role="tab" aria-selected="true" data-mode-tab="adaptive">自适应智能</button>
+              <button type="button" class="mode-tab" role="tab" aria-selected="false" data-mode-tab="lexical">词法 BM25</button>
+              <button type="button" class="mode-tab" role="tab" aria-selected="false" data-mode-tab="hybrid">混合召回</button>
+              <button type="button" class="mode-tab" role="tab" aria-selected="false" data-mode-tab="dense">语义向量</button>
+              <button id="compare-btn" type="button" class="mode-tab mode-tab-compare" role="tab" aria-selected="false" data-mode-tab="compare">四模式对比</button>
+            </div>
+            <div class="controls">
+              <label class="sr-only" for="mode">检索模式
+                <select id="mode" name="mode">
+                  <option value="adaptive" selected>自适应 · Adaptive</option>
+                  <option value="lexical">词法检索 · BM25</option>
+                  <option value="hybrid">混合召回 · Hybrid</option>
+                  <option value="dense">语义检索 · Dense</option>
+                </select>
+              </label>
+              <span id="lexical-options" class="lexical-options" hidden>
+                <label for="scorer">打分
+                  <select id="scorer" name="scorer">
+                    <option value="bm25">BM25</option>
+                    <option value="tfidf">TF-IDF</option>
+                  </select>
+                </label>
+                <label for="expander">扩展
+                  <select id="expander" name="expander">
+                    <option value="none">关闭</option>
+                    <option value="rm3">RM3</option>
+                  </select>
+                </label>
+              </span>
+              <label for="k">每页
+                <select id="k" name="k">
+                  <option value="10">10 条</option>
+                  <option value="20">20 条</option>
+                  <option value="50">50 条</option>
+                </select>
+              </label>
+              <button id="copy-url" class="text-button" type="button">复制链接</button>
+            </div>
           </div>
         </form>
 
-        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <div class="query-suggestions">
+          <div id="example-queries" class="example-queries" aria-label="示例查询"></div>
+          <div id="recent-queries" class="recent-queries" aria-label="最近搜索" hidden></div>
+        </div>
+
+        <div id="status" class="status sr-only" role="status" aria-live="polite"></div>
         <section id="error" class="error" role="alert" hidden></section>
 
         <section id="observability" class="observability" hidden>
-          <div class="observation-summary">
-            <p class="panel-label">QUERY TRACE</p>
-            <h2>本次查询</h2>
-            <p id="summary" class="summary"></p>
-            <div id="expanded-terms" class="expanded-terms" hidden></div>
+          <div class="serp-bar">
+            <div class="serp-bar-main">
+              <p id="summary" class="summary"></p>
+              <span id="compact-timings" class="compact-timings"></span>
+            </div>
+            <button type="button" id="toggle-trace" class="trace-toggle" aria-expanded="false" aria-controls="trace-details">路由与耗时详情 ▾</button>
           </div>
-          <div>
-            <h3>路由与执行</h3>
-            <dl id="routing" class="facts"></dl>
-          </div>
-          <div>
-            <h3>服务端阶段耗时</h3>
-            <div id="timings" class="timings"></div>
+          <div id="expanded-terms" class="expanded-terms" hidden></div>
+          <div id="trace-details" class="trace-details" hidden>
+            <div>
+              <h3>路由与执行</h3>
+              <dl id="routing" class="facts"></dl>
+            </div>
+            <div>
+              <h3>服务端阶段耗时</h3>
+              <div id="timings" class="timings"></div>
+            </div>
           </div>
         </section>
 
@@ -123,7 +141,7 @@
           <div class="empty-state">
             <span class="empty-index">READY</span>
             <h2>选一个示例，或写下你的问题</h2>
-            <p>结果会保留相关词高亮、排名分数和服务端耗时。</p>
+            <p>支持点击任意检索结果直接展开完整正文与关键词定位。</p>
           </div>
         </section>
         <nav id="pagination" class="pagination" aria-label="搜索结果分页" hidden>
@@ -166,17 +184,44 @@
           <p>前端静态部署在阿里云，数据与模型留在本机，公网无需接触数据库。</p>
         </div>
         <div class="architecture-grid">
-          <article><span>01</span><h3>静态前端</h3><p>原生 JavaScript、响应式布局、可分享查询链接，由 Nginx 提供 HTTPS 与限流。</p></article>
-          <article><span>02</span><h3>多数据集网关</h3><p>按数据源转发请求，统一错误语义，各索引进程相互隔离。</p></article>
+          <article><span>01</span><h3>静态前端</h3><p>原生 JavaScript、全文阅读抽屉、可分享查询链接，由 Nginx 提供 HTTPS 与限流。</p></article>
+          <article><span>02</span><h3>多数据集网关</h3><p>按数据源转发检索与全文读取请求，统一错误语义，各索引进程相互隔离。</p></article>
           <article><span>03</span><h3>本机检索集群</h3><p>Compact 倒排索引、NumPy 热路径、BGE 编码器与 Qdrant HNSW 协同工作。</p></article>
         </div>
       </section>
     </main>
 
+    <div id="doc-drawer" class="doc-drawer" role="dialog" aria-modal="true" aria-labelledby="doc-drawer-title" hidden>
+      <div id="doc-drawer-backdrop" class="doc-drawer-backdrop"></div>
+      <aside class="doc-drawer-panel">
+        <header class="doc-drawer-head">
+          <div class="doc-drawer-top">
+            <span id="doc-drawer-source" class="doc-drawer-source"></span>
+            <div class="doc-drawer-id-wrap">
+              <code id="doc-drawer-id" class="doc-drawer-id"></code>
+              <button type="button" id="doc-drawer-copy-id" class="drawer-mini-btn">复制 ID</button>
+              <button type="button" id="doc-drawer-close" class="drawer-close-btn" aria-label="关闭全文阅读">×</button>
+            </div>
+          </div>
+          <h2 id="doc-drawer-title" class="doc-drawer-title"></h2>
+          <div class="doc-drawer-toolbar">
+            <span id="doc-drawer-meta" class="doc-drawer-meta"></span>
+            <button type="button" id="doc-drawer-next-hit" class="drawer-hit-btn" hidden>下一处命中 ↓</button>
+          </div>
+        </header>
+        <div id="doc-drawer-body" class="doc-drawer-body"></div>
+        <footer class="doc-drawer-foot">
+          <button type="button" id="doc-drawer-copy" class="page-button">复制正文</button>
+          <button type="button" id="doc-drawer-research" class="page-button">以此主题再搜</button>
+          <button type="button" id="doc-drawer-close-foot" class="page-button primary">关闭 (Esc)</button>
+        </footer>
+      </aside>
+    </div>
+
     <footer class="site-footer shell">
       <span>知海 · NLP 课程大作业</span>
       <span>BM25 / BGE / Qdrant / RRF</span>
     </footer>
-    <script type="module" src="/static/app.js"></script>
+    <script type="module" src="/static/app.js?v=2"></script>
   </body>
 </html>

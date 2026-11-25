@@ -27,6 +27,8 @@ class UpstreamHandler(BaseHTTPRequestHandler):
             self._json({"status": "ok", "index": {"dataset": "upstream"}})
         elif self.path == "/index/info":
             self._json({"dataset": "upstream", "n_docs": 20})
+        elif self.path.startswith("/doc/"):
+            self._json({"doc_id": self.path[len("/doc/"):], "text": "full document", "path": self.path})
         else:
             self._json({"error": "not found"}, 404)
 
@@ -96,6 +98,54 @@ class GatewayTests(unittest.TestCase):
         status, payload, _ = self.request("POST", "/search", {"query": "核电"})
         self.assertEqual(status, 200)
         self.assertEqual(self.upstream.received[-1], {"query": "核电"})
+
+    def test_document_routes_forward_doc_id_and_query_string(self):
+        status, payload, headers = self.request(
+            "GET", "/datasets/official8m/doc/abc123?q=%E8%8A%82%E5%81%87%E6%97%A5")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["path"], "/doc/abc123?q=%E8%8A%82%E5%81%87%E6%97%A5")
+        self.assertEqual(headers["X-Search-Dataset"], "official8m")
+        status, payload, headers = self.request("GET", "/doc/crawl-000001?q=test")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["path"], "/doc/crawl-000001?q=test")
+        self.assertEqual(headers["X-Search-Dataset"], "news20k")
+        self.assertEqual(self.request("GET", "/datasets/missing/doc/abc123")[0], 404)
+        self.assertEqual(self.request("GET", "/doc/")[0], 404)
+
+    def test_server_doc_endpoint_returns_full_text_and_highlights(self):
+        from online.engine import SearchEngine
+        from online.memory_index import MemoryIndex
+        from online.server import make_handler as make_server_handler
+
+        corpus = [
+            {"doc_id": "d1", "title": "测试标题", "text": "心肌梗死发作前常有胸闷胸痛症状，需要及时就医。"},
+            {"doc_id": "d2", "title": "", "text": "iPhone掉水里怎么办？第一步立刻关机。"},
+        ]
+        engine = SearchEngine(MemoryIndex.from_corpus(corpus))
+        server = ThreadingHTTPServer(("127.0.0.1", 0), make_server_handler(engine))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            conn = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=3)
+            conn.request("GET", "/doc/d1?q=%E5%BF%83%E8%82%8C%E6%A2%97%E6%AD%BB")
+            resp = conn.getresponse()
+            body = json.loads(resp.read())
+            self.assertEqual(resp.status, 200)
+            self.assertEqual(body["doc_id"], "d1")
+            self.assertEqual(body["title"], "测试标题")
+            self.assertEqual(body["char_count"], len(corpus[0]["text"]))
+            self.assertTrue(body["highlights"])
+            self.assertEqual(body["highlights"][0]["start"], 0)
+            self.assertEqual(body["highlights"][0]["end"], 4)
+            conn.request("GET", "/doc/nonexistent-id")
+            resp = conn.getresponse()
+            resp.read()
+            self.assertEqual(resp.status, 404)
+            conn.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
 
     def test_unknown_routes_and_oversized_bodies_are_rejected_locally(self):
         self.assertEqual(self.request("GET", "/datasets/missing/info")[0], 404)

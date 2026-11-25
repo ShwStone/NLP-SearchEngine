@@ -5,8 +5,10 @@
 
 import math
 import time
+from collections import OrderedDict
 from dataclasses import asdict
 from heapq import nsmallest
+import threading
 
 from contracts import analyzer
 from contracts.api import ApiError, ResultItem, RoutingInfo, SearchRequest, SearchResponse
@@ -22,7 +24,8 @@ from .fusion import rrf
 from .highlight import build_highlights
 from .router import QueryFeatures, RouteDecision, Router, RuleRouter, router_identity
 
-SNIPPET_LEN = 80
+SNIPPET_LEN = 220
+DOCID_CACHE_MAX = 4096
 
 
 class SearchEngine:
@@ -44,6 +47,73 @@ class SearchEngine:
         check_binding = getattr(self.router, "check_binding", None)
         if callable(check_binding):
             check_binding(reader, self.config)
+        self._docid_cache: OrderedDict[str, int] = OrderedDict()
+        self._docid_lock = threading.Lock()
+
+    def _remember_docid(self, doc_id: str, docid: int) -> None:
+        with self._docid_lock:
+            self._docid_cache[doc_id] = docid
+            self._docid_cache.move_to_end(doc_id)
+            while len(self._docid_cache) > DOCID_CACHE_MAX:
+                self._docid_cache.popitem(last=False)
+
+    def _load_doc_text(self, docid: int):
+        document_text = getattr(self.reader, "document_text", None)
+        return document_text(docid) if callable(document_text) else self.reader.doc(docid)
+
+    def _resolve_internal_docid(self, doc_id: str) -> int | None:
+        if not isinstance(doc_id, str) or not doc_id:
+            return None
+        with self._docid_lock:
+            cached = self._docid_cache.get(doc_id)
+            if cached is not None:
+                self._docid_cache.move_to_end(doc_id)
+                return cached
+        # Fast O(1) guess for sequential crawl-NNNNNN IDs (news20k)
+        if doc_id.startswith("crawl-") and doc_id[6:].isdigit():
+            guess = int(doc_id[6:]) - 1
+            if 0 <= guess < self.reader.n_docs:
+                try:
+                    if self._load_doc_text(guess).doc_id == doc_id:
+                        self._remember_docid(doc_id, guess)
+                        return guess
+                except Exception:
+                    pass
+        # Bounded fallback scan for small/medium corpora (tiny, news20k, mini100k)
+        if self.reader.n_docs <= 120_000:
+            external = getattr(self.reader, "external_doc_id", None)
+            for idx in range(self.reader.n_docs):
+                try:
+                    ext = external(idx) if callable(external) else self.reader.doc(idx).doc_id
+                except Exception:
+                    continue
+                if ext == doc_id:
+                    self._remember_docid(doc_id, idx)
+                    return idx
+        return None
+
+    def get_document(self, doc_id: str, query: str = "") -> dict | None:
+        """Fetch full document text and optional query highlights for the web reader."""
+        internal = self._resolve_internal_docid(doc_id)
+        if internal is None:
+            return None
+        doc = self._load_doc_text(internal)
+        terms: set[str] = set()
+        if isinstance(query, str) and query.strip():
+            try:
+                parsed = parser.parse(query)
+                terms = {token.term for raw in parsed["terms"] for token in analyzer.analyze(raw)}
+            except Exception:
+                terms = {token.term for token in analyzer.analyze(query)}
+        highlights = [h.to_dict() for h in build_highlights(doc, terms)] if terms else []
+        return {
+            "doc_id": doc.doc_id,
+            "internal_id": internal,
+            "title": doc.title,
+            "text": doc.text,
+            "char_count": len(doc.text),
+            "highlights": highlights,
+        }
 
     def info(self) -> dict:
         """能力与配置回显，不把尚未实现的后端宣称为可用。
@@ -252,6 +322,7 @@ class SearchEngine:
 
         for rank, (docid, score) in enumerate(page, req.offset + 1):
             doc = load_document(docid)
+            self._remember_docid(doc.doc_id, docid)
             results.append(ResultItem(
                 doc_id=doc.doc_id, rank=rank, score=score, title=doc.title,
                 snippet=doc.text[:SNIPPET_LEN], highlights=build_highlights(doc, set(terms)),

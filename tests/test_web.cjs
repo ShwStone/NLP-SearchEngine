@@ -8,18 +8,25 @@ const test = require("node:test");
 const vm = require("node:vm");
 
 const nodes = Object.fromEntries([
-  "#search-form", "#query", "#mode", "#scorer", "#expander", "#k", "#submit",
-  "#compare-btn", "#status", "#error", "#results", "#compare-panel",
-  "#observability", "#summary", "#expanded-terms", "#routing", "#timings",
+  "#search-form", "#query", "#mode", "#mode-tabs", "#lexical-options",
+  "#scorer", "#expander", "#k", "#submit", "#compare-btn", "#status", "#error",
+  "#results", "#compare-panel", "#observability", "#summary", "#compact-timings",
+  "#toggle-trace", "#trace-details", "#expanded-terms", "#routing", "#timings",
   "#index-summary", "#index-identity", "#identity-facts", "#dataset-picker",
-  "#dataset-description", "#example-queries", "#pagination", "#prev-page",
-  "#next-page", "#page-info", "#copy-url", "#service-state", "#benchmark-content",
-  ".performance-note",
+  "#dataset-description", "#example-queries", "#recent-queries", "#pagination",
+  "#prev-page", "#next-page", "#page-info", "#copy-url", "#service-state",
+  "#benchmark-content", ".performance-note",
+  "#doc-drawer", "#doc-drawer-backdrop", "#doc-drawer-close",
+  "#doc-drawer-close-foot", "#doc-drawer-source", "#doc-drawer-id",
+  "#doc-drawer-copy-id", "#doc-drawer-title", "#doc-drawer-meta",
+  "#doc-drawer-next-hit", "#doc-drawer-body", "#doc-drawer-copy",
+  "#doc-drawer-research",
 ].map((selector) => [selector, {
   addEventListener() {}, innerHTML: "", textContent: "", hidden: false, value: "",
-  className: "", disabled: false, attributes: {},
+  className: "", disabled: false, attributes: {}, scrollTop: 0,
   setAttribute(name, value) { this.attributes[name] = value; },
   getAttribute(name) { return this.attributes[name]; },
+  querySelectorAll() { return []; },
   focus() {},
 }]));
 nodes["#mode"].options = ["lexical", "adaptive", "hybrid", "dense"].map((value) => ({ value, disabled: false }));
@@ -443,4 +450,70 @@ test("lexical scorer and RM3 expander pass through on lexical mode and render ex
   assert.match(nodes["#expanded-terms"].innerHTML, /核能/);
   nodes["#scorer"].value = "bm25";
   nodes["#expander"].value = "none";
+});
+
+test("deriveResultTitle avoids raw MD5 hashes and strips DuReader boilerplate", () => {
+  const withTitle = context.deriveResultTitle({
+    doc_id: "crawl-000001", title: "新闻真实标题", snippet: "新华社电正文内容",
+  });
+  assert.equal(withTitle.text, "新闻真实标题");
+  assert.equal(withTitle.isDerived, false);
+
+  const qa = context.deriveResultTitle({
+    doc_id: "b317946d369952a7bf28cd3473be6112",
+    title: "",
+    snippet: "iPhone6掉水里怎么办?iPhone6掉水里解决办法[图]：第一步立刻关机并擦干水分。",
+  });
+  assert.equal(qa.text, "iPhone6掉水里怎么办?");
+  assert.equal(qa.isDerived, true);
+  assert.doesNotMatch(qa.text, /^[0-9a-f]{24,}$/);
+
+  const medical = context.deriveResultTitle({
+    doc_id: "80d601b957e2725fa382a3b4df1b3aa5",
+    title: "",
+    snippet: "你好，病情分析：心肌梗死的前兆主要有胸闷和胸痛。请及时前往医院检查心电图。",
+  });
+  assert.equal(medical.text, "心肌梗死的前兆主要有胸闷和胸痛");
+  assert.equal(medical.isDerived, true);
+});
+
+test("renderDocumentParagraphs preserves Unicode highlight offsets across paragraphs", () => {
+  const text = "第一段😀心肌梗死介绍。\n\n第二段心肌梗死治疗方案。";
+  const html = context.renderDocumentParagraphs(text, [
+    { start: 4, end: 8, kind: "original" },
+    { start: 16, end: 20, kind: "original" },
+  ]);
+  assert.match(html, /<p class="reader-paragraph">第一段😀<mark class="original">心肌梗死<\/mark>介绍。<\/p>/);
+  assert.match(html, /<p class="reader-paragraph">第二段<mark class="original">心肌梗死<\/mark>治疗方案。<\/p>/);
+});
+
+test("openDocument fetches full text for clicked result and renders reader drawer", async () => {
+  appState.catalog = datasetCatalog();
+  await context.selectDataset("news20k");
+  nodes["#query"].value = "心肌梗死";
+  appState.lastQuery = "心肌梗死";
+  const requested = [];
+  context.fetch = async (url) => {
+    requested.push(url);
+    return {
+      ok: true,
+      json: async () => ({
+        doc_id: "crawl-000001",
+        title: "急性心梗科普",
+        text: "心肌梗死需要立即拨打120急救电话。\n\n切勿自行驾车前往医院。",
+        char_count: 31,
+        highlights: [{ start: 0, end: 4, kind: "original" }],
+      }),
+    };
+  };
+  await context.openDocument("crawl-000001");
+  assert.equal(requested[0], "/datasets/news20k/doc/crawl-000001?q=%E5%BF%83%E8%82%8C%E6%A2%97%E6%AD%BB");
+  assert.equal(nodes["#doc-drawer"].hidden, false);
+  assert.equal(nodes["#doc-drawer-title"].textContent, "急性心梗科普");
+  assert.match(nodes["#doc-drawer-meta"].textContent, /共 31 字 · 命中 1 处/);
+  assert.match(nodes["#doc-drawer-body"].innerHTML, /<mark class="original">心肌梗死<\/mark>/);
+  assert.equal(nodes["#doc-drawer-next-hit"].hidden, false);
+
+  context.closeDocumentDrawer();
+  assert.equal(nodes["#doc-drawer"].hidden, true);
 });

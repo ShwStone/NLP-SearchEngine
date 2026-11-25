@@ -206,7 +206,9 @@ def make_handler(config: GatewayConfig, *, state: dict | None = None):
                         dataset=dataset.id, instance=instance)
 
         def do_GET(self):
-            path = urlsplit(self.path).path
+            split = urlsplit(self.path)
+            path = split.path
+            suffix = f"?{split.query}" if split.query else ""
             if path == "/datasets":
                 # Catalog loading stays fast even while the 8M process starts.
                 # The browser obtains live status independently for each dataset.
@@ -223,11 +225,19 @@ def make_handler(config: GatewayConfig, *, state: dict | None = None):
             if path == "/index/info":
                 self._proxy(config.datasets[config.default_dataset], "GET", "/index/info")
                 return
+            if path.startswith("/doc/") and len(path) > len("/doc/") and "/" not in path[len("/doc/"):]:
+                self._proxy(config.datasets[config.default_dataset], "GET", f"{path}{suffix}")
+                return
             parts = path.strip("/").split("/")
             if len(parts) == 3 and parts[0] == "datasets" and parts[2] == "info":
                 dataset = self._dataset(parts[1])
                 if dataset:
                     self._proxy(dataset, "GET", "/index/info")
+                    return
+            if len(parts) == 4 and parts[0] == "datasets" and parts[2] == "doc" and parts[3]:
+                dataset = self._dataset(parts[1])
+                if dataset:
+                    self._proxy(dataset, "GET", f"/doc/{parts[3]}{suffix}")
                     return
             self._json(404, {"error": "unknown path"})
 

@@ -1,6 +1,8 @@
 const form = document.querySelector("#search-form");
 const queryInput = document.querySelector("#query");
 const modeInput = document.querySelector("#mode");
+const modeTabs = document.querySelector("#mode-tabs");
+const lexicalOptions = document.querySelector("#lexical-options");
 const scorerInput = document.querySelector("#scorer");
 const expanderInput = document.querySelector("#expander");
 const kInput = document.querySelector("#k");
@@ -12,6 +14,9 @@ const resultBox = document.querySelector("#results");
 const comparePanel = document.querySelector("#compare-panel");
 const observability = document.querySelector("#observability");
 const summary = document.querySelector("#summary");
+const compactTimings = document.querySelector("#compact-timings");
+const toggleTraceButton = document.querySelector("#toggle-trace");
+const traceDetails = document.querySelector("#trace-details");
 const expandedTermsBox = document.querySelector("#expanded-terms");
 const routingBox = document.querySelector("#routing");
 const timingsBox = document.querySelector("#timings");
@@ -21,6 +26,7 @@ const identityFactsBox = document.querySelector("#identity-facts");
 const datasetPicker = document.querySelector("#dataset-picker");
 const datasetDescription = document.querySelector("#dataset-description");
 const exampleQueries = document.querySelector("#example-queries");
+const recentQueriesBox = document.querySelector("#recent-queries");
 const pagination = document.querySelector("#pagination");
 const previousPage = document.querySelector("#prev-page");
 const nextPage = document.querySelector("#next-page");
@@ -28,6 +34,23 @@ const pageInfo = document.querySelector("#page-info");
 const copyUrlButton = document.querySelector("#copy-url");
 const serviceState = document.querySelector("#service-state");
 const benchmarkContent = document.querySelector("#benchmark-content");
+
+const docDrawer = document.querySelector("#doc-drawer");
+const docDrawerBackdrop = document.querySelector("#doc-drawer-backdrop");
+const docDrawerClose = document.querySelector("#doc-drawer-close");
+const docDrawerCloseFoot = document.querySelector("#doc-drawer-close-foot");
+const docDrawerSource = document.querySelector("#doc-drawer-source");
+const docDrawerId = document.querySelector("#doc-drawer-id");
+const docDrawerCopyId = document.querySelector("#doc-drawer-copy-id");
+const docDrawerTitle = document.querySelector("#doc-drawer-title");
+const docDrawerMeta = document.querySelector("#doc-drawer-meta");
+const docDrawerNextHit = document.querySelector("#doc-drawer-next-hit");
+const docDrawerBody = document.querySelector("#doc-drawer-body");
+const docDrawerCopy = document.querySelector("#doc-drawer-copy");
+const docDrawerResearch = document.querySelector("#doc-drawer-research");
+
+const RECENT_STORAGE_KEY = "zhihai_recent_queries_v1";
+const RECENT_MAX = 6;
 
 const state = {
   catalog: [],
@@ -38,6 +61,19 @@ const state = {
   requestSerial: 0,
   controller: null,
   info: null,
+  activeView: "search", // "search" | "compare"
+  lastQuery: "",
+  resultMap: new Map(),
+  visitedDocs: new Set(),
+  drawer: {
+    serial: 0,
+    controller: null,
+    docId: "",
+    title: "",
+    text: "",
+    hitIndex: -1,
+    hitCount: 0,
+  },
 };
 
 const MODE_LABELS = {
@@ -45,6 +81,19 @@ const MODE_LABELS = {
   adaptive: "自适应检索",
   hybrid: "混合召回",
   dense: "语义检索",
+};
+
+const SCORE_LABELS = {
+  bm25: "BM25",
+  tfidf: "TF-IDF",
+  cosine: "Cosine",
+  rrf: "RRF",
+};
+
+const SOURCE_META = {
+  news20k: { badge: "新", name: "新华网 · news.cn", tone: "news" },
+  mini100k: { badge: "问", name: "DuReader 中文问答 · 100k", tone: "qa" },
+  official8m: { badge: "全", name: "DuReader 全集 · 8.1M", tone: "corpus" },
 };
 
 const ROUTING_LABELS = {
@@ -58,6 +107,8 @@ const ROUTING_LABELS = {
   candidate_k: "候选池",
   policy_version: "策略版本",
 };
+
+const LEADING_NOISE_RE = /^(?:\s|(?:您好|你好|亲爱的?|朋友|楼主|患者你好|医生建议|病情分析|指导意见|意见建议|问题分析|健康指导|参考答案|最佳答案|网友回答|精选回答|回答|答|问|解析|摘要|导读|正文|来源|编辑|记者)[：:，,！!、\s]+|【[^】]{1,12}】\s*[：:]?\s*|\[图\]\s*|[（(]?\d+[）)\.、．]\s*)+/u;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({
@@ -80,14 +131,24 @@ function hideError() {
   errorBox.textContent = "";
 }
 
+function setTraceOpen(open) {
+  if (traceDetails) traceDetails.hidden = !open;
+  if (toggleTraceButton) {
+    toggleTraceButton.setAttribute("aria-expanded", String(Boolean(open)));
+    toggleTraceButton.textContent = open ? "收起路由详情 ▴" : "路由与耗时详情 ▾";
+  }
+}
+
 function clearObservability() {
   summary.textContent = "";
+  if (compactTimings) compactTimings.innerHTML = "";
   if (expandedTermsBox) {
     expandedTermsBox.innerHTML = "";
     expandedTermsBox.hidden = true;
   }
   routingBox.innerHTML = "";
   timingsBox.innerHTML = "";
+  setTraceOpen(false);
   observability.hidden = true;
 }
 
@@ -95,10 +156,13 @@ function clearCompare() {
   if (!comparePanel) return;
   comparePanel.innerHTML = "";
   comparePanel.hidden = true;
+  state.activeView = "search";
+  syncModeTabs();
 }
 
 function syncLexicalControls() {
   const isLexical = modeInput.value === "lexical";
+  if (lexicalOptions) lexicalOptions.hidden = !isLexical;
   if (scorerInput) {
     scorerInput.disabled = !isLexical;
     if (!isLexical) scorerInput.value = "bm25";
@@ -107,6 +171,21 @@ function syncLexicalControls() {
     expanderInput.disabled = !isLexical;
     if (!isLexical) expanderInput.value = "none";
   }
+}
+
+function syncModeTabs() {
+  if (!modeTabs || typeof modeTabs.querySelectorAll !== "function") return;
+  const selected = currentDataset();
+  const supported = new Set(selected ? selected.modes : ["lexical", "adaptive", "hybrid", "dense"]);
+  const activeKey = state.activeView === "compare" ? "compare" : modeInput.value;
+  modeTabs.querySelectorAll("[data-mode-tab]").forEach((tab) => {
+    const key = tab.getAttribute("data-mode-tab");
+    const isActive = key === activeKey;
+    const isDisabled = key === "compare" ? supported.size < 2 : !supported.has(key);
+    tab.disabled = isDisabled;
+    tab.className = `mode-tab${key === "compare" ? " mode-tab-compare" : ""}${isActive ? " active" : ""}`;
+    tab.setAttribute("aria-selected", String(isActive));
+  });
 }
 
 function formatBoolean(value) {
@@ -141,6 +220,90 @@ function joinParams(params) {
     .filter(([, value]) => textField(value) !== "")
     .map(([key, value]) => `${key}=${textField(value)}`)
     .join(" · ");
+}
+
+function sourceMetaFor(datasetId) {
+  if (SOURCE_META[datasetId]) return SOURCE_META[datasetId];
+  const dataset = currentDataset();
+  return { badge: "知", name: dataset ? dataset.label : "知海检索库", tone: "default" };
+}
+
+function compactDocId(docId) {
+  const id = textField(docId);
+  if (!id) return "";
+  if (/^[0-9a-f]{24,}$/i.test(id)) return `#${id.slice(0, 8)}`;
+  return id.length > 22 ? `${id.slice(0, 18)}…` : id;
+}
+
+function formatScoreBadge(score, scoreKind) {
+  const num = Number(score);
+  if (!Number.isFinite(num)) return "";
+  const label = SCORE_LABELS[scoreKind] || "";
+  const digits = scoreKind === "rrf" || scoreKind === "cosine" ? 4 : 2;
+  return label ? `${label} ${num.toFixed(digits)}` : num.toFixed(4);
+}
+
+function deriveResultTitle(item) {
+  const explicit = textField(item?.title);
+  if (explicit) {
+    return { text: explicit, isDerived: false, consumedEnd: 0 };
+  }
+  const raw = String(item?.snippet || item?.text || "");
+  if (!raw.trim()) {
+    return { text: textField(item?.doc_id) || "未命名文档", isDerived: false, consumedEnd: 0 };
+  }
+  const stripped = raw.replace(LEADING_NOISE_RE, "");
+  const working = stripped.trim() ? stripped : raw.trimStart();
+  const fullChars = Array.from(raw);
+  const chars = Array.from(working);
+  const leadCp = fullChars.length - chars.length;
+  const limit = Math.min(chars.length, 40);
+  let cut = -1;
+  let keepPunct = false;
+
+  for (let i = 6; i < limit; i += 1) {
+    const ch = chars[i];
+    if ("？?！!".includes(ch)) {
+      cut = i + 1;
+      keepPunct = true;
+      break;
+    }
+    if ("。；;\n\r".includes(ch)) {
+      cut = i;
+      break;
+    }
+  }
+  if (cut === -1) {
+    for (let i = Math.min(chars.length - 1, 38); i >= 12; i -= 1) {
+      if ("，,：:、".includes(chars[i])) {
+        cut = i;
+        break;
+      }
+    }
+  }
+  let titleText;
+  let consumedInWorking;
+  if (cut !== -1) {
+    titleText = chars.slice(0, cut).join("").trim();
+    consumedInWorking = keepPunct ? cut : cut + 1;
+  } else if (chars.length > 36) {
+    titleText = `${chars.slice(0, 36).join("").trim()}…`;
+    consumedInWorking = 0;
+  } else {
+    titleText = chars.join("").trim();
+    consumedInWorking = chars.length;
+  }
+  titleText = titleText.replace(/[，,：:、；;。]+$/u, "").trim();
+  if (!titleText) {
+    return { text: textField(item?.doc_id) || "未命名文档", isDerived: false, consumedEnd: 0 };
+  }
+  let consumedEnd = consumedInWorking > 0 ? leadCp + consumedInWorking : 0;
+  if (consumedEnd > 0) {
+    while (consumedEnd < fullChars.length && /[\s：:，,。；;—\-]/u.test(fullChars[consumedEnd])) {
+      consumedEnd += 1;
+    }
+  }
+  return { text: titleText, isDerived: true, consumedEnd };
 }
 
 function vectorStatus(info) {
@@ -285,6 +448,13 @@ function renderTimings(timings) {
     const value = Number(timings[key] || 0);
     return `<span class="timing"><b>${escapeHtml(label)}</b><span>${value.toFixed(3)} ms</span></span>`;
   }).join("");
+  if (compactTimings) {
+    const pills = Object.entries(labels)
+      .filter(([key]) => Number(timings[key] || 0) > 0.01)
+      .map(([key, label]) => `<span class="compact-timing">${escapeHtml(label)} ${Number(timings[key]).toFixed(1)}ms</span>`)
+      .join("");
+    compactTimings.innerHTML = pills;
+  }
 }
 
 function highlightedSnippet(text, highlights = []) {
@@ -310,27 +480,160 @@ function highlightedSnippet(text, highlights = []) {
   return pieces.join("") || "<span class=\"muted\">无摘要</span>";
 }
 
+function renderCardSnippet(item, derived) {
+  const raw = String(item.snippet || "");
+  const chars = Array.from(raw);
+  const highlights = item.highlights;
+  if (!Array.isArray(highlights)) {
+    // Preserve strict validation behavior for malformed responses.
+    return highlightedSnippet(raw, highlights);
+  }
+  let startOffset = 0;
+  if (derived.isDerived && derived.consumedEnd > 0 && chars.length - derived.consumedEnd >= 35) {
+    const visibleHits = highlights.filter((h) => Number(h.start) < chars.length && Number(h.end) > 0).length;
+    const afterHits = highlights.filter((h) => Number(h.end) > derived.consumedEnd && Number(h.start) < chars.length).length;
+    if (visibleHits === 0 || afterHits > 0) {
+      startOffset = derived.consumedEnd;
+    }
+  }
+  const slicedText = startOffset > 0 ? chars.slice(startOffset).join("") : raw;
+  const shiftedHighlights = startOffset > 0
+    ? highlights
+      .filter((h) => Number(h.end) > startOffset)
+      .map((h) => ({ start: Number(h.start) - startOffset, end: Number(h.end) - startOffset, kind: h.kind }))
+    : highlights;
+  const html = highlightedSnippet(slicedText, shiftedHighlights);
+  const mayContinue = chars.length >= 180 && !/[。！？?!…]$/.test(raw.trim());
+  return mayContinue ? `${html}<span class="snippet-ellipsis">…</span>` : html;
+}
+
+function splitParagraphRanges(chars) {
+  const ranges = [];
+  const n = chars.length;
+  let start = 0;
+  let i = 0;
+  while (i < n) {
+    if (chars[i] === "\n" || chars[i] === "\r") {
+      if (i > start) ranges.push([start, i]);
+      while (i < n && (chars[i] === "\n" || chars[i] === "\r")) i += 1;
+      start = i;
+      continue;
+    }
+    i += 1;
+  }
+  if (start < n) ranges.push([start, n]);
+
+  const refined = [];
+  for (const [segStart, segEnd] of ranges) {
+    if (segEnd - segStart <= 280) {
+      refined.push([segStart, segEnd]);
+      continue;
+    }
+    let cur = segStart;
+    while (cur < segEnd) {
+      if (segEnd - cur <= 280) {
+        refined.push([cur, segEnd]);
+        break;
+      }
+      let cut = -1;
+      for (let pos = cur + 140; pos < Math.min(segEnd, cur + 280); pos += 1) {
+        if ("。！？?!；;".includes(chars[pos])) {
+          cut = pos + 1;
+          if (pos - cur >= 180) break;
+        }
+      }
+      if (cut === -1) {
+        for (let pos = cur + 280; pos < Math.min(segEnd, cur + 380); pos += 1) {
+          if ("。！？?!；;".includes(chars[pos])) {
+            cut = pos + 1;
+            break;
+          }
+        }
+      }
+      if (cut === -1 || cut <= cur) {
+        refined.push([cur, segEnd]);
+        break;
+      }
+      refined.push([cur, cut]);
+      cur = cut;
+    }
+  }
+  return refined;
+}
+
+function renderDocumentParagraphs(text, highlights = []) {
+  const chars = Array.from(String(text || ""));
+  if (!chars.length) return '<p class="muted">文档内容为空</p>';
+  const spans = Array.isArray(highlights) ? highlights : [];
+  const paragraphs = [];
+  for (let [a, b] of splitParagraphRanges(chars)) {
+    while (a < b && /\s/.test(chars[a])) a += 1;
+    while (b > a && /\s/.test(chars[b - 1])) b -= 1;
+    if (a >= b) continue;
+    const chunk = chars.slice(a, b).join("");
+    const localHighlights = spans
+      .filter((h) => Number(h.end) > a && Number(h.start) < b)
+      .map((h) => ({ start: Number(h.start) - a, end: Number(h.end) - a, kind: h.kind }));
+    paragraphs.push(`<p class="reader-paragraph">${highlightedSnippet(chunk, localHighlights)}</p>`);
+  }
+  return paragraphs.join("") || '<p class="muted">文档内容为空</p>';
+}
+
 function renderResults(data) {
   const results = Array.isArray(data.results) ? data.results : [];
+  state.resultMap.clear();
   if (!results.length) {
-    resultBox.innerHTML = `<div class="empty-state compact"><span class="empty-index">NO MATCH</span><h2>没有找到结果</h2><p>换一个关键词，或试试其他数据源与检索模式。</p></div>`;
+    resultBox.innerHTML = `<div class="empty-state compact"><span class="empty-index">NO MATCH</span><h2>没有找到结果</h2><p>换一个关键词，或点击上方标签切换混合/语义检索模式试试。</p></div>`;
     return;
   }
-  resultBox.innerHTML = results.map((item) => `
-    <article class="result-card">
-      <div class="result-rank">${String(item.rank).padStart(2, "0")}</div>
-      <div class="result-content">
-        <div class="result-heading">
-          <h2>${escapeHtml(item.title || item.doc_id)}</h2>
-          <span class="score">${Number(item.score).toFixed(4)}</span>
+  const source = sourceMetaFor(state.dataset);
+  const scoreKind = data.routing?.score_kind || "";
+  resultBox.innerHTML = results.map((item) => {
+    const derived = deriveResultTitle(item);
+    const snippetHtml = renderCardSnippet(item, derived);
+    const snippetChars = Array.from(String(item.snippet || "")).length;
+    const allHighlights = Array.isArray(item.highlights) ? item.highlights : [];
+    const totalHits = allHighlights.length;
+    const visibleHits = allHighlights.filter((h) => Number(h.start) < snippetChars).length;
+    const extraHits = Math.max(0, totalHits - visibleHits);
+    const hitBadge = totalHits > 0
+      ? `<span class="hit-badge${extraHits > 0 ? " has-more" : ""}">${extraHits > 0
+        ? `全文 ${totalHits} 处命中 · 正文另有 ${extraHits} 处`
+        : `命中 ${totalHits} 处`}</span>`
+      : "";
+    const visited = state.visitedDocs.has(item.doc_id);
+    const scoreText = formatScoreBadge(item.score, scoreKind);
+    state.resultMap.set(item.doc_id, {
+      item,
+      derivedTitle: derived.text,
+      scoreText,
+      sourceName: source.name,
+    });
+    return `
+    <article class="result-card${visited ? " is-visited" : ""}" data-card-doc="${escapeHtml(item.doc_id)}">
+      <div class="result-source-row">
+        <div class="result-source-left">
+          <span class="source-badge tone-${escapeHtml(source.tone)}">${escapeHtml(source.badge)}</span>
+          <span class="source-name">${escapeHtml(source.name)}</span>
+          <span class="source-sep" aria-hidden="true">›</span>
+          <span class="doc-id" title="${escapeHtml(item.doc_id)}">${escapeHtml(compactDocId(item.doc_id))}</span>
         </div>
-        <div class="result-meta">
-          <span class="doc-id">${escapeHtml(item.doc_id)}</span>
-          <button type="button" class="copy-doc" data-copy-doc="${escapeHtml(item.doc_id)}">复制 ID</button>
+        <div class="result-source-right">
+          <span class="result-rank">#${String(item.rank).padStart(2, "0")}</span>
+          <span class="score">${escapeHtml(scoreText)}</span>
         </div>
-        <p class="snippet">${highlightedSnippet(item.snippet, item.highlights)}</p>
       </div>
-    </article>`).join("");
+      <div class="result-heading">
+        <h2><button type="button" class="result-title-btn" data-open-doc="${escapeHtml(item.doc_id)}">${escapeHtml(derived.text)}</button></h2>
+      </div>
+      <p class="snippet">${snippetHtml}</p>
+      <div class="result-footer">
+        <button type="button" class="read-more-btn" data-open-doc="${escapeHtml(item.doc_id)}">阅读全文 →</button>
+        ${hitBadge}
+        <button type="button" class="copy-doc" data-copy-doc="${escapeHtml(item.doc_id)}" title="完整 ID：${escapeHtml(item.doc_id)}">复制 ID</button>
+      </div>
+    </article>`;
+  }).join("");
 }
 
 function currentDataset() {
@@ -340,6 +643,188 @@ function currentDataset() {
 function datasetEndpoint(kind) {
   if (!state.dataset) return kind === "info" ? "/index/info" : "/search";
   return `/datasets/${encodeURIComponent(state.dataset)}/${kind}`;
+}
+
+function docEndpoint(docId, query = "") {
+  const encodedId = encodeURIComponent(docId);
+  const qs = query ? `?q=${encodeURIComponent(query)}` : "";
+  if (!state.dataset) return `/doc/${encodedId}${qs}`;
+  return `/datasets/${encodeURIComponent(state.dataset)}/doc/${encodedId}${qs}`;
+}
+
+function readRecentQueries() {
+  try {
+    if (typeof localStorage === "undefined") return [];
+    const raw = localStorage.getItem(RECENT_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((q) => typeof q === "string" && q.trim()).slice(0, RECENT_MAX) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveRecentQuery(query) {
+  const clean = textField(query);
+  if (!clean) return;
+  try {
+    if (typeof localStorage === "undefined") return;
+    const next = [clean, ...readRecentQueries().filter((q) => q !== clean)].slice(0, RECENT_MAX);
+    localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+  } catch (_) {
+    // Ignore storage quota / private mode errors.
+  }
+  renderRecentQueries();
+}
+
+function clearRecentQueries() {
+  try {
+    if (typeof localStorage !== "undefined") localStorage.removeItem(RECENT_STORAGE_KEY);
+  } catch (_) {
+    // Ignore storage errors.
+  }
+  renderRecentQueries();
+}
+
+function renderRecentQueries() {
+  if (!recentQueriesBox) return;
+  const list = readRecentQueries();
+  if (!list.length) {
+    recentQueriesBox.innerHTML = "";
+    recentQueriesBox.hidden = true;
+    return;
+  }
+  recentQueriesBox.innerHTML = '<span class="example-label">最近</span>'
+    + list.map((q) => `<button type="button" class="recent-chip" data-recent="${escapeHtml(q)}">${escapeHtml(q)}</button>`).join("")
+    + '<button type="button" class="clear-recent" data-clear-recent="1">清空</button>';
+  recentQueriesBox.hidden = false;
+}
+
+function closeDocumentDrawer() {
+  if (!docDrawer) return;
+  if (state.drawer.controller) {
+    state.drawer.controller.abort();
+    state.drawer.controller = null;
+  }
+  docDrawer.hidden = true;
+  if (typeof document !== "undefined" && document.body?.classList) {
+    document.body.classList.remove("drawer-open");
+  }
+}
+
+function updateDrawerHitCounter() {
+  if (!docDrawerNextHit) return;
+  if (state.drawer.hitCount <= 0) {
+    docDrawerNextHit.hidden = true;
+    return;
+  }
+  docDrawerNextHit.hidden = false;
+  const current = state.drawer.hitIndex >= 0 ? state.drawer.hitIndex + 1 : 0;
+  docDrawerNextHit.textContent = current > 0
+    ? `下一处命中 (${current}/${state.drawer.hitCount}) ↓`
+    : `跳到命中 (共 ${state.drawer.hitCount} 处) ↓`;
+}
+
+function jumpToNextHit() {
+  if (!docDrawerBody || typeof docDrawerBody.querySelectorAll !== "function") return;
+  const marks = Array.from(docDrawerBody.querySelectorAll("mark"));
+  state.drawer.hitCount = marks.length;
+  if (!marks.length) {
+    updateDrawerHitCounter();
+    return;
+  }
+  if (state.drawer.hitIndex >= 0 && marks[state.drawer.hitIndex]?.classList) {
+    marks[state.drawer.hitIndex].classList.remove("active-hit");
+  }
+  state.drawer.hitIndex = (state.drawer.hitIndex + 1) % marks.length;
+  const target = marks[state.drawer.hitIndex];
+  if (target?.classList) target.classList.add("active-hit");
+  if (typeof target?.scrollIntoView === "function") {
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  updateDrawerHitCounter();
+}
+
+async function openDocument(docId) {
+  if (!docDrawer || !docId) return;
+  const cached = state.resultMap.get(docId);
+  const query = state.lastQuery || queryInput.value.trim();
+  const source = sourceMetaFor(state.dataset);
+
+  if (state.drawer.controller) state.drawer.controller.abort();
+  const serial = ++state.drawer.serial;
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  state.drawer.controller = controller;
+  state.drawer.docId = docId;
+  state.drawer.title = cached?.derivedTitle || compactDocId(docId) || docId;
+  state.drawer.text = cached?.item?.snippet || "";
+  state.drawer.hitIndex = -1;
+  state.drawer.hitCount = 0;
+
+  state.visitedDocs.add(docId);
+  if (typeof resultBox?.querySelectorAll === "function") {
+    resultBox.querySelectorAll("[data-card-doc]").forEach((card) => {
+      if (card.getAttribute("data-card-doc") === docId && card.classList) {
+        card.classList.add("is-visited");
+      }
+    });
+  }
+
+  if (docDrawerSource) docDrawerSource.textContent = cached?.sourceName || source.name;
+  if (docDrawerId) {
+    docDrawerId.textContent = compactDocId(docId);
+    docDrawerId.setAttribute("title", docId);
+  }
+  if (docDrawerTitle) docDrawerTitle.textContent = state.drawer.title;
+  if (docDrawerMeta) docDrawerMeta.textContent = cached?.scoreText ? `正在加载全文… · ${cached.scoreText}` : "正在加载全文…";
+  if (docDrawerNextHit) docDrawerNextHit.hidden = true;
+  if (docDrawerBody) {
+    docDrawerBody.innerHTML = '<div class="reader-loading"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line"></div></div>';
+  }
+  docDrawer.hidden = false;
+  if (typeof document !== "undefined" && document.body?.classList) {
+    document.body.classList.add("drawer-open");
+  }
+
+  try {
+    const options = { headers: { Accept: "application/json" } };
+    if (controller) options.signal = controller.signal;
+    const response = await fetch(docEndpoint(docId, query), options);
+    const data = await response.json().catch(() => null);
+    if (serial !== state.drawer.serial) return;
+    if (!response.ok || !data || typeof data.text !== "string") {
+      throw new Error(data?.error || `HTTP ${response.status}`);
+    }
+    const derived = deriveResultTitle({ title: data.title, snippet: data.text, doc_id: data.doc_id });
+    state.drawer.title = derived.text;
+    state.drawer.text = data.text;
+    const highlights = Array.isArray(data.highlights) ? data.highlights : [];
+    const charCount = Number(data.char_count ?? Array.from(data.text).length);
+    if (docDrawerTitle) docDrawerTitle.textContent = derived.text;
+    const metaParts = [`共 ${charCount.toLocaleString("zh-CN")} 字`];
+    if (highlights.length) metaParts.push(`命中 ${highlights.length} 处`);
+    if (cached?.scoreText) metaParts.push(cached.scoreText);
+    if (docDrawerMeta) docDrawerMeta.textContent = metaParts.join(" · ");
+    if (docDrawerBody) {
+      docDrawerBody.innerHTML = renderDocumentParagraphs(data.text, highlights);
+      docDrawerBody.scrollTop = 0;
+    }
+    state.drawer.hitCount = highlights.length;
+    state.drawer.hitIndex = -1;
+    updateDrawerHitCounter();
+  } catch (error) {
+    if (serial !== state.drawer.serial || error?.name === "AbortError") return;
+    const fallbackSnippet = cached?.item?.snippet || "";
+    const fallbackHighlights = Array.isArray(cached?.item?.highlights) ? cached.item.highlights : [];
+    if (docDrawerMeta) docDrawerMeta.textContent = "暂无法读取全文，已展示检索摘要";
+    if (docDrawerBody) {
+      docDrawerBody.innerHTML = `<div class="reader-fallback-notice">未能从索引加载完整文档（${escapeHtml(error instanceof Error ? error.message : "请求失败")}），以下为检索摘要：</div>`
+        + `<p class="reader-paragraph">${highlightedSnippet(fallbackSnippet, fallbackHighlights)}</p>`;
+    }
+    state.drawer.hitCount = 0;
+    updateDrawerHitCounter();
+  } finally {
+    if (serial === state.drawer.serial) state.drawer.controller = null;
+  }
 }
 
 function renderExpandedTerms(expanded) {
@@ -360,8 +845,10 @@ function renderResponse(data, clientMs = null) {
   const count = Array.isArray(data.results) ? data.results.length : 0;
   const dataset = currentDataset();
   const prefix = dataset ? `${dataset.label} · ` : "";
-  const network = Number.isFinite(clientMs) ? ` · 客户端 ${clientMs.toFixed(0)} ms` : "";
-  summary.textContent = `${prefix}${count} 条结果 · 服务端 ${Number(data.took_ms || 0)} ms${network} · ${data.api_version || "API"}`;
+  const execLabel = MODE_LABELS[routing.executed_mode] || routing.executed_mode || "";
+  const execPart = execLabel ? ` · ${execLabel}` : "";
+  const network = Number.isFinite(clientMs) ? `（往返 ${clientMs.toFixed(0)} ms）` : "";
+  summary.textContent = `${prefix}${count} 条结果 · 服务端 ${Number(data.took_ms || 0)} ms${network}${execPart}`;
   renderExpandedTerms(data.expanded);
   renderRouting(routing);
   renderTimings(data.timings_ms || {});
@@ -380,7 +867,7 @@ function renderPagination() {
 }
 
 function renderLoading() {
-  resultBox.innerHTML = Array.from({ length: 3 }, () => '<div class="skeleton-card" aria-hidden="true"></div>').join("");
+  resultBox.innerHTML = Array.from({ length: 4 }, () => '<div class="skeleton-card" aria-hidden="true"></div>').join("");
   resultBox.setAttribute("aria-busy", "true");
   pagination.hidden = true;
 }
@@ -411,6 +898,7 @@ async function executeSearch(offset = 0) {
   const parsedK = Number.parseInt(kInput.value, 10);
   const k = Number.isInteger(parsedK) ? Math.max(1, Math.min(200, parsedK)) : 10;
   kInput.value = String(k);
+  state.lastQuery = query;
   hideError();
   clearObservability();
   clearCompare();
@@ -443,6 +931,7 @@ async function executeSearch(offset = 0) {
     if (!response.ok) throw new Error(data?.error || `请求失败（HTTP ${response.status}）`);
     if (!Array.isArray(data?.results)) throw new Error("搜索响应格式无效");
     state.offset = offset;
+    saveRecentQuery(query);
     renderResponse(data, Date.now() - started);
     renderPagination();
     updateUrl(false);
@@ -457,7 +946,7 @@ async function executeSearch(offset = 0) {
   } finally {
     if (serial === state.requestSerial) {
       submitButton.disabled = false;
-      if (compareButton) compareButton.disabled = false;
+      syncModeTabs();
       resultBox.setAttribute("aria-busy", "false");
       state.controller = null;
     }
@@ -476,6 +965,9 @@ async function compareAllModes() {
   const modes = (dataset && Array.isArray(dataset.modes) && dataset.modes.length)
     ? ["lexical", "dense", "hybrid", "adaptive"].filter((m) => dataset.modes.includes(m))
     : ["lexical", "dense", "hybrid", "adaptive"];
+  state.lastQuery = query;
+  state.activeView = "compare";
+  syncModeTabs();
   hideError();
   clearObservability();
   pagination.hidden = true;
@@ -504,6 +996,8 @@ async function compareAllModes() {
       return { mode, ok: response.ok, status: response.status, data, clientMs: Date.now() - started };
     }));
     if (serial !== state.requestSerial || requestedDataset !== state.dataset) return;
+    saveRecentQuery(query);
+    const source = sourceMetaFor(state.dataset);
     const docFreq = new Map();
     for (const entry of entries) {
       if (entry.ok && Array.isArray(entry.data?.results)) {
@@ -520,16 +1014,25 @@ async function compareAllModes() {
       }
       const routing = entry.data.routing || {};
       const timings = entry.data.timings_ms || {};
+      const scoreKind = routing.score_kind || "";
       const items = entry.data.results.map((item) => {
         const unique = (docFreq.get(item.doc_id) || 0) === 1;
-        return `<li class="compare-item">
+        const derived = deriveResultTitle(item);
+        const scoreText = formatScoreBadge(item.score, scoreKind);
+        if (!state.resultMap.has(item.doc_id)) {
+          state.resultMap.set(item.doc_id, { item, derivedTitle: derived.text, scoreText, sourceName: source.name });
+        }
+        return `<li class="compare-item" data-open-doc="${escapeHtml(item.doc_id)}">
           <div class="compare-item-top">
             <span class="compare-rank">#${item.rank}</span>
-            <strong class="compare-title">${escapeHtml(item.title || item.doc_id)}</strong>
+            <button type="button" class="compare-title-btn" data-open-doc="${escapeHtml(item.doc_id)}">${escapeHtml(derived.text)}</button>
             <span class="compare-score">${Number(item.score).toFixed(4)}</span>
           </div>
-          <p class="compare-snippet">${highlightedSnippet(item.snippet, item.highlights)}</p>
-          <div class="compare-item-foot"><span>${escapeHtml(item.doc_id)}</span>${unique ? '<span class="compare-unique">独有命中</span>' : ""}</div>
+          <p class="compare-snippet">${renderCardSnippet(item, derived)}</p>
+          <div class="compare-item-foot">
+            <span title="${escapeHtml(item.doc_id)}">${escapeHtml(compactDocId(item.doc_id))}</span>
+            <span>${unique ? '<span class="compare-unique">独有命中</span>' : ""}<span class="compare-open-hint">阅读全文 →</span></span>
+          </div>
         </li>`;
       }).join("");
       const stageBits = [
@@ -546,7 +1049,7 @@ async function compareAllModes() {
           <span class="compare-ms">${Number(entry.data.took_ms || 0)} ms</span>
         </header>
         <div class="compare-meta">
-          <span>执行: <b>${escapeHtml(routing.executed_mode || entry.mode)}</b></span>
+          <span>执行: <b>${escapeHtml(MODE_LABELS[routing.executed_mode] || routing.executed_mode || entry.mode)}</b></span>
           <span>原因: ${escapeHtml(routing.reason || "—")}</span>
         </div>
         ${stageBits ? `<div class="compare-stages">${escapeHtml(stageBits)} ms</div>` : ""}
@@ -557,7 +1060,7 @@ async function compareAllModes() {
       <div class="compare-toolbar">
         <div>
           <p class="panel-label">SIDE-BY-SIDE COMPARISON</p>
-          <h2>「${escapeHtml(query)}」四模式并行对比（Top-5）</h2>
+          <h2>「${escapeHtml(query)}」四模式并行对比（Top-5 · 点击任意卡片读全文）</h2>
         </div>
         <button type="button" id="close-compare" class="page-button">返回单模式视图</button>
       </div>
@@ -572,7 +1075,7 @@ async function compareAllModes() {
   } finally {
     if (serial === state.requestSerial) {
       submitButton.disabled = false;
-      if (compareButton) compareButton.disabled = false;
+      syncModeTabs();
       state.controller = null;
     }
   }
@@ -629,13 +1132,15 @@ function renderCatalog() {
     `<button type="button" class="example-query" data-example="${escapeHtml(example)}">${escapeHtml(example)}</button>`).join("") : "";
   const supported = new Set(selected ? selected.modes : ["lexical"]);
   Array.from(modeInput.options).forEach((option) => { option.disabled = !supported.has(option.value); });
-  if (!supported.has(modeInput.value)) modeInput.value = "lexical";
+  if (!supported.has(modeInput.value)) modeInput.value = supported.has("adaptive") ? "adaptive" : "lexical";
   syncLexicalControls();
+  syncModeTabs();
   if (compareButton) compareButton.disabled = supported.size < 2;
 }
 
 async function selectDataset(datasetId, { initial = false, runQuery = false, offset = 0 } = {}) {
   if (!state.catalog.some((dataset) => dataset.id === datasetId)) return;
+  closeDocumentDrawer();
   if (state.controller) state.controller.abort();
   state.requestSerial += 1;
   state.controller = null;
@@ -644,6 +1149,7 @@ async function selectDataset(datasetId, { initial = false, runQuery = false, off
   state.offset = 0;
   state.resultCount = 0;
   state.info = null;
+  state.resultMap.clear();
   renderCatalog();
   clearObservability();
   clearCompare();
@@ -651,7 +1157,7 @@ async function selectDataset(datasetId, { initial = false, runQuery = false, off
   hideError();
   pagination.hidden = true;
   resultBox.setAttribute("aria-busy", "false");
-  resultBox.innerHTML = `<div class="empty-state"><span class="empty-index">READY</span><h2>已选择 ${escapeHtml(currentDataset().label)}</h2><p>输入问题开始检索，结果不会与其他数据源混合。</p></div>`;
+  resultBox.innerHTML = `<div class="empty-state"><span class="empty-index">READY</span><h2>已选择 ${escapeHtml(currentDataset().label)}</h2><p>输入问题或点击上方示例开始检索，点击结果即可展开高亮全文。</p></div>`;
   setStatus(initial ? "" : `已切换到 ${currentDataset().label}`);
   updateUrl(false);
   await loadIndexInfo();
@@ -693,6 +1199,8 @@ function applyLocation() {
   if (["10", "20", "50"].includes(params.get("k"))) kInput.value = params.get("k");
   const parsedOffset = Number.parseInt(params.get("offset") || "0", 10);
   state.requestedOffset = Number.isInteger(parsedOffset) && parsedOffset >= 0 ? parsedOffset : 0;
+  syncLexicalControls();
+  syncModeTabs();
   return { query, offset: state.requestedOffset };
 }
 
@@ -747,8 +1255,28 @@ async function loadBenchmarks() {
   }
 }
 
+function selectModeTab(mode) {
+  if (mode === "compare") {
+    compareAllModes();
+    return;
+  }
+  if (!["lexical", "adaptive", "hybrid", "dense"].includes(mode)) return;
+  const opt = Array.from(modeInput.options || []).find((item) => item.value === mode);
+  if (opt && opt.disabled) return;
+  modeInput.value = mode;
+  state.activeView = "search";
+  state.offset = 0;
+  syncLexicalControls();
+  syncModeTabs();
+  updateUrl(false);
+  if (queryInput.value.trim()) {
+    executeSearch(0);
+  }
+}
+
 async function initialize() {
   applyLocation();
+  renderRecentQueries();
   setServiceState("", "正在连接");
   await Promise.all([checkGateway(), loadBenchmarks()]);
   try {
@@ -769,7 +1297,10 @@ identityFactsBox.addEventListener("click", (event) => {
 });
 datasetPicker.addEventListener("click", (event) => {
   const button = event.target?.closest?.("[data-dataset]");
-  if (button && button.getAttribute("data-dataset") !== state.dataset) selectDataset(button.getAttribute("data-dataset"));
+  if (button && button.getAttribute("data-dataset") !== state.dataset) {
+    const hasQuery = Boolean(queryInput.value.trim());
+    selectDataset(button.getAttribute("data-dataset"), { runQuery: hasQuery, offset: 0 });
+  }
 });
 exampleQueries.addEventListener("click", (event) => {
   const button = event.target?.closest?.("[data-example]");
@@ -777,33 +1308,125 @@ exampleQueries.addEventListener("click", (event) => {
   queryInput.value = button.getAttribute("data-example") || "";
   state.offset = 0;
   updateUrl(true);
-  executeSearch(0);
+  if (state.activeView === "compare") compareAllModes();
+  else executeSearch(0);
 });
+if (recentQueriesBox) {
+  recentQueriesBox.addEventListener("click", (event) => {
+    if (event.target?.closest?.("[data-clear-recent]")) {
+      clearRecentQueries();
+      return;
+    }
+    const chip = event.target?.closest?.("[data-recent]");
+    if (!chip) return;
+    queryInput.value = chip.getAttribute("data-recent") || "";
+    state.offset = 0;
+    updateUrl(true);
+    executeSearch(0);
+  });
+}
+if (modeTabs) {
+  modeTabs.addEventListener("click", (event) => {
+    const tab = event.target?.closest?.("[data-mode-tab]");
+    if (!tab || tab.disabled) return;
+    selectModeTab(tab.getAttribute("data-mode-tab"));
+  });
+}
+if (toggleTraceButton) {
+  toggleTraceButton.addEventListener("click", () => {
+    const isOpen = traceDetails ? !traceDetails.hidden : false;
+    setTraceOpen(!isOpen);
+  });
+}
 resultBox.addEventListener("click", (event) => {
-  const button = event.target?.closest?.("[data-copy-doc]");
-  if (!button) return;
-  const original = button.textContent;
-  navigator.clipboard.writeText(button.getAttribute("data-copy-doc") || "")
-    .then(() => { button.textContent = "已复制"; })
-    .catch(() => { button.textContent = "复制失败"; })
-    .finally(() => { setTimeout(() => { button.textContent = original; }, 1400); });
+  const copyBtn = event.target?.closest?.("[data-copy-doc]");
+  if (copyBtn) {
+    event.stopPropagation();
+    const original = copyBtn.textContent;
+    navigator.clipboard.writeText(copyBtn.getAttribute("data-copy-doc") || "")
+      .then(() => { copyBtn.textContent = "已复制"; })
+      .catch(() => { copyBtn.textContent = "复制失败"; })
+      .finally(() => { setTimeout(() => { copyBtn.textContent = original; }, 1400); });
+    return;
+  }
+  const openBtn = event.target?.closest?.("[data-open-doc]");
+  if (openBtn) {
+    openDocument(openBtn.getAttribute("data-open-doc"));
+    return;
+  }
+  // Allow clicking anywhere on a result card (unless the user is selecting text)
+  const selection = typeof window !== "undefined" && typeof window.getSelection === "function"
+    ? String(window.getSelection() || "") : "";
+  if (selection.trim()) return;
+  const card = event.target?.closest?.("[data-card-doc]");
+  if (card) openDocument(card.getAttribute("data-card-doc"));
 });
 previousPage.addEventListener("click", () => changePage(-1));
 nextPage.addEventListener("click", () => changePage(1));
 copyUrlButton.addEventListener("click", copySearchUrl);
-modeInput.addEventListener("change", () => { syncLexicalControls(); updateUrl(false); });
-if (scorerInput) scorerInput.addEventListener("change", () => updateUrl(false));
-if (expanderInput) expanderInput.addEventListener("change", () => updateUrl(false));
-if (compareButton) compareButton.addEventListener("click", compareAllModes);
+modeInput.addEventListener("change", () => {
+  syncLexicalControls();
+  syncModeTabs();
+  updateUrl(false);
+});
+if (scorerInput) scorerInput.addEventListener("change", () => {
+  updateUrl(false);
+  if (queryInput.value.trim() && modeInput.value === "lexical") executeSearch(0);
+});
+if (expanderInput) expanderInput.addEventListener("change", () => {
+  updateUrl(false);
+  if (queryInput.value.trim() && modeInput.value === "lexical") executeSearch(0);
+});
 if (comparePanel) {
   comparePanel.addEventListener("click", (event) => {
     if (event.target?.closest?.("#close-compare")) {
       clearCompare();
       resultBox.hidden = false;
+      return;
     }
+    const openEl = event.target?.closest?.("[data-open-doc]");
+    if (openEl) openDocument(openEl.getAttribute("data-open-doc"));
   });
 }
-kInput.addEventListener("change", () => { state.offset = 0; updateUrl(false); });
+kInput.addEventListener("change", () => {
+  state.offset = 0;
+  updateUrl(false);
+  if (queryInput.value.trim() && state.activeView === "search") executeSearch(0);
+});
+
+if (docDrawerBackdrop) docDrawerBackdrop.addEventListener("click", closeDocumentDrawer);
+if (docDrawerClose) docDrawerClose.addEventListener("click", closeDocumentDrawer);
+if (docDrawerCloseFoot) docDrawerCloseFoot.addEventListener("click", closeDocumentDrawer);
+if (docDrawerNextHit) docDrawerNextHit.addEventListener("click", jumpToNextHit);
+if (docDrawerCopyId) {
+  docDrawerCopyId.addEventListener("click", () => {
+    const original = docDrawerCopyId.textContent;
+    navigator.clipboard.writeText(state.drawer.docId || "")
+      .then(() => { docDrawerCopyId.textContent = "已复制"; })
+      .catch(() => { docDrawerCopyId.textContent = "失败"; })
+      .finally(() => { setTimeout(() => { docDrawerCopyId.textContent = original; }, 1400); });
+  });
+}
+if (docDrawerCopy) {
+  docDrawerCopy.addEventListener("click", () => {
+    const original = docDrawerCopy.textContent;
+    navigator.clipboard.writeText(state.drawer.text || "")
+      .then(() => { docDrawerCopy.textContent = "正文已复制"; })
+      .catch(() => { docDrawerCopy.textContent = "复制失败"; })
+      .finally(() => { setTimeout(() => { docDrawerCopy.textContent = original; }, 1600); });
+  });
+}
+if (docDrawerResearch) {
+  docDrawerResearch.addEventListener("click", () => {
+    const nextQuery = state.drawer.title.replace(/…$/, "").trim();
+    if (!nextQuery) return;
+    closeDocumentDrawer();
+    queryInput.value = nextQuery;
+    state.offset = 0;
+    updateUrl(true);
+    executeSearch(0);
+  });
+}
 
 if (typeof window !== "undefined") {
   window.addEventListener("popstate", () => {
@@ -816,6 +1439,11 @@ if (typeof window !== "undefined") {
     }
   });
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && docDrawer && !docDrawer.hidden) {
+      event.preventDefault();
+      closeDocumentDrawer();
+      return;
+    }
     const tag = event.target?.tagName?.toLowerCase();
     if (event.key === "/" && !["input", "textarea", "select"].includes(tag)
         && !event.ctrlKey && !event.metaKey && !event.altKey) {
